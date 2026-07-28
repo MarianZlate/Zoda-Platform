@@ -135,6 +135,8 @@ nav{display:flex;align-items:center;gap:6px;}
 .gt-close:hover{color:#94a3b8;}
 #pwa-install-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4060;background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
 #pwa-install-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
+#pwa-ios-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4060;background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
+#pwa-ios-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
 /* PESCAR GUEST MODAL */
 #pescar-guest-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
 #pescar-guest-modal.open{display:flex;}
@@ -4411,6 +4413,73 @@ function repositionPwaToast() {
   toast.style.bottom = offset + 'px';
 }
 window.repositionPwaToast = repositionPwaToast;
+</script>
+
+<!-- PWA iOS INSTRUCTIONS TOAST (Safari nu are instalare automată — doar manual) -->
+<div id="pwa-ios-toast">
+  <div class="gt-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/>
+    </svg>
+  </div>
+  <div class="gt-text">
+    <div class="gt-title">Instalează aplicația Zoda</div>
+    <div class="gt-sub">Apasă butonul <strong style="color:#38bdf8;">Distribuie</strong> din bara Safari, apoi<br/>„Adaugă pe ecranul principal".</div>
+  </div>
+  <button class="gt-close" onclick="dismissIosToast()" title="Închide">✕</button>
+</div>
+
+<script>
+var PWA_IOS_DISMISS_KEY = 'zoda_pwa_ios_dismissed_at';
+
+function isIOSDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+function pwaIosRecentlyDismissed() {
+  var raw = localStorage.getItem(PWA_IOS_DISMISS_KEY);
+  if (!raw) return false;
+  var elapsedDays = (Date.now() - parseInt(raw, 10)) / (1000 * 60 * 60 * 24);
+  return elapsedDays < PWA_DISMISS_DAYS;
+}
+
+function showIosToast() {
+  if (!isIOSDevice() || pwaAlreadyInstalled() || pwaIosRecentlyDismissed()) return;
+  var t = document.getElementById('pwa-ios-toast');
+  if (!t) return;
+  if (window.repositionIosToast) window.repositionIosToast();
+  t.style.display = 'flex';
+  setTimeout(function() { t.classList.add('show'); }, 50);
+}
+
+function dismissIosToast() {
+  var t = document.getElementById('pwa-ios-toast');
+  if (t) {
+    t.classList.remove('show');
+    setTimeout(function() { t.style.display = 'none'; }, 400);
+  }
+  localStorage.setItem(PWA_IOS_DISMISS_KEY, String(Date.now()));
+}
+
+function repositionIosToast() {
+  var toast = document.getElementById('pwa-ios-toast');
+  if (!toast) return;
+  var bar = document.getElementById('promo-bar');
+  var cookie = document.getElementById('cookie-notice');
+  var guest = document.getElementById('guest-toast');
+  var offset = 24;
+  if (bar && bar.classList.contains('show')) {
+    offset = bar.offsetHeight + parseInt(bar.style.bottom || '0', 10) + 12;
+  } else if (guest && guest.classList.contains('show')) {
+    offset = guest.offsetHeight + parseInt(guest.style.bottom || '24', 10) + 12;
+  } else if (cookie && cookie.classList.contains('show')) {
+    offset = cookie.offsetHeight + 12;
+  }
+  toast.style.bottom = offset + 'px';
+}
+window.repositionIosToast = repositionIosToast;
+
+setTimeout(showIosToast, 3000);
 </script>
 
 
