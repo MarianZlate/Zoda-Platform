@@ -498,6 +498,14 @@ button{font-family:inherit;}
   .section-body{padding:26px 28px;}
   .avatar-name{font-size:20px;}
 }
+@keyframes notifGlowPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,.45);}
+  50%{box-shadow:0 0 0 8px rgba(56,189,248,0);}
+}
+#notif-hdr-main.push-cta-glow{
+  animation:notifGlowPulse 2s ease-in-out infinite;
+  border-radius:12px;
+}
 </style>
 </head>
 <body>
@@ -578,7 +586,7 @@ button{font-family:inherit;}
 
   <!-- ── NOTIFICĂRI ── -->
   <div class="section" id="section-notificari" style="display:none;">
-    <div class="section-hdr notif-hdr" onclick="toggleNotifPanel()">
+    <div class="section-hdr notif-hdr" id="notif-hdr-main" onclick="toggleNotifPanel()">
       <span class="section-icon">🔔</span>
       <div style="flex:1;">
         <div class="section-title">Notificările mele</div>
@@ -1178,6 +1186,7 @@ function urlBase64ToUint8Array(base64String) {
 async function initPushToggleState() {
   const row = document.getElementById('push-toggle-row');
   const btn = document.getElementById('push-toggle-btn');
+  const hdr = document.getElementById('notif-hdr-main');
   if (!row || !btn) return;
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return; // browser fără suport (ex. Safari <16.4)
 
@@ -1186,6 +1195,7 @@ async function initPushToggleState() {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.getSubscription();
     btn.textContent = sub ? 'Dezactivează' : 'Activează';
+    if (hdr) hdr.classList.toggle('push-cta-glow', !sub);
   } catch (e) {
     row.style.display = 'none';
   }
@@ -1206,6 +1216,7 @@ async function togglePushSubscription() {
       await sb.from('push_subscriptions').delete().eq('endpoint', existing.endpoint);
       await existing.unsubscribe();
       btn.textContent = 'Activează';
+      document.getElementById('notif-hdr-main')?.classList.add('push-cta-glow');
       showToast('🔕 Notificările push au fost dezactivate.');
     } else {
       // Abonare — cere permisiune explicit înainte, ca userul să știe ce urmează
@@ -1230,6 +1241,7 @@ async function togglePushSubscription() {
       }, { onConflict: 'endpoint' });
       if (error) throw error;
       btn.textContent = 'Dezactivează';
+      document.getElementById('notif-hdr-main')?.classList.remove('push-cta-glow');
       showToast('🔔 Notificările push sunt active!');
     }
   } catch (e) {
