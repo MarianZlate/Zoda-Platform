@@ -950,9 +950,15 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const WORKER_R2_UPLOAD = 'https://zoda-r2-upload.marianzlate90.workers.dev';
 // ── Cloudinary eliminat — upload via Cloudflare R2 ──────────────────────────
 async function uploadToR2(file, folder) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
   const fd = new FormData();
   fd.append('file', file);
-  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, { method: 'POST', body: fd });
+  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${session.access_token}` },
+    body: fd,
+  });
   const data = await resp.json();
   if (!resp.ok || !data.url) throw new Error(data.error || 'Eroare upload R2');
   return data.url;
