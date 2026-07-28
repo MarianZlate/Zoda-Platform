@@ -687,7 +687,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
       star: true,
       date: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
       trecut: false,
-      link: `balta.html?id=${s.balta_id}`,
+      link: `balta.html?id=${s.balta_id}&stand=${s.id}`,
     });
   });
 
@@ -747,7 +747,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
         trecut: true,
-        link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
+        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
       });
     });
 
@@ -772,7 +772,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
         trecut: true,
-        link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
+        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
       });
     });
 
