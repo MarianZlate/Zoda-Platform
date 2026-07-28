@@ -16,7 +16,7 @@
  * primească automat noua versiune la următoarea vizită.
  */
 
-const CACHE_VERSION = 'zoda-v1';
+const CACHE_VERSION = 'zoda-v2';
 const SHELL_CACHE = `zoda-shell-${CACHE_VERSION}`;
 const R2_CACHE = 'zoda-r2-media';
 
