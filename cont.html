@@ -994,11 +994,14 @@ const WORKER_R2_UPLOAD     = 'https://zoda-r2-upload.marianzlate90.workers.dev';
 // ── Cloudinary eliminat — upload via Cloudflare R2 ──────────────────────────
 // Funcție centralizată cu progress pentru R2
 async function uploadToR2(file, folder, onProgress) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
   return new Promise((resolve, reject) => {
     const fd = new FormData();
     fd.append('file', file);
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${WORKER_R2_UPLOAD}?folder=${folder}`);
+    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
     xhr.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
     xhr.onload = () => {
       try {
