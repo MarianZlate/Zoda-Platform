@@ -526,6 +526,28 @@ button{font-family:inherit;}
           <label for="avatar-input" class="avatar-edit-btn" title="Schimbă poza de profil">📷</label>
           <input type="file" id="avatar-input" accept="image/*" style="display:none;" onchange="onAvatarFile(this)"/>
         </div>
+
+        <!-- Modal crop/zoom poza de profil -->
+        <div id="modal-avatar-crop" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.82);backdrop-filter:blur(3px);z-index:9200;align-items:center;justify-content:center;padding:16px;">
+          <div style="background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;max-width:360px;width:100%;text-align:center;">
+            <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:var(--text);margin-bottom:4px;">Ajustează poza de profil</div>
+            <div style="font-size:12px;color:var(--text-faint);margin-bottom:16px;">Trage pentru a poziționa, folosește sliderul pentru zoom</div>
+
+            <div id="avatar-crop-stage" style="position:relative;width:260px;height:260px;margin:0 auto 16px;border-radius:50%;overflow:hidden;background:#000;cursor:grab;touch-action:none;box-shadow:0 0 0 3px var(--forest);">
+              <img id="avatar-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+              <span style="font-size:15px;color:var(--text-faint);">🔍</span>
+              <input id="avatar-crop-zoom" type="range" min="100" max="300" value="100" style="flex:1;accent-color:var(--lime);" oninput="onAvatarCropZoom(this.value)"/>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+              <button onclick="cancelAvatarCrop()" class="btn-secondary" style="flex:1;padding:11px;border-radius:var(--r-md);border:1px solid var(--border);background:transparent;color:var(--text-faint);font-weight:700;cursor:pointer;">Anulează</button>
+              <button onclick="confirmAvatarCrop()" class="btn-primary" style="flex:1;padding:11px;border-radius:var(--r-md);border:none;background:linear-gradient(135deg,var(--forest),var(--forest-2));color:#e0f7ff;font-weight:700;cursor:pointer;">Salvează</button>
+            </div>
+          </div>
+        </div>
         <div class="avatar-info">
           <div class="avatar-name" id="display-name">—</div>
           <div class="avatar-email" id="display-email">—</div>
@@ -2044,15 +2066,137 @@ function viewPublicProfile() {
 }
 
 // ── AVATAR UPLOAD ─────────────────────────────────────────────────────────────
-async function onAvatarFile(input) {
+let _avatarCrop = { imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+const AVATAR_STAGE = 260; // px, trebuie sa corespunda cu #avatar-crop-stage din HTML
+
+function onAvatarFile(input) {
   const file = input.files[0];
   if (!file) return;
+  openAvatarCropper(file);
+  // Permite re-selectarea aceluiași fișier ulterior (altfel onchange nu se mai declanșează)
+  input.value = '';
+}
 
+function openAvatarCropper(file) {
+  const modal = document.getElementById('modal-avatar-crop');
+  const img = document.getElementById('avatar-crop-img');
+  const stage = document.getElementById('avatar-crop-stage');
+  const zoomSlider = document.getElementById('avatar-crop-zoom');
+
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    _avatarCrop.imgEl = img;
+    _avatarCrop.naturalW = img.naturalWidth;
+    _avatarCrop.naturalH = img.naturalHeight;
+    // baseScale = imaginea acoperă complet cercul de 260px (gen CSS background-size:cover)
+    _avatarCrop.baseScale = Math.max(AVATAR_STAGE / img.naturalWidth, AVATAR_STAGE / img.naturalHeight);
+    _avatarCrop.zoom = 1;
+    _avatarCrop.offX = 0;
+    _avatarCrop.offY = 0;
+    zoomSlider.value = 100;
+    _avatarCrop.sourceFile = file;
+    applyAvatarCropTransform();
+  };
+  img.src = url;
+
+  modal.style.display = 'flex';
+
+  // Drag pentru poziționare (mouse + touch, via Pointer Events)
+  stage.onpointerdown = (e) => {
+    _avatarCrop.dragging = true;
+    _avatarCrop.startX = e.clientX;
+    _avatarCrop.startY = e.clientY;
+    _avatarCrop.startOffX = _avatarCrop.offX;
+    _avatarCrop.startOffY = _avatarCrop.offY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor = 'grabbing';
+  };
+  stage.onpointermove = (e) => {
+    if (!_avatarCrop.dragging) return;
+    _avatarCrop.offX = _avatarCrop.startOffX + (e.clientX - _avatarCrop.startX);
+    _avatarCrop.offY = _avatarCrop.startOffY + (e.clientY - _avatarCrop.startY);
+    clampAvatarOffset();
+    applyAvatarCropTransform();
+  };
+  const stopDrag = () => { _avatarCrop.dragging = false; stage.style.cursor = 'grab'; };
+  stage.onpointerup = stopDrag;
+  stage.onpointercancel = stopDrag;
+  // Zoom cu rotița mouse-ului, ca bonus pe desktop
+  stage.onwheel = (e) => {
+    e.preventDefault();
+    const cur = parseFloat(zoomSlider.value);
+    const next = Math.min(300, Math.max(100, cur - e.deltaY * 0.15));
+    zoomSlider.value = next;
+    onAvatarCropZoom(next);
+  };
+}
+
+function onAvatarCropZoom(val) {
+  _avatarCrop.zoom = val / 100;
+  clampAvatarOffset();
+  applyAvatarCropTransform();
+}
+
+function clampAvatarOffset() {
+  const scale = _avatarCrop.baseScale * _avatarCrop.zoom;
+  const dispW = _avatarCrop.naturalW * scale;
+  const dispH = _avatarCrop.naturalH * scale;
+  const maxOffX = Math.max(0, (dispW - AVATAR_STAGE) / 2);
+  const maxOffY = Math.max(0, (dispH - AVATAR_STAGE) / 2);
+  _avatarCrop.offX = Math.min(maxOffX, Math.max(-maxOffX, _avatarCrop.offX));
+  _avatarCrop.offY = Math.min(maxOffY, Math.max(-maxOffY, _avatarCrop.offY));
+}
+
+function applyAvatarCropTransform() {
+  const scale = _avatarCrop.baseScale * _avatarCrop.zoom;
+  const dispW = _avatarCrop.naturalW * scale;
+  const dispH = _avatarCrop.naturalH * scale;
+  // Poziționăm centrat + offset de drag
+  const left = (AVATAR_STAGE - dispW) / 2 + _avatarCrop.offX;
+  const top  = (AVATAR_STAGE - dispH) / 2 + _avatarCrop.offY;
+  _avatarCrop.imgEl.style.width = dispW + 'px';
+  _avatarCrop.imgEl.style.height = dispH + 'px';
+  _avatarCrop.imgEl.style.transform = `translate(${left}px, ${top}px)`;
+}
+
+function cancelAvatarCrop() {
+  document.getElementById('modal-avatar-crop').style.display = 'none';
+  const img = document.getElementById('avatar-crop-img');
+  if (img.src) { URL.revokeObjectURL(img.src); img.src = ''; }
+}
+
+async function confirmAvatarCrop() {
+  const OUT = 400; // rezoluție finală crop, înainte de resize-ul standard la 200x200
+  const scale = _avatarCrop.baseScale * _avatarCrop.zoom;
+  const factor = OUT / AVATAR_STAGE;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = OUT;
+  canvas.height = OUT;
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.translate(
+    (OUT / 2) + (_avatarCrop.offX * factor),
+    (OUT / 2) + (_avatarCrop.offY * factor)
+  );
+  ctx.scale(scale * factor, scale * factor);
+  ctx.drawImage(_avatarCrop.imgEl, -_avatarCrop.naturalW / 2, -_avatarCrop.naturalH / 2);
+  ctx.restore();
+
+  canvas.toBlob(async (blob) => {
+    if (!blob) { showToast('⚠️ Eroare la procesarea imaginii', true); return; }
+    const croppedFile = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+    cancelAvatarCrop();
+    await uploadAvatarFinal(croppedFile);
+  }, 'image/jpeg', 0.90);
+}
+
+async function uploadAvatarFinal(file) {
   const btn = document.querySelector('.avatar-edit-btn');
   btn.textContent = '⏳';
 
   try {
-    // Resize la 200x200px max, JPEG 80%
+    // Resize la 200x200px max, JPEG 80% (imaginea e deja decupată pătrat de utilizator)
     const resized = await resizeImage(file, 200, 200, 0.80);
     const avatarUrl = await uploadToR2(resized, 'avatare');
     // Salvăm în user_profiles
