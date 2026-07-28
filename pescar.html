@@ -436,13 +436,14 @@ async function toggleUrmarirePescar() {
 }
 
 function realizareRow(opts) {
-  const { iconWrapClass, icon, title, meta, star, date, trecut, link } = opts;
+  const { iconWrapClass, icon, title, meta, metaHtml, star, date, trecut, link } = opts;
   const cls = 'rez-row' + (trecut ? ' trecut' : '');
+  const metaContent = metaHtml !== undefined ? metaHtml : escH(meta);
   const inner = `
     <div class="rez-icon-wrap ${iconWrapClass}">${icon}</div>
     <div class="rez-body">
       <div class="rez-title">${escH(title)}</div>
-      <div class="rez-meta">${escH(meta)}</div>
+      <div class="rez-meta">${metaContent}</div>
       ${date ? `<div class="rez-date">📅 ${escH(date)}</div>` : ''}
     </div>
     ${star ? `<div class="rez-star">⭐ +1</div>` : ''}`;
@@ -671,13 +672,14 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
   // ── RECORDURI STAND ACTIVE ────────────────────────────────────────────────
   recorduriActive.forEach(s => {
     const baltaNume = s.balti?.nume || '—';
-    const judet = s.balti?.judet ? ` · ${s.balti.judet}` : '';
+    const judet = s.balti?.judet ? ` · ${escH(s.balti.judet)}` : '';
     const stea = steleLog.find(l => l.tip === 'record_stand' && l.referinta === String(s.id));
+    const kgEsc = s.rec_kg ? escH(String(s.rec_kg)) : '';
     activeHtml += realizareRow({
       iconWrapClass: 'gold',
       icon: '🏆',
       title: `Record Stand — ${s.nume}`,
-      meta: `${baltaNume}${judet}${s.rec_kg ? ' · <strong style="color:#38bdf8;">' + s.rec_kg + ' kg</strong>' : ''}`,
+      metaHtml: `${escH(baltaNume)}${judet}${kgEsc ? ' · <strong style="color:#38bdf8;">' + kgEsc + ' kg</strong>' : ''}`,
       star: true,
       date: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
       trecut: false,
@@ -715,7 +717,8 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         iconWrapClass: 'gold',
         icon: '🥇',
         title: `Hall of Fame — Locul ${p.pozitie}`,
-        meta: `${baltaNume} · <strong style="color:#38bdf8;">${parseFloat(p.kg).toFixed(1)} kg</strong>`,
+        meta: undefined,
+        metaHtml: `${escH(baltaNume)} · <strong style="color:#38bdf8;">${parseFloat(p.kg).toFixed(1)} kg</strong>`,
         star: true,
         date: 'Activ',
         trecut: false,
@@ -736,7 +739,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         iconWrapClass: 'gray',
         icon: '🏆',
         title: titleStr,
-        meta: baltaNume + kgStr,
+        metaHtml: escH(baltaNume) + kgStr,
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
         trecut: true,
@@ -761,7 +764,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         iconWrapClass: 'gray',
         icon: '🏆',
         title: standNume ? `Record Stand — ${standNume}` : 'Record Stand',
-        meta: baltaNume + kgStr,
+        metaHtml: escH(baltaNume) + kgStr,
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
         trecut: true,
@@ -803,7 +806,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
         iconWrapClass: 'gray',
         icon: '🥇',
         title: 'Hall of Fame — poziție pierdută',
-        meta: baltaNume + kgStr,
+        metaHtml: escH(baltaNume) + kgStr,
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
         trecut: true,
