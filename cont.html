@@ -1196,6 +1196,16 @@ async function initPushToggleState() {
     const sub = await reg.pushManager.getSubscription();
     btn.textContent = sub ? 'Dezactivează' : 'Activează';
     if (hdr) hdr.classList.toggle('push-cta-glow', !sub);
+
+    // Pentru cei care rulează din aplicația instalată (standalone) — au arătat
+    // deja intenție clară — declanșăm automat cererea de permisiune, o singură
+    // dată per instalare, în loc să aștepte să găsească butonul manual.
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const alreadyAutoAsked = localStorage.getItem('zoda_push_auto_asked');
+    if (isStandalone && !sub && !alreadyAutoAsked && Notification.permission === 'default') {
+      localStorage.setItem('zoda_push_auto_asked', '1');
+      setTimeout(() => togglePushSubscription(), 1500);
+    }
   } catch (e) {
     row.style.display = 'none';
   }
