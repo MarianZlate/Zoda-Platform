@@ -587,6 +587,10 @@ button{font-family:inherit;}
       <span class="notif-chevron" id="notif-chevron">▾</span>
     </div>
     <div class="section-body" id="notif-body" style="display:none;padding-top:6px;padding-bottom:14px;">
+      <div id="push-toggle-row" style="display:none;align-items:center;justify-content:space-between;gap:10px;background:#0a0f1a;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:12.5px;color:#94a3b8;line-height:1.4;">📲 Primește notificări și pe telefon, chiar și cu aplicația închisă.</div>
+        <button id="push-toggle-btn" onclick="togglePushSubscription()" style="flex-shrink:0;background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">Activează</button>
+      </div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
         <button class="mark-all-btn" onclick="markAllRead()">Marchează toate citite</button>
       </div>
@@ -1085,6 +1089,15 @@ async function boot() {
   // Secțiunea de balta_admin/zoda_admin și cea de ambasador nu depind una de
   // cealaltă — pornim tot ce se poate porni simultan, nu una după alta.
   const promisePrincipale = Promise.all([loadCapturi(), loadStele(), loadNotificari()]);
+  initPushToggleState();
+  promisePrincipale.then(() => {
+    // Deep-link dintr-o notificare push — deschide automat panoul de notificări
+    if (new URLSearchParams(location.search).get('open') === 'notificari') {
+      const body = document.getElementById('notif-body');
+      if (body && body.style.display === 'none') toggleNotifPanel();
+      document.getElementById('section-notificari')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
   const promiseAmbasador = loadBaltiAmbasador();
   const promiseAdminBalti = (currentRole === 'balta_admin' || currentRole === 'zoda_admin')
     ? loadBaltiAdmin() : Promise.resolve(0);
@@ -1150,6 +1163,81 @@ function toggleNotifPanel() {
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   chevron.classList.toggle('open', !isOpen);
+}
+
+// ── PUSH NOTIFICATIONS ───────────────────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BJIywq4496UTCVbXLZS-dwDxPhVvjVf6LXT-hD42PxHTPTCLK7ZBd-zbiK2etZE9ExV9ER3WnL0BKzvg1clHky0';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+async function initPushToggleState() {
+  const row = document.getElementById('push-toggle-row');
+  const btn = document.getElementById('push-toggle-btn');
+  if (!row || !btn) return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return; // browser fără suport (ex. Safari <16.4)
+
+  row.style.display = 'flex';
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    btn.textContent = sub ? 'Dezactivează' : 'Activează';
+  } catch (e) {
+    row.style.display = 'none';
+  }
+}
+
+async function togglePushSubscription() {
+  const btn = document.getElementById('push-toggle-btn');
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Se procesează...';
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const existing = await reg.pushManager.getSubscription();
+
+    if (existing) {
+      // Dezabonare
+      await sb.from('push_subscriptions').delete().eq('endpoint', existing.endpoint);
+      await existing.unsubscribe();
+      btn.textContent = 'Activează';
+      showToast('🔕 Notificările push au fost dezactivate.');
+    } else {
+      // Abonare — cere permisiune explicit înainte, ca userul să știe ce urmează
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        showToast('⚠️ Trebuie să permiți notificările din setările browserului.', true);
+        btn.textContent = originalText;
+        btn.disabled = false;
+        return;
+      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+      const json = sub.toJSON();
+      const { error } = await sb.from('push_subscriptions').upsert({
+        user_id: currentUser.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth_key: json.keys.auth,
+        user_agent: navigator.userAgent,
+      }, { onConflict: 'endpoint' });
+      if (error) throw error;
+      btn.textContent = 'Dezactivează';
+      showToast('🔔 Notificările push sunt active!');
+    }
+  } catch (e) {
+    showToast('⚠️ Eroare: ' + e.message, true);
+    btn.textContent = originalText;
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function loadNotificari() {
