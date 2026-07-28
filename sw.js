@@ -124,3 +124,36 @@ self.addEventListener('fetch', (event) => {
   }
   // orice altceva (fonturi externe, CDN-uri terțe) — comportament implicit al browserului
 });
+
+// ── PUSH NOTIFICATIONS ───────────────────────────────────────────────────
+// Primește mesajul push (trimis de Worker-ul zoda-push-send) și afișează
+// notificarea nativă pe telefon, chiar și cu aplicația/tab-ul închis.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) {}
+  const title = data.title || 'Zoda';
+  const options = {
+    body: data.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url: data.url || '/cont.html' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// La click pe notificare — deschide pagina relevantă, sau focalizează
+// tab-ul deja deschis dacă platforma e deja activă într-un tab.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/cont.html';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(new URL(targetUrl, self.location.origin).pathname) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
+  );
+});
