@@ -1100,6 +1100,7 @@ document.addEventListener('touchstart', function(e) {
 })();
 
 function initMap() {
+  if (map) return; // deja inițializată — Leaflet aruncă eroare la re-inițializare pe același container
   map = L.map('map', { center: [45.5, 24.8], zoom: 7, preferCanvas: true });
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
@@ -1873,6 +1874,27 @@ window.addEventListener('load', () => {
       history.replaceState(null, '', location.pathname + location.hash);
     }
   } catch (e) {}
+
+  // WATCHDOG — dacă, dintr-un motiv oarecare (eroare intermediară, cursă la
+  // încărcare), harta sau lista de bălți tot n-au apărut la 3 secunde după
+  // load, mai încercăm o dată automat, în loc să rămână pagina "înghețată"
+  // pentru vizitator fără nicio recuperare.
+  setTimeout(() => {
+    if (!map) { console.warn('[zoda] harta nu s-a inițializat, reîncerc'); try { initMap(); } catch (e) { console.error('[zoda] initMap a eșuat din nou:', e); } }
+    if (!BALTI.length) { console.warn('[zoda] lista de bălți e goală, reîncerc'); loadBaltiFromSupabase(); }
+  }, 3000);
+});
+
+// BFCACHE — când userul revine la index.html prin butonul "înapoi" al
+// browserului, paginile pot fi restaurate direct din cache-ul intern al
+// browserului (bfcache), fără să se mai declanșeze evenimentul 'load'.
+// Dacă din orice motiv pagina fusese "înghețată" într-o stare incompletă
+// înainte să plece userul de pe ea, verificăm și reparăm la revenire.
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    if (!map) { try { initMap(); } catch (e) { console.error('[zoda] initMap la pageshow a eșuat:', e); } }
+    if (!BALTI.length) loadBaltiFromSupabase();
+  }
 });
 
 // ════════════════════════════════════════════════════════════════════════════════
