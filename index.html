@@ -4480,6 +4480,24 @@ function pwaAlreadyInstalled() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
 
+// Verificare suplimentară — pwaAlreadyInstalled() de mai sus detectează
+// DOAR dacă rulăm chiar acum ca aplicație instalată. Un user poate avea
+// aplicația instalată dar în momentul ăsta să navigheze într-un tab normal
+// de Chrome (ex. a dat click pe un link vechi) — caz în care display-mode
+// nu e "standalone", deși aplicația chiar e instalată pe telefon. API-ul
+// de mai jos (suportat pe Chrome/Android) confirmă instalarea real, indiferent
+// cum a fost deschisă pagina curentă.
+async function pwaInstalledAnywhere() {
+  if (pwaAlreadyInstalled()) return true;
+  if (!('getInstalledRelatedApps' in navigator)) return false;
+  try {
+    var related = await navigator.getInstalledRelatedApps();
+    return related.length > 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 function pwaRecentlyDismissed() {
   var raw = localStorage.getItem(PWA_DISMISS_KEY);
   if (!raw) return false;
@@ -4490,8 +4508,11 @@ function pwaRecentlyDismissed() {
 window.addEventListener('beforeinstallprompt', function(e) {
   e.preventDefault();
   _pwaDeferredPrompt = e;
-  if (pwaAlreadyInstalled() || pwaRecentlyDismissed()) return;
-  setTimeout(showPwaToast, 3000);
+  if (pwaRecentlyDismissed()) return;
+  pwaInstalledAnywhere().then(function(installed) {
+    if (installed) return;
+    setTimeout(showPwaToast, 3000);
+  });
 });
 
 window.addEventListener('appinstalled', function() {
