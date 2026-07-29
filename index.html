@@ -4,6 +4,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#070b13"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
 <title>Zoda — Bălți de pescuit din România</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -128,6 +133,10 @@ nav{display:flex;align-items:center;gap:6px;}
 .gt-btn:hover{background:#0891b2;}
 .gt-close{background:transparent;border:none;color:#334155;font-size:18px;cursor:pointer;line-height:1;padding:0 0 0 4px;flex-shrink:0;transition:color .2s;}
 .gt-close:hover{color:#94a3b8;}
+#pwa-install-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4060;background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
+#pwa-install-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
+#pwa-ios-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4060;background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
+#pwa-ios-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
 /* PESCAR GUEST MODAL */
 #pescar-guest-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
 #pescar-guest-modal.open{display:flex;}
@@ -950,9 +959,15 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const WORKER_R2_UPLOAD = 'https://zoda-r2-upload.marianzlate90.workers.dev';
 // ── Cloudinary eliminat — upload via Cloudflare R2 ──────────────────────────
 async function uploadToR2(file, folder) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
   const fd = new FormData();
   fd.append('file', file);
-  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, { method: 'POST', body: fd });
+  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${session.access_token}` },
+    body: fd,
+  });
   const data = await resp.json();
   if (!resp.ok || !data.url) throw new Error(data.error || 'Eroare upload R2');
   return data.url;
@@ -4315,6 +4330,158 @@ function closeGuestToast() {
 }
 </script>
 
+<!-- PWA INSTALL TOAST -->
+<div id="pwa-install-toast">
+  <div class="gt-icon">📲</div>
+  <div class="gt-text">
+    <div class="gt-title">Instalează aplicația Zoda</div>
+    <div class="gt-sub">Acces rapid direct de pe ecranul principal,<br/>fără să mai cauți linkul.</div>
+  </div>
+  <button class="gt-btn" onclick="installPwa()">Instalează</button>
+  <button class="gt-close" onclick="dismissPwaToast()" title="Închide">✕</button>
+</div>
+
+<script>
+var _pwaDeferredPrompt = null;
+var PWA_DISMISS_KEY = 'zoda_pwa_install_dismissed_at';
+var PWA_DISMISS_DAYS = 14;
+
+function pwaAlreadyInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function pwaRecentlyDismissed() {
+  var raw = localStorage.getItem(PWA_DISMISS_KEY);
+  if (!raw) return false;
+  var elapsedDays = (Date.now() - parseInt(raw, 10)) / (1000 * 60 * 60 * 24);
+  return elapsedDays < PWA_DISMISS_DAYS;
+}
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaDeferredPrompt = e;
+  if (pwaAlreadyInstalled() || pwaRecentlyDismissed()) return;
+  setTimeout(showPwaToast, 3000);
+});
+
+window.addEventListener('appinstalled', function() {
+  dismissPwaToast(true);
+});
+
+function showPwaToast() {
+  if (!_pwaDeferredPrompt || pwaAlreadyInstalled()) return;
+  var t = document.getElementById('pwa-install-toast');
+  if (!t) return;
+  if (window.repositionPwaToast) window.repositionPwaToast();
+  t.style.display = 'flex';
+  setTimeout(function() { t.classList.add('show'); }, 50);
+}
+
+function dismissPwaToast(skipRemember) {
+  var t = document.getElementById('pwa-install-toast');
+  if (t) {
+    t.classList.remove('show');
+    setTimeout(function() { t.style.display = 'none'; }, 400);
+  }
+  if (!skipRemember) localStorage.setItem(PWA_DISMISS_KEY, String(Date.now()));
+}
+
+async function installPwa() {
+  if (!_pwaDeferredPrompt) { dismissPwaToast(); return; }
+  _pwaDeferredPrompt.prompt();
+  var choice = await _pwaDeferredPrompt.userChoice;
+  _pwaDeferredPrompt = null;
+  dismissPwaToast(choice.outcome === 'accepted');
+}
+
+// Ridică bannerul deasupra oricărui alt banner de jos deja vizibil
+// (reclamă, cookie, sau "Ești pescar?"), ca să nu se suprapună.
+function repositionPwaToast() {
+  var toast = document.getElementById('pwa-install-toast');
+  if (!toast) return;
+  var bar = document.getElementById('promo-bar');
+  var cookie = document.getElementById('cookie-notice');
+  var guest = document.getElementById('guest-toast');
+  var offset = 24;
+  if (bar && bar.classList.contains('show')) {
+    offset = bar.offsetHeight + parseInt(bar.style.bottom || '0', 10) + 12;
+  } else if (guest && guest.classList.contains('show')) {
+    offset = guest.offsetHeight + parseInt(guest.style.bottom || '24', 10) + 12;
+  } else if (cookie && cookie.classList.contains('show')) {
+    offset = cookie.offsetHeight + 12;
+  }
+  toast.style.bottom = offset + 'px';
+}
+window.repositionPwaToast = repositionPwaToast;
+</script>
+
+<!-- PWA iOS INSTRUCTIONS TOAST (Safari nu are instalare automată — doar manual) -->
+<div id="pwa-ios-toast">
+  <div class="gt-icon">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 16V4"/><path d="M8 8l4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/>
+    </svg>
+  </div>
+  <div class="gt-text">
+    <div class="gt-title">Instalează aplicația Zoda</div>
+    <div class="gt-sub">Apasă butonul <strong style="color:#38bdf8;">Distribuie</strong> din bara Safari, apoi<br/>„Adaugă pe ecranul principal".</div>
+  </div>
+  <button class="gt-close" onclick="dismissIosToast()" title="Închide">✕</button>
+</div>
+
+<script>
+var PWA_IOS_DISMISS_KEY = 'zoda_pwa_ios_dismissed_at';
+
+function isIOSDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+function pwaIosRecentlyDismissed() {
+  var raw = localStorage.getItem(PWA_IOS_DISMISS_KEY);
+  if (!raw) return false;
+  var elapsedDays = (Date.now() - parseInt(raw, 10)) / (1000 * 60 * 60 * 24);
+  return elapsedDays < PWA_DISMISS_DAYS;
+}
+
+function showIosToast() {
+  if (!isIOSDevice() || pwaAlreadyInstalled() || pwaIosRecentlyDismissed()) return;
+  var t = document.getElementById('pwa-ios-toast');
+  if (!t) return;
+  if (window.repositionIosToast) window.repositionIosToast();
+  t.style.display = 'flex';
+  setTimeout(function() { t.classList.add('show'); }, 50);
+}
+
+function dismissIosToast() {
+  var t = document.getElementById('pwa-ios-toast');
+  if (t) {
+    t.classList.remove('show');
+    setTimeout(function() { t.style.display = 'none'; }, 400);
+  }
+  localStorage.setItem(PWA_IOS_DISMISS_KEY, String(Date.now()));
+}
+
+function repositionIosToast() {
+  var toast = document.getElementById('pwa-ios-toast');
+  if (!toast) return;
+  var bar = document.getElementById('promo-bar');
+  var cookie = document.getElementById('cookie-notice');
+  var guest = document.getElementById('guest-toast');
+  var offset = 24;
+  if (bar && bar.classList.contains('show')) {
+    offset = bar.offsetHeight + parseInt(bar.style.bottom || '0', 10) + 12;
+  } else if (guest && guest.classList.contains('show')) {
+    offset = guest.offsetHeight + parseInt(guest.style.bottom || '24', 10) + 12;
+  } else if (cookie && cookie.classList.contains('show')) {
+    offset = cookie.offsetHeight + 12;
+  }
+  toast.style.bottom = offset + 'px';
+}
+window.repositionIosToast = repositionIosToast;
+
+setTimeout(showIosToast, 3000);
+</script>
+
 
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
@@ -4509,5 +4676,6 @@ function closeGuestToast() {
 })();
 </script>
 
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
 </body>
 </html>

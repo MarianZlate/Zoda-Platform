@@ -4,6 +4,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#070b13"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
 <title>Zoda - Baltă</title>
 <style>
 /* ============================================================
@@ -2116,9 +2121,15 @@ async function uploadOverlayStandFoto(input) {
       status.textContent = 'Se încarcă poza...';
     }
     file = await resizeImage(file, 1200, 99999, 0.80);
+    var sessRes = await sb.auth.getSession();
+    if (!sessRes.data.session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
     var fd = new FormData();
     fd.append('file', file);
-    var resp = await fetch(WORKER_R2_UPLOAD + '?folder=standuri', { method: 'POST', body: fd });
+    var resp = await fetch(WORKER_R2_UPLOAD + '?folder=standuri', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + sessRes.data.session.access_token },
+      body: fd,
+    });
     var data = await resp.json();
     if (!resp.ok || !data.url) throw new Error(data.error || 'Eroare upload');
 
@@ -2335,9 +2346,15 @@ async function ambOnFotoSelect(input) {
       status.textContent = 'Se încarcă poza...';
     }
     file = await resizeImage(file, 1200, 99999, 0.80);
+    var sessRes = await sb.auth.getSession();
+    if (!sessRes.data.session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
     var fd = new FormData();
     fd.append('file', file);
-    var resp = await fetch(WORKER_R2_UPLOAD + '?folder=standuri', { method: 'POST', body: fd });
+    var resp = await fetch(WORKER_R2_UPLOAD + '?folder=standuri', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + sessRes.data.session.access_token },
+      body: fd,
+    });
     var data = await resp.json();
     if (!resp.ok || !data.url) throw new Error(data.error || 'Eroare upload');
 
@@ -3447,5 +3464,6 @@ function startDrag(e, id) {
 })();
 </script>
 
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
 </body>
 </html>

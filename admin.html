@@ -4,6 +4,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#070b13"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
 <title>Zoda — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -3225,9 +3230,15 @@ async function dezleagaAmbasadorDeToateBaltile(zodaId, username) {
 // Funcție helper centralizată pentru upload la R2
 async function uploadToR2(file, folder) {
   file = await ensureNotHeic(file);
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Trebuie să fii autentificat pentru a încărca fișiere.');
   const fd = new FormData();
   fd.append('file', file);
-  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, { method: 'POST', body: fd });
+  const resp = await fetch(`${WORKER_R2_UPLOAD}?folder=${folder}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${session.access_token}` },
+    body: fd,
+  });
   const data = await resp.json();
   if (!resp.ok || !data.url) throw new Error(data.error || 'Eroare upload R2');
   return data.url;
@@ -4583,5 +4594,6 @@ window.addEventListener('load', () => { checkDraft(); });
 })();
 </script>
 
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
 </body>
 </html>
