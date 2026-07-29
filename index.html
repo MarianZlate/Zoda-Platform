@@ -3855,6 +3855,62 @@ function restoreIndexState() {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
+// ── AUTO-PROMPT PUSH pentru aplicația instalată (standalone) ──────────────
+// Userii care au instalat PWA-ul ajung de obicei direct aici (index.html),
+// nu în cont.html — dacă n-am cere aici, mulți n-ar activa niciodată
+// notificările, pentru că nu au niciun motiv să intre în "Contul meu".
+// Aceeași cheie VAPID și același flag localStorage ca în cont.html, ca să
+// nu cerem de două ori dacă userul ajunge și acolo ulterior.
+const ZODA_VAPID_PUBLIC_KEY = 'BME-SOgjhV3uy7WCn1AGeYju0XnBsOqGqGW2Vp9SCrwGFlJr9L_d3Ni82FuDqkKDpDh6O9wx2EGAxukg9Wrfwqo';
+
+function zodaUrlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+async function autoAskPushIfStandalone(user) {
+  if (!user) return; // avem nevoie de user_id ca să salvăm abonamentul
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (!isStandalone) return;
+  if (Notification.permission !== 'default') return; // deja întrebat de browser (accept/refuz)
+  if (localStorage.getItem('zoda_push_auto_asked')) return; // o singură dată per instalare
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) { localStorage.setItem('zoda_push_auto_asked', '1'); return; } // deja abonat
+
+    localStorage.setItem('zoda_push_auto_asked', '1');
+    setTimeout(async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: zodaUrlBase64ToUint8Array(ZODA_VAPID_PUBLIC_KEY),
+        });
+        const json = sub.toJSON();
+        await sb.from('push_subscriptions').upsert({
+          user_id: user.id,
+          endpoint: json.endpoint,
+          p256dh: json.keys.p256dh,
+          auth_key: json.keys.auth,
+          user_agent: navigator.userAgent,
+        }, { onConflict: 'endpoint' });
+        showToast('🔔 Notificările push sunt active!');
+      } catch (e) {
+        // eșec silențios — userul poate oricând activa manual din Contul meu
+      }
+    }, 1500);
+  } catch (e) {
+    // service worker indisponibil — nu insistăm
+  }
+}
+
 // La load: INITIAL_SESSION e garantat cu starea reală din localStorage
 sb.auth.onAuthStateChange(async (event, session) => {
   if(event === 'INITIAL_SESSION') {
@@ -3879,6 +3935,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
       setTimeout(function() { showGuestToast(); }, 8000);
     }
     renderBalti(); // reîncarcă istoricul din sursa corectă (cont sau local)
+    autoAskPushIfStandalone(currentUser);
   } else if(event === 'SIGNED_IN') {
     currentUser = session?.user || null;
     if (currentUser) {
