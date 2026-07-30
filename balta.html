@@ -2829,6 +2829,7 @@ function initSortListDrag() {
     // Mouse
     row.setAttribute('draggable', 'true');
     row.addEventListener('dragstart', function(e) {
+      if (!e.target.closest('.sort-row-handle')) { e.preventDefault(); return; }
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       row.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -2856,6 +2857,7 @@ function initSortListDrag() {
     // Touch
     var touchStartY = 0, touchClone = null;
     row.addEventListener('touchstart', function(e) {
+      if (!e.target.closest('.sort-row-handle')) return; // lasă scroll-ul normal dacă nu ai atins mânerul
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       touchStartY = e.touches[0].clientY;
       row.classList.add('dragging-item');
@@ -2915,6 +2917,7 @@ function initSortableList() {
 
     // Mouse drag
     item.addEventListener('dragstart', function(e) {
+      if (!e.target.closest('.li-drag-handle')) { e.preventDefault(); return; }
       _dragSrcId = item.dataset.id;
       item.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -3218,6 +3221,13 @@ function startDrag(e, id) {
   var pin = document.getElementById('pin-' + id);
   if (pin) pin.classList.add('dragging');
 
+  // Ascundem celelalte pin-uri cât timp tragi unul — altfel, mai ales pe
+  // bălți cu multe standuri apropiate, e greu de văzut exact unde ajunge
+  // pin-ul tras printre celelalte deja poziționate.
+  document.querySelectorAll('.stand-pin').forEach(function(p) {
+    if (p.id !== 'pin-' + id) p.style.opacity = '0';
+  });
+
   var isTouch = e.touches !== undefined;
   var startX  = isTouch ? e.touches[0].clientX : e.clientX;
   var startY  = isTouch ? e.touches[0].clientY : e.clientY;
@@ -3245,6 +3255,8 @@ function startDrag(e, id) {
     document.removeEventListener('mouseup',   onEnd);
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('touchend',  onEnd);
+    // Readucem toate pin-urile la loc, acum că nu mai tragem niciunul
+    document.querySelectorAll('.stand-pin').forEach(function(p) { p.style.opacity = '1'; });
   }
 
   if (isTouch) {
