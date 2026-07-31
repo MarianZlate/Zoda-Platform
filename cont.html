@@ -103,6 +103,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
   --zc-hdr-bg:rgba(10,15,26,.97);
+  --zc-cta-1:#0c3a4d;
+  --zc-cta-2:#0e7490;
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -142,8 +144,8 @@ html.theme-transitioning *{
   --lime:          #38bdf8;
   --lime-dim:      #0ea5c7;
   --lime-glow:     rgba(56,189,248,.16);
-  --forest:        var(--zc-bg-tint);
-  --forest-2:      var(--zc-accent-dark);
+  --forest:        var(--cta-1);
+  --forest-2:      var(--cta-2);
   --text:          #eef3f9;
   --text-dim:      #93a5bd;
   --text-faint:    #4d5f78;
@@ -153,6 +155,8 @@ html.theme-transitioning *{
   --amber:         #f5a524;
   --hero-grad-1:   #10192b;
   --hero-grad-2:   #0b1220;
+  --cta-1:         #0c3a4d;
+  --cta-2:         #0e7490;
   --r-xl: 24px; --r-lg: 18px; --r-md: 14px; --r-sm: 10px; --r-xs: 7px;
   --shadow-card: 0 14px 36px -18px rgba(0,0,0,.65), 0 2px 8px -2px rgba(0,0,0,.4);
   --shadow-pop:  0 20px 50px -20px rgba(0,0,0,.75);
@@ -649,7 +653,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
 <div id="loading-screen">
   <div class="spinner"></div>
-  <div style="color:#93a5bd;font-size:15px;">Se încarcă...</div>
+  <div style="color:var(--text-dim);font-size:15px;">Se încarcă...</div>
 </div>
 
 <div id="hdr" style="display:none;">
@@ -2036,7 +2040,7 @@ async function searchPescari(q) {
           <div class="pescar-opt-zoda">${escH(u.zoda_id || '')}</div>
         </div>
       </div>`;
-  }).join('') + '<div style="padding:8px 12px;font-size:11px;color:var(--zc-text-dim);border-top:1px solid #0f172a;">Pescarul nu apare? Bifează „fără cont".</div>';
+  }).join('') + '<div style="padding:8px 12px;font-size:11px;color:var(--zc-text-dim);border-top:1px solid var(--zc-border);">Pescarul nu apare? Bifează „fără cont".</div>';
 }
 
 function selectPescar(u) {
@@ -3147,11 +3151,11 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 <style>
-#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:linear-gradient(175deg,#111b2c,#0d1522);border-top:1px solid #1c2942;padding:16px;box-shadow:0 -12px 40px rgba(0,0,0,.55);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;backdrop-filter:blur(10px);}
+#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:linear-gradient(175deg,var(--panel-2),var(--panel));border-top:1px solid var(--border);padding:16px;box-shadow:0 -12px 40px rgba(0,0,0,.35);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;backdrop-filter:blur(10px);}
 #cookie-notice.show{display:flex;}
-#cookie-notice-text{font-size:13px;color:#93a5bd;line-height:1.6;max-width:640px;}
+#cookie-notice-text{font-size:13px;color:var(--text-dim);line-height:1.6;max-width:640px;}
 #cookie-notice-text a{color:#38bdf8;}
-#cookie-notice-btn{background:linear-gradient(135deg,var(--zc-bg-tint),var(--zc-accent-dark));border:1px solid rgba(56,189,248,.25);color:#e0f7ff;font-weight:700;font-size:13px;padding:10px 22px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:filter .15s;}
+#cookie-notice-btn{background:linear-gradient(135deg,var(--forest),var(--forest-2));border:1px solid rgba(56,189,248,.25);color:#e0f7ff;font-weight:700;font-size:13px;padding:10px 22px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:filter .15s;}
 #cookie-notice-btn:hover{filter:brightness(1.08);}
 </style>
 <div id="cookie-notice">
