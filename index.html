@@ -2105,6 +2105,7 @@ function toggleBaltiAproapeDropdown(e) {
     dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
   }
   dd.style.display = willOpen ? 'block' : 'none';
+  document.body.style.overflow = willOpen ? 'hidden' : '';
   if (willOpen) {
     if (_baltiAproapeCoords) renderBaltiAproape(_baltiAproapeCoords);
     else cereLocatieBaltiAproape();
@@ -2154,8 +2155,19 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="balta.html?id=${x.b.id}">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();mergiLaPinBaltaAproape(${x.b.id});">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
+}
+
+// Click pe un rezultat din "Bălți în jurul meu" — închide dropdown-ul, restaurează
+// scroll-ul și zboară harta spre pinul bălții (nu deschide pagina baltii direct).
+function mergiLaPinBaltaAproape(id) {
+  const dd = document.getElementById('balti-aproape-dropdown');
+  dd.style.display = 'none';
+  document.body.style.overflow = '';
+  flyToBalta(id);
+  const mapWrap = document.getElementById('map-wrap');
+  if (mapWrap) mapWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function togglePublicBaltiDropdown(e) {
@@ -2181,6 +2193,7 @@ document.addEventListener('click', function(e) {
   const ddAproape = document.getElementById('balti-aproape-dropdown');
   if (ddAproape && ddAproape.style.display === 'block' && chipAproape && !chipAproape.contains(e.target)) {
     ddAproape.style.display = 'none';
+    document.body.style.overflow = '';
   }
 });
 
