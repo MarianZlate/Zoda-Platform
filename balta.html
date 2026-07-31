@@ -98,6 +98,7 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-tint:#0c3a4d;
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
+  --zc-hdr-bg:rgba(10,15,26,.97);
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -113,6 +114,7 @@ html[data-theme="light"]{
   --zc-bg-tint:#e0f2fe;
   --zc-bg-deep:#f0f9ff;
   --zc-accent-dark:#0891b2;
+  --zc-hdr-bg:rgba(244,247,251,.92);
 }
 /* Tranziție graduală — activată DOAR de motorul de temă automată (nu la
    schimbarea manuală din Cont, care rămâne instantă) */
@@ -146,17 +148,21 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
    ============================================================ */
 
 /* HEADER */
-#hdr{background:rgba(10,15,26,.97);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:1000;}
+#hdr{background:var(--zc-hdr-bg);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:1000;}
 #hdr-in{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   /* mobil */
   padding:8px 12px;}
 .logo{font-size:18px;font-weight:800;color:#38bdf8;text-decoration:none;white-space:nowrap;display:flex;align-items:center;order:0;}
 .logo-img{height:28px;width:auto;display:block;}
+.logo-img-light{display:none;}
+html[data-theme="light"] .logo-img-dark{display:none;}
+html[data-theme="light"] .logo-img-light{display:block;}
+
 .badge{font-size:11px;background:#7c3aed;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:6px;}
 #hdr-balta-info{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;
   /* mobil: rând propriu, sub logo/buton, ca numele lung să nu se suprapună peste nimic */
   order:2;flex-basis:100%;width:100%;}
-#hdr-balta-name{font-weight:700;color:#f8fafc;
+#hdr-balta-name{font-weight:700;color:var(--zc-text-strong);
   /* mobil: până la 2 rânduri, apoi tăiat cu ... */
   font-size:15px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:ellipsis;}
 #hdr-balta-loc{color:var(--zc-text-secondary);font-size:13px;white-space:nowrap;
@@ -449,6 +455,10 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:24px;width:auto;display:block;opacity:.85;}
+.footer-logo-img-light{display:none;}
+html[data-theme="light"] .footer-logo-img-dark{display:none;}
+html[data-theme="light"] .footer-logo-img-light{display:block;}
+
 .footer-tagline{font-size:13px;color:var(--zc-text-muted);line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
@@ -493,7 +503,7 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 <div id="hdr" style="display:none;">
   <div id="hdr-in">
     <div style="display:flex;align-items:center;gap:6px;min-width:0;">
-      <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img"/></a>
+      <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="logo-img logo-img-light"/></a>
     </div>
     <div id="hdr-balta-info">
       <span id="hdr-balta-name">—</span>
@@ -878,7 +888,7 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 <footer id="site-footer">
   <div id="footer-inner">
     <div class="footer-brand">
-      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img"/>
+      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img footer-logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="footer-logo-img footer-logo-img-light"/>
       <p class="footer-tagline">Comunitatea pescarilor din România — bălți, standuri, capturi și clasamente.</p>
     </div>
     <div class="footer-cols">
