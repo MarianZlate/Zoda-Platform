@@ -479,6 +479,14 @@ function switchTab(tab) {
 }
 
 // Escapare generică pentru text inserat via innerHTML (previne XSS stocat)
+// Data curentă LOCALĂ (nu UTC) în format YYYY-MM-DD — new Date().toISOString()
+// convertește la UTC, ceea ce arată greșit data de ieri în primele ore ale
+// zilei (ora României e înaintea UTC). Folosim componentele locale direct.
+function dataLocalaAzi() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -1084,7 +1092,7 @@ boot();
       var bar = document.getElementById('promo-bar');
       if(!bar) return;
       if(sessionStorage.getItem('zoda_promo_bar_closed')) return; // închis manual în sesiunea asta
-      var azi = new Date().toISOString().slice(0, 10);
+      var azi = dataLocalaAzi();
       var res = await sb.from('reclame').select('*')
         .eq('activ', true)
         .lte('data_start', azi)
