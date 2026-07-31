@@ -1410,7 +1410,7 @@ async function saveVizitaIstoric(id, nume) {
 async function inregistreazaVizitaReala(id) {
   try {
     var key = 'zoda_vizita_numarata_' + id;
-    var azi = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    var azi = dataLocalaAzi(); // YYYY-MM-DD, local
     if (localStorage.getItem(key) === azi) return; // deja numărată azi
     await sb.rpc('inregistreaza_vizita', { p_balta_id: id });
     localStorage.setItem(key, azi);
@@ -1706,6 +1706,14 @@ async function loadHallOfFame(baltaId) {
   applyHofBlur();
 }
 
+// Data curentă LOCALĂ (nu UTC) în format YYYY-MM-DD — new Date().toISOString()
+// convertește la UTC, ceea ce arată greșit data de ieri în primele ore ale
+// zilei (ora României e înaintea UTC). Folosim componentele locale direct.
+function dataLocalaAzi() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function escH(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -1791,7 +1799,12 @@ async function loadTop10Lunar(baltaId) {
   var an  = now.getFullYear();
   var lun = String(now.getMonth() + 1).padStart(2, '0');
   var lunaStart = an + '-' + lun + '-01';
-  var lunaEnd   = new Date(an, now.getMonth() + 1, 1).toISOString().split('T')[0];
+  // Prima zi a lunii URMĂTOARE, calculată direct (fără Date/toISOString — acela
+  // convertește la UTC și poate „aluneca" o zi în urmă pentru fusul orar al
+  // României, excluzând greșit capturile din ultima zi a lunii curente).
+  var anEnd = an, lunEnd = now.getMonth() + 2; // +1 pentru luna următoare, +1 pt. index 1-based
+  if (lunEnd > 12) { lunEnd = 1; anEnd = an + 1; }
+  var lunaEnd = anEnd + '-' + String(lunEnd).padStart(2, '0') + '-01';
 
   var { data: rows } = await sb.from('capturi')
     .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
@@ -3626,7 +3639,7 @@ function startDrag(e, id) {
       var bar = document.getElementById('promo-bar');
       if(!bar) return;
       if(sessionStorage.getItem('zoda_promo_bar_closed')) return; // închis manual în sesiunea asta
-      var azi = new Date().toISOString().slice(0, 10);
+      var azi = dataLocalaAzi();
       var res = await sb.from('reclame').select('*')
         .eq('activ', true)
         .contains('pagini', ['balta'])
