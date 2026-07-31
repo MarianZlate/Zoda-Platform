@@ -16,7 +16,7 @@
  * primească automat noua versiune la următoarea vizită.
  */
 
-const CACHE_VERSION = 'zoda-v2';
+const CACHE_VERSION = 'zoda-v3';
 const SHELL_CACHE = `zoda-shell-${CACHE_VERSION}`;
 const R2_CACHE = 'zoda-r2-media';
 
@@ -35,6 +35,7 @@ const SHELL_ASSETS = [
   '/offline.html',
   '/manifest.json',
   '/zoda-logo.png',
+  '/zoda-logo-light.png',
   '/hero-bg.jpg',
   '/balta-bg.jpg',
   '/icons/icon-192.png',
