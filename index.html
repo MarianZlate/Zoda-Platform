@@ -1431,6 +1431,11 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
+function deschideFotoCaptura(imgEl) {
+  var url = imgEl && imgEl.getAttribute('data-full');
+  if (url) window.open(url, '_blank');
+}
+
 async function loadTopSaptamanal() {
   var luni = inceputSaptamanaCurenta();
   var luniUrmatoare = new Date(luni.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -1467,7 +1472,7 @@ async function loadTopSaptamanal() {
           : '<span style="color:#e2e8f0;font-weight:700;">' + escH(c.pescar_nume || 'Anonim') + '</span>';
         return '<div class="hof-row">' +
           '<div class="hof-loc">' + (i + 1) + '</div>' +
-          (c.foto_url ? '<img class="hof-avatar" src="' + escH(c.foto_url) + '" alt="" loading="lazy"/>' : '<div class="hof-avatar-empty"></div>') +
+          (c.foto_url ? '<img class="hof-avatar" src="' + escH(c.foto_url) + '" alt="" loading="lazy" style="cursor:pointer;" data-full="' + escH(c.foto_url) + '" onclick="event.stopPropagation();deschideFotoCaptura(this)"/>' : '<div class="hof-avatar-empty"></div>') +
           '<div style="flex:1;min-width:0;">' +
             '<div class="hof-name">' + nameHtml + '</div>' +
             '<div class="hof-detail">' + escH(c.balti?.nume || '—') + (c.specie ? ' · ' + escH(c.specie) : '') + '</div>' +
