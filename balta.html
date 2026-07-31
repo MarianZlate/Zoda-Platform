@@ -1263,8 +1263,6 @@ async function loadBalta(id) {
       await checkAdminAndShowBar();
     }
     renderPage(hartaUrl);
-    loadTop10Lunar(id);
-    loadHallOfFame(id);
     if (new URLSearchParams(location.search).get('edit') === '1') {
       checkPreviewSubmisie();
     }
