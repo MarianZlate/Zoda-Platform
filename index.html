@@ -19,7 +19,7 @@
    RESET & BAZĂ COMUNĂ
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{background-color:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;isolation:isolate;}
+html,body{background-color:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;isolation:isolate;}
 
 /* ============================================================
    SCALA DE Z-INDEX — sursă unică de adevăr pentru tot ce se
@@ -74,30 +74,30 @@ html,body{background-color:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-u
 #hdr-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 12px;height:52px;gap:8px;}
 .logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
 .logo-img{height:32px;width:auto;display:block;}
-.logo-icon{font-size:22px;}
-.logo-text{font-size:18px;font-weight:900;color:#38bdf8;letter-spacing:-.5px;}
+.logo-icon{font-size:25px;}
+.logo-text{font-size:20px;font-weight:900;color:#38bdf8;letter-spacing:-.5px;}
 nav{display:flex;align-items:center;gap:6px;}
-.nav-btn{background:transparent;border:none;color:#94a3b8;cursor:pointer;border-radius:8px;transition:color .2s;font-size:12px;padding:6px 8px;}
+.nav-btn{background:transparent;border:none;color:#94a3b8;cursor:pointer;border-radius:8px;transition:color .2s;font-size:13px;padding:6px 8px;}
 .nav-btn:hover{color:#f1f5f9;}
-.nav-primary{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;cursor:pointer;border-radius:8px;font-size:12px;padding:6px 10px;}
+.nav-primary{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;cursor:pointer;border-radius:8px;font-size:13px;padding:6px 10px;}
 .nav-primary:hover{background:#0891b2;}
 /* Mobil: ascunde textul din butoane, afișează doar iconița */
 .nav-label{display:inline;}
 .nav-user{display:flex;align-items:center;gap:8px;}
-.nav-avatar{width:32px;height:32px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#38bdf8;cursor:pointer;border:2px solid #0e7490;}
-.nav-user-name{display:none;font-size:13px;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.nav-logout{background:transparent;border:1px solid #1e293b;color:#4b5563;font-size:12px;padding:5px 10px;border-radius:7px;cursor:pointer;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#38bdf8;cursor:pointer;border:2px solid #0e7490;}
+.nav-user-name{display:none;font-size:15px;color:#94a3b8;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nav-logout{background:transparent;border:1px solid #1e293b;color:#4b5563;font-size:13px;padding:5px 10px;border-radius:7px;cursor:pointer;}
 .nav-logout:hover{border-color:#ef4444;color:#ef4444;}
-.nav-admin-badge{font-size:10px;background:#f59e0b;color:#000;padding:2px 7px;border-radius:4px;font-weight:800;}
-.nav-bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#111827;border:1px solid #1e293b;border-radius:8px;cursor:pointer;color:#94a3b8;font-size:16px;transition:border-color .2s,color .2s;flex-shrink:0;}
+.nav-admin-badge{font-size:11px;background:#f59e0b;color:#000;padding:2px 7px;border-radius:4px;font-weight:800;}
+.nav-bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#111827;border:1px solid #1e293b;border-radius:8px;cursor:pointer;color:#94a3b8;font-size:18px;transition:border-color .2s,color .2s;flex-shrink:0;}
 .nav-bell:hover{border-color:#38bdf8;color:#38bdf8;}
-.nav-bell-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;background:#ef4444;border-radius:9px;font-size:10px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #0a0f1a;line-height:1;pointer-events:none;}
+.nav-bell-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;background:#ef4444;border-radius:9px;font-size:11px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid #0a0f1a;line-height:1;pointer-events:none;}
 /* Panel notificări */
 #notif-panel{position:fixed;top:56px;right:12px;width:340px;max-height:480px;background:#111827;border:1px solid #1e293b;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:var(--z-notif-panel);display:none;flex-direction:column;overflow:hidden;}
 #notif-panel.open{display:flex;}
 .notif-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #1e293b;flex-shrink:0;}
-.notif-hdr-title{font-size:13px;font-weight:800;color:#f1f5f9;}
-.notif-mark-all{font-size:11px;color:#4b5563;cursor:pointer;transition:color .2s;}
+.notif-hdr-title{font-size:15px;font-weight:800;color:#f1f5f9;}
+.notif-mark-all{font-size:12px;color:#4b5563;cursor:pointer;transition:color .2s;}
 .notif-mark-all:hover{color:#38bdf8;}
 .notif-list{overflow-y:auto;flex:1;}
 .notif-item{padding:12px 16px;border-bottom:1px solid #0f172a;cursor:pointer;transition:background .15s;}
@@ -105,36 +105,36 @@ nav{display:flex;align-items:center;gap:6px;}
 .notif-item.unread{background:#071c26;}
 .notif-item.unread:hover{background:#0c2a38;}
 .notif-dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;flex-shrink:0;margin-top:4px;}
-.notif-msg{font-size:12px;color:#cbd5e1;line-height:1.5;flex:1;}
-.notif-time{font-size:10px;color:#4b5563;margin-top:3px;}
-.notif-empty{padding:32px 16px;text-align:center;color:#4b5563;font-size:13px;}
+.notif-msg{font-size:13px;color:#cbd5e1;line-height:1.5;flex:1;}
+.notif-time{font-size:11px;color:#4b5563;margin-top:3px;}
+.notif-empty{padding:32px 16px;text-align:center;color:#4b5563;font-size:15px;}
 #hero{max-width:1400px;margin:0 auto;text-align:center;padding:60px 14px 20px;}
-.hero-title{font-weight:900;line-height:1.15;color:#f8fafc;margin-bottom:14px;font-size:34px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
-.hero-sub{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 16px;max-width:420px;margin:0 auto 10px;font-size:11.5px;font-weight:700;color:#e2e8f0;text-shadow:0 1px 4px rgba(0,0,0,.7);}
+.hero-title{font-weight:900;line-height:1.15;color:#f8fafc;margin-bottom:14px;font-size:38px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
+.hero-sub{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 16px;max-width:420px;margin:0 auto 10px;font-size:12.9px;font-weight:700;color:#e2e8f0;text-shadow:0 1px 4px rgba(0,0,0,.7);}
 .hero-sub:last-of-type{margin-bottom:22px;}
 #search-wrap{position:relative;max-width:580px;margin:0 auto 10px;padding:0 14px;}
 #search-box{display:flex;align-items:center;gap:10px;background:#111827;border:2px solid #1e293b;border-radius:14px;padding:13px 18px;transition:border-color .2s;}
 #search-box:focus-within{border-color:#0c3a4d;}
-#search-input{flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-size:14px;}
+#search-input{flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-size:16px;}
 #search-input::placeholder{color:#4b5563;}
-#clear-btn{background:transparent;border:none;color:#4b5563;cursor:pointer;font-size:18px;line-height:1;display:none;}
+#clear-btn{background:transparent;border:none;color:#4b5563;cursor:pointer;font-size:20px;line-height:1;display:none;}
 #dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:12px;overflow:hidden;z-index:var(--z-dropdown);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;}
 .dd-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #1e293b;cursor:pointer;gap:12px;transition:background .15s;}
 .dd-item:last-child{border-bottom:none;}
 .dd-item:hover{background:#1e293b;}
-.dd-name{font-weight:700;font-size:14px;color:#f1f5f9;}
-.dd-meta{font-size:11px;color:#64748b;margin-top:2px;}
-.dd-open{background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.dd-name{font-weight:700;font-size:16px;color:#f1f5f9;}
+.dd-meta{font-size:12px;color:#64748b;margin-top:2px;}
+.dd-open{background:#0c3a4d;border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 #stats-bar{display:block;margin-bottom:10px;padding:0 14px;}
 .stats-inner{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
-.stat-chip{background:#111827;border:1px solid #1e293b;border-radius:20px;color:#64748b;text-align:center;padding:4px 10px;font-size:11px;white-space:nowrap;}
-.stat-chip strong{color:#f1f5f9;font-size:14px;}
+.stat-chip{background:#111827;border:1px solid #1e293b;border-radius:20px;color:#64748b;text-align:center;padding:4px 10px;font-size:12px;white-space:nowrap;}
+.stat-chip strong{color:#f1f5f9;font-size:16px;}
 .stat-chip-clickable{cursor:pointer;user-select:none;position:relative;transition:border-color .15s;}
 .stat-chip-clickable:hover{border-color:#38bdf8;}
 .stat-chip-clickable strong{color:#38bdf8;}
 #public-balti-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#111827;border:1px solid #1e293b;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
-#public-balti-dropdown .pbd-hdr{padding:12px 14px;border-bottom:1px solid #1e293b;font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.04em;}
-#public-balti-dropdown a{display:block;padding:9px 14px;font-size:13px;color:#e2e8f0;text-decoration:none;border-bottom:1px solid #0f172a;}
+#public-balti-dropdown .pbd-hdr{padding:12px 14px;border-bottom:1px solid #1e293b;font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.04em;}
+#public-balti-dropdown a{display:block;padding:9px 14px;font-size:15px;color:#e2e8f0;text-decoration:none;border-bottom:1px solid #0f172a;}
 #public-balti-dropdown a:last-child{border-bottom:none;}
 #public-balti-dropdown a:hover{background:#1e293b;color:#38bdf8;}
 #main{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr;align-items:start;padding:0 8px 40px;gap:10px;}
@@ -146,33 +146,33 @@ nav{display:flex;align-items:center;gap:6px;}
 .leaflet-popup-content-wrapper{background:#111827;border:1px solid #1e293b;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.6);}
 .leaflet-popup-content{color:#f1f5f9;margin:12px 14px;}
 .leaflet-popup-tip{background:#111827;}
-.leaflet-popup-close-button{color:#4b5563!important;font-size:18px!important;top:6px!important;right:8px!important;}
-.pop-name{font-size:15px;font-weight:800;color:#38bdf8;margin-bottom:3px;}
-.pop-meta{font-size:11px;color:#64748b;margin-bottom:10px;}
+.leaflet-popup-close-button{color:#4b5563!important;font-size:20px!important;top:6px!important;right:8px!important;}
+.pop-name{font-size:17px;font-weight:800;color:#38bdf8;margin-bottom:3px;}
+.pop-meta{font-size:12px;color:#64748b;margin-bottom:10px;}
 .pop-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-.pop-tag{background:#0a0f1a;border-radius:5px;padding:3px 8px;font-size:10px;color:#94a3b8;}
-.pop-btn{width:100%;background:#0e7490;border:none;color:#38bdf8;font-weight:700;font-size:12px;padding:8px;border-radius:7px;cursor:pointer;}
+.pop-tag{background:#0a0f1a;border-radius:5px;padding:3px 8px;font-size:11px;color:#94a3b8;}
+.pop-btn{width:100%;background:#0e7490;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:8px;border-radius:7px;cursor:pointer;}
 .pop-btn:hover{background:#0e7490;}
-#map-legend{position:absolute;bottom:14px;left:14px;background:rgba(10,15,26,.85);border:1px solid #1e293b;border-radius:8px;padding:8px 12px;font-size:11px;color:#64748b;z-index:10;pointer-events:none;}
-#map-zoom-hint{display:none;position:absolute;top:0;left:0;right:0;background:rgba(10,15,26,.92);border-bottom:1px solid #334155;padding:8px 14px;font-size:12px;font-weight:600;color:#e2e8f0;z-index:850;pointer-events:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#map-legend{position:absolute;bottom:14px;left:14px;background:rgba(10,15,26,.85);border:1px solid #1e293b;border-radius:8px;padding:8px 12px;font-size:12px;color:#64748b;z-index:10;pointer-events:none;}
+#map-zoom-hint{display:none;position:absolute;top:0;left:0;right:0;background:rgba(10,15,26,.92);border-bottom:1px solid #334155;padding:8px 14px;font-size:13px;font-weight:600;color:#e2e8f0;z-index:850;pointer-events:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* Overlay scroll-block pe mobil */
 #map-touch-overlay{display:none;position:absolute;inset:0;z-index:20;cursor:pointer;background:rgba(10,15,26,.45);align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:opacity .2s;touch-action:pan-y;}
 #map-touch-overlay.active{display:flex;}
-.mto-inner{background:rgba(10,15,26,.85);border:1px solid #1e293b;border-radius:12px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#f1f5f9;box-shadow:0 4px 20px rgba(0,0,0,.5);}
-.mto-icon{font-size:20px;}
-.balta-tooltip{background:#111827!important;border:1px solid #1e293b!important;border-radius:7px!important;color:#f1f5f9!important;font-size:12px!important;font-weight:700!important;padding:5px 10px!important;box-shadow:0 4px 14px rgba(0,0,0,.6)!important;white-space:nowrap;}
+.mto-inner{background:rgba(10,15,26,.85);border:1px solid #1e293b;border-radius:12px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:#f1f5f9;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+.mto-icon{font-size:22px;}
+.balta-tooltip{background:#111827!important;border:1px solid #1e293b!important;border-radius:7px!important;color:#f1f5f9!important;font-size:13px!important;font-weight:700!important;padding:5px 10px!important;box-shadow:0 4px 14px rgba(0,0,0,.6)!important;white-space:nowrap;}
 .balta-tooltip::before{border-top-color:#1e293b!important;}
 
 /* GUEST TOAST */
 #guest-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:var(--z-toast);background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
 #guest-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
-.gt-icon{font-size:22px;flex-shrink:0;}
+.gt-icon{font-size:25px;flex-shrink:0;}
 .gt-text{flex:1;min-width:0;}
-.gt-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:2px;}
-.gt-sub{font-size:11px;color:#64748b;line-height:1.4;}
-.gt-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s;}
+.gt-title{font-size:15px;font-weight:800;color:#f1f5f9;margin-bottom:2px;}
+.gt-sub{font-size:12px;color:#64748b;line-height:1.4;}
+.gt-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s;}
 .gt-btn:hover{background:#0891b2;}
-.gt-close{background:transparent;border:none;color:#334155;font-size:18px;cursor:pointer;line-height:1;padding:0 0 0 4px;flex-shrink:0;transition:color .2s;}
+.gt-close{background:transparent;border:none;color:#334155;font-size:20px;cursor:pointer;line-height:1;padding:0 0 0 4px;flex-shrink:0;transition:color .2s;}
 .gt-close:hover{color:#94a3b8;}
 #pwa-install-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:var(--z-toast);background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
 #pwa-install-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
@@ -182,54 +182,54 @@ nav{display:flex;align-items:center;gap:6px;}
 #pescar-guest-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:var(--z-modal);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
 #pescar-guest-modal.open{display:flex;}
 .pgm-box{background:#111827;border:1px solid #1e293b;border-radius:20px;padding:32px 28px;max-width:360px;width:100%;text-align:center;position:relative;}
-.pgm-icon{font-size:40px;margin-bottom:12px;}
-.pgm-title{font-size:17px;font-weight:900;color:#f1f5f9;margin-bottom:8px;}
-.pgm-sub{font-size:13px;color:#64748b;line-height:1.6;margin-bottom:20px;}
-.pgm-btn{width:100%;background:#0c3a4d;border:none;color:#38bdf8;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:10px;}
+.pgm-icon{font-size:45px;margin-bottom:12px;}
+.pgm-title{font-size:19px;font-weight:900;color:#f1f5f9;margin-bottom:8px;}
+.pgm-sub{font-size:15px;color:#64748b;line-height:1.6;margin-bottom:20px;}
+.pgm-btn{width:100%;background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:10px;}
 .pgm-btn:hover{background:#0891b2;}
-.pgm-close{background:transparent;border:none;color:#4b5563;font-size:13px;cursor:pointer;transition:color .2s;}
+.pgm-close{background:transparent;border:none;color:#4b5563;font-size:15px;cursor:pointer;transition:color .2s;}
 .pgm-close:hover{color:#94a3b8;}
 #sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
 .hof-card,.balti-card{min-width:0;}
 .hof-card{background:#111827;border:1px solid #1e293b;border-radius:14px;overflow:hidden;}
 .hof-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding:10px 12px;}
-.hof-title{font-weight:800;color:#f59e0b;display:flex;align-items:center;gap:7px;font-size:12px;}
-.hof-sub{font-size:10px;color:#4b5563;margin-top:1px;}
+.hof-title{font-weight:800;color:#f59e0b;display:flex;align-items:center;gap:7px;font-size:13px;}
+.hof-sub{font-size:11px;color:#4b5563;margin-top:1px;}
 .hof-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:7px;padding:7px 10px;}
 .hof-row:last-child{border-bottom:none;}
-.hof-loc{display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;width:18px;font-size:10px;color:#4b5563;}
+.hof-loc{display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;width:18px;font-size:11px;color:#4b5563;}
 .hof-avatar{width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;background:#0d1520;}
 .hof-avatar-empty{width:32px;height:32px;border-radius:4px;flex-shrink:0;background:#0d1520;}
-.hof-name{font-weight:700;color:#e2e8f0;font-size:11px;}
-.hof-detail{color:#4b5563;margin-top:1px;font-size:9px;}
+.hof-name{font-weight:700;color:#e2e8f0;font-size:12px;}
+.hof-detail{color:#4b5563;margin-top:1px;font-size:10px;}
 .hof-stars{display:flex;align-items:center;gap:2px;margin-left:auto;flex-shrink:0;}
-.star{color:#f59e0b;font-size:11px;}
-.hof-count{font-size:13px;color:#f59e0b;font-weight:800;}
+.star{color:#f59e0b;font-size:12px;}
+.hof-count{font-size:15px;color:#f59e0b;font-weight:800;}
 .hof-star-legend{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;}
-.hof-star-legend-label{font-size:9px;color:#4b5563;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
+.hof-star-legend-label{font-size:10px;color:#4b5563;font-weight:600;letter-spacing:.04em;white-space:nowrap;}
 .see-all:hover{color:#38bdf8;}
 .balti-card{background:#111827;border:1px solid #1e293b;border-radius:14px;overflow:hidden;}
 #saptamanal-wrap{display:grid;grid-template-columns:1fr;gap:10px;margin:0 10px;}
 .balti-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1e293b;padding:10px 12px;}
-.balti-title{font-weight:800;color:#e2e8f0;font-size:12px;}
-.balti-count{background:#0c3a4d;color:#38bdf8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.balti-title{font-weight:800;color:#e2e8f0;font-size:13px;}
+.balti-count{background:#0c3a4d;color:#38bdf8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
 .balta-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;cursor:pointer;transition:background .15s;gap:7px;padding:8px 10px;}
 .balta-row:last-child{border-bottom:none;}
 .balta-row:hover{background:#1e293b;}
-.balta-emoji{background:#071c26;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;font-size:14px;}
-.balta-name{font-weight:700;color:#f1f5f9;font-size:11px;}
-.balta-meta{color:#64748b;margin-top:2px;font-size:9px;}
-.balta-price{font-size:11px;font-weight:700;color:#38bdf8;margin-left:auto;flex-shrink:0;}
-.balta-arrow{color:#334155;font-size:16px;margin-left:4px;}
+.balta-emoji{background:#071c26;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;font-size:16px;}
+.balta-name{font-weight:700;color:#f1f5f9;font-size:12px;}
+.balta-meta{color:#64748b;margin-top:2px;font-size:10px;}
+.balta-price{font-size:12px;font-weight:700;color:#38bdf8;margin-left:auto;flex-shrink:0;}
+.balta-arrow{color:#334155;font-size:18px;margin-left:4px;}
 #hof-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
 #hof-modal.open{display:flex;}
 .hof-modal-inner{background:#0a0f1a;border:1px solid #1e293b;overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;max-height:80vh;border-radius:0 0 16px 16px;margin-bottom:auto;}
 .hof-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;}
-.hof-modal-title{font-size:20px;font-weight:900;color:#f59e0b;}
-.hof-modal-sub{font-size:12px;color:#4b5563;margin-top:3px;}
-.modal-close{background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;}
+.hof-modal-title{font-size:22px;font-weight:900;color:#f59e0b;}
+.hof-modal-sub{font-size:13px;color:#4b5563;margin-top:3px;}
+.modal-close{background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;}
 .hof-modal-list{overflow-y:auto;padding:8px 0;}
-.judet-opt{padding:9px 14px;cursor:pointer;font-size:13px;color:#f1f5f9;display:flex;align-items:center;gap:8px;border-bottom:1px solid #0f172a;transition:background .1s;}
+.judet-opt{padding:9px 14px;cursor:pointer;font-size:15px;color:#f1f5f9;display:flex;align-items:center;gap:8px;border-bottom:1px solid #0f172a;transition:background .1s;}
 .judet-opt:last-child{border-bottom:none;}
 .judet-opt:hover,.judet-opt.focused{background:#1e293b;}
 .judet-opt.match-first{background:#071c26;}
@@ -237,106 +237,106 @@ nav{display:flex;align-items:center;gap:6px;}
 #auth-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
 #auth-modal.open{display:flex;}
 .auth-inner{background:#0a0f1a;border:1px solid #1e293b;width:100%;position:relative;max-width:100%;border-radius:16px 16px 0 0;padding:24px 18px;margin-top:auto;}
-.auth-close{position:absolute;top:16px;right:18px;background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;}
-.auth-logo{text-align:center;font-size:32px;margin-bottom:8px;}
-.auth-title{text-align:center;font-size:20px;font-weight:900;color:#f1f5f9;margin-bottom:4px;}
-.auth-sub{text-align:center;font-size:12px;color:#4b5563;margin-bottom:24px;}
+.auth-close{position:absolute;top:16px;right:18px;background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;}
+.auth-logo{text-align:center;font-size:36px;margin-bottom:8px;}
+.auth-title{text-align:center;font-size:22px;font-weight:900;color:#f1f5f9;margin-bottom:4px;}
+.auth-sub{text-align:center;font-size:13px;color:#4b5563;margin-bottom:24px;}
 .auth-tabs{display:flex;background:#111827;border-radius:10px;padding:4px;margin-bottom:20px;}
-.auth-tab{flex:1;background:transparent;border:none;color:#4b5563;font-size:13px;font-weight:600;padding:8px;border-radius:7px;cursor:pointer;transition:all .2s;}
+.auth-tab{flex:1;background:transparent;border:none;color:#4b5563;font-size:15px;font-weight:600;padding:8px;border-radius:7px;cursor:pointer;transition:all .2s;}
 .auth-tab.active{background:#0c3a4d;color:#38bdf8;}
 .auth-fg{margin-bottom:14px;}
-.auth-fg label{display:block;font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:5px;}
-.auth-fg input{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;outline:none;transition:border-color .2s;}
+.auth-fg label{display:block;font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:5px;}
+.auth-fg input{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:16px;outline:none;transition:border-color .2s;}
 .auth-fg input:focus{border-color:#0c3a4d;}
-.auth-btn{width:100%;background:#0c3a4d;border:none;color:#38bdf8;font-size:14px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;transition:background .2s;}
+.auth-btn{width:100%;background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;transition:background .2s;}
 .auth-btn:hover{background:#0891b2;}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed;}
-.auth-err{background:#3b0f0f;border:1px solid #ef4444;border-radius:8px;padding:9px 12px;font-size:12px;color:#fca5a5;margin-bottom:12px;display:none;}
-.auth-ok{background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:9px 12px;font-size:12px;color:#38bdf8;margin-bottom:12px;display:none;}
-.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#334155;font-size:11px;}
+.auth-err{background:#3b0f0f;border:1px solid #ef4444;border-radius:8px;padding:9px 12px;font-size:13px;color:#fca5a5;margin-bottom:12px;display:none;}
+.auth-ok{background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:9px 12px;font-size:13px;color:#38bdf8;margin-bottom:12px;display:none;}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#334155;font-size:12px;}
 .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:#1e293b;}
-.auth-google{width:100%;background:#111827;border:1.5px solid #1e293b;color:#f1f5f9;font-size:13px;font-weight:600;padding:11px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:border-color .2s;-webkit-tap-highlight-color:transparent;}
+.auth-google{width:100%;background:#111827;border:1.5px solid #1e293b;color:#f1f5f9;font-size:15px;font-weight:600;padding:11px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:border-color .2s;-webkit-tap-highlight-color:transparent;}
 .auth-google:hover{border-color:#334155;}
 .auth-google svg{pointer-events:none;flex-shrink:0;}
 .auth-remember{display:flex;align-items:center;gap:8px;margin:10px 0 14px 0;}
 .auth-remember input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#0c3a4d;flex-shrink:0;}
-.auth-remember label{font-size:12px;color:#64748b;cursor:pointer;user-select:none;}
+.auth-remember label{font-size:13px;color:#64748b;cursor:pointer;user-select:none;}
 #edit-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);overflow-y:auto;align-items:flex-end;justify-content:center;padding:0;}
 #edit-modal.open{display:flex;}
 .edit-inner{background:#0a0f1a;border:1px solid #1e293b;width:100%;margin:0 auto;max-width:100%;border-radius:16px 16px 0 0;margin-top:auto;}
 .edit-hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;position:sticky;top:0;background:#0a0f1a;z-index:10;border-radius:16px 16px 0 0;padding:14px 16px;}
-.edit-title{font-weight:800;color:#f1f5f9;font-size:14px;}
+.edit-title{font-weight:800;color:#f1f5f9;font-size:16px;}
 .edit-hdr-btns{display:flex;gap:8px;align-items:center;}
-.edit-save-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;cursor:pointer;border-radius:8px;font-size:12px;padding:7px 12px;}
+.edit-save-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;cursor:pointer;border-radius:8px;font-size:13px;padding:7px 12px;}
 .edit-save-btn:hover{background:#0891b2;}
-.edit-close{background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;}
+.edit-close{background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;}
 .edit-body{padding:16px;}
 .edit-section{margin-bottom:28px;}
-.edit-section-title{font-size:11px;font-weight:800;color:#4b5563;letter-spacing:.08em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:8px;}
+.edit-section-title{font-size:12px;font-weight:800;color:#4b5563;letter-spacing:.08em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:8px;}
 .edit-section-title span{flex:1;}
 .se-card{background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:10px;position:relative;}
 .se-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;}
-.se-nr-badge{width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;}
-.se-card-name{font-weight:700;font-size:13px;color:#e2e8f0;flex:1;}
-.se-card-toggle{color:#4b5563;font-size:14px;transition:transform .2s;}
+.se-nr-badge{width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;}
+.se-card-name{font-weight:700;font-size:15px;color:#e2e8f0;flex:1;}
+.se-card-toggle{color:#4b5563;font-size:16px;transition:transform .2s;}
 .se-card-body{display:none;}
 .se-card-body.open{display:block;}
-.se-del-btn{background:transparent;border:1px solid #334155;color:#64748b;font-size:11px;padding:3px 8px;border-radius:5px;cursor:pointer;}
+.se-del-btn{background:transparent;border:1px solid #334155;color:#64748b;font-size:12px;padding:3px 8px;border-radius:5px;cursor:pointer;}
 .se-del-btn:hover{border-color:#ef4444;color:#ef4444;}
 .gal-edit-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
 .gal-thumb-edit{position:relative;width:72px;height:72px;border-radius:7px;overflow:hidden;border:1px solid #1e293b;flex-shrink:0;}
 .gal-thumb-edit img{width:100%;height:100%;object-fit:cover;display:block;}
-.gal-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:14px;width:18px;height:18px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
-.gal-add-btn{width:72px;height:72px;border:1.5px dashed #1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;cursor:pointer;color:#4b5563;font-size:10px;transition:all .15s;}
+.gal-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:16px;width:18px;height:18px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.gal-add-btn{width:72px;height:72px;border:1.5px dashed #1e293b;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;cursor:pointer;color:#4b5563;font-size:11px;transition:all .15s;}
 .gal-add-btn:hover{border-color:#0c3a4d;color:#38bdf8;}
-.save-toast{position:fixed;bottom:24px;right:24px;background:#0c3a4d;color:#fff;font-weight:700;font-size:13px;padding:12px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:var(--z-save-toast);opacity:0;pointer-events:none;transform:translateY(10px);transition:all .3s;}
+.save-toast{position:fixed;bottom:24px;right:24px;background:#0c3a4d;color:#fff;font-weight:700;font-size:15px;padding:12px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:var(--z-save-toast);opacity:0;pointer-events:none;transform:translateY(10px);transition:all .3s;}
 .save-toast.show{pointer-events:auto;opacity:1;transform:translateY(0);}
 #ab-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
 #ab-modal.open{display:flex;}
 .ab-inner{background:#0a0f1a;border:1px solid #1e293b;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;max-width:100%;border-radius:16px 16px 0 0;margin-top:auto;}
 .ab-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;flex-shrink:0;}
-.ab-title{font-size:18px;font-weight:900;color:#f1f5f9;}
-.ab-close{background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;}
+.ab-title{font-size:20px;font-weight:900;color:#f1f5f9;}
+.ab-close{background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;}
 .ab-steps{display:flex;padding:16px 24px;border-bottom:1px solid #1e293b;flex-shrink:0;}
 .ab-step{display:flex;align-items:center;gap:8px;flex:1;}
 .ab-step:not(:last-child)::after{content:'';flex:1;height:2px;background:#1e293b;margin:0 8px;}
-.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;border:2px solid #1e293b;color:#4b5563;background:#0a0f1a;transition:all .25s;}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;border:2px solid #1e293b;color:#4b5563;background:#0a0f1a;transition:all .25s;}
 .step-dot.done{background:#0c3a4d;border-color:#38bdf8;color:#38bdf8;}
 .step-dot.active{background:#1e293b;border-color:#38bdf8;color:#f1f5f9;}
-.step-lbl{font-size:11px;color:#4b5563;font-weight:600;white-space:nowrap;}
+.step-lbl{font-size:12px;color:#4b5563;font-weight:600;white-space:nowrap;}
 .step-lbl.active{color:#e2e8f0;}
 .ab-body{overflow-y:auto;padding:20px 24px;flex:1;}
 .ab-pane{display:none;}
 .ab-pane.active{display:block;}
 .ab-footer{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-top:1px solid #1e293b;flex-shrink:0;}
-.ab-back{background:transparent;border:1.5px solid #1e293b;color:#94a3b8;font-size:13px;font-weight:600;padding:9px 20px;border-radius:8px;cursor:pointer;}
+.ab-back{background:transparent;border:1.5px solid #1e293b;color:#94a3b8;font-size:15px;font-weight:600;padding:9px 20px;border-radius:8px;cursor:pointer;}
 .ab-back:hover{border-color:#334155;color:#f1f5f9;}
-.ab-next{background:#0c3a4d;border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:9px 24px;border-radius:8px;cursor:pointer;}
+.ab-next{background:#0c3a4d;border:none;color:#38bdf8;font-size:15px;font-weight:700;padding:9px 24px;border-radius:8px;cursor:pointer;}
 .ab-next:hover{background:#0891b2;}
-.ab-submit{background:linear-gradient(135deg,#0c3a4d,#0e7490);border:none;color:#fff;font-size:14px;font-weight:800;padding:10px 28px;border-radius:8px;cursor:pointer;}
+.ab-submit{background:linear-gradient(135deg,#0c3a4d,#0e7490);border:none;color:#fff;font-size:16px;font-weight:800;padding:10px 28px;border-radius:8px;cursor:pointer;}
 .ab-submit:hover{background:linear-gradient(135deg,#0891b2,#0e7490);}
 #ab-search-box:focus-within{border-color:#0c3a4d!important;}
-.step-count{font-size:11px;color:#4b5563;}
+.step-count{font-size:12px;color:#4b5563;}
 .ab-success{text-align:center;padding:32px 0;}
-.ab-success-icon{font-size:56px;margin-bottom:16px;}
-.ab-success-title{font-size:20px;font-weight:800;color:#38bdf8;margin-bottom:8px;}
-.ab-success-sub{color:#64748b;font-size:13px;line-height:1.6;}
+.ab-success-icon{font-size:63px;margin-bottom:16px;}
+.ab-success-title{font-size:22px;font-weight:800;color:#38bdf8;margin-bottom:8px;}
+.ab-success-sub{color:#64748b;font-size:15px;line-height:1.6;}
 .fg{margin-bottom:16px;}
-.fg label{display:block;font-size:11px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;}
-.fg input,.fg select,.fg textarea{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;outline:none;transition:border-color .2s;font-family:inherit;}
+.fg label{display:block;font-size:12px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;}
+.fg input,.fg select,.fg textarea{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:16px;outline:none;transition:border-color .2s;font-family:inherit;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#0c3a4d;}
 .fg textarea{resize:vertical;min-height:80px;}
 .fg select option{background:#111827;}
 .fg-row{display:grid;grid-template-columns:1fr;gap:12px;}
 .fg-row3{display:grid;grid-template-columns:1fr;gap:12px;}
 #ab-map{width:100%;height:260px;border-radius:10px;overflow:hidden;border:1.5px solid #1e293b;margin-bottom:10px;}
-.ab-coord-box{background:#111827;border:1px solid #1e293b;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:12px;color:#38bdf8;display:flex;align-items:center;gap:8px;}
-.ab-coord-lbl{color:#4b5563;font-size:11px;font-family:inherit;}
+.ab-coord-box{background:#111827;border:1px solid #1e293b;border-radius:8px;padding:10px 12px;font-family:monospace;font-size:13px;color:#38bdf8;display:flex;align-items:center;gap:8px;}
+.ab-coord-lbl{color:#4b5563;font-size:12px;font-family:inherit;}
 .stand-item{background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:10px;position:relative;}
-.stand-item-nr{font-size:11px;font-weight:800;color:#38bdf8;letter-spacing:.05em;margin-bottom:10px;}
-.stand-del{position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4b5563;font-size:16px;cursor:pointer;}
+.stand-item-nr{font-size:12px;font-weight:800;color:#38bdf8;letter-spacing:.05em;margin-bottom:10px;}
+.stand-del{position:absolute;top:12px;right:12px;background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;}
 .stand-del:hover{color:#ef4444;}
-.add-stand-btn{width:100%;background:transparent;border:1.5px dashed #1e293b;border-radius:10px;padding:14px;color:#4b5563;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.add-stand-btn{width:100%;background:transparent;border:1.5px dashed #1e293b;border-radius:10px;padding:14px;color:#4b5563;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .add-stand-btn:hover{border-color:#0c3a4d;color:#38bdf8;background:#071c26;}
 
 /* ============================================================
@@ -346,14 +346,14 @@ nav{display:flex;align-items:center;gap:6px;}
   #hdr-in{padding:0 6px;gap:3px;}
   .logo-img{height:22px;}
   nav{gap:4px;}
-  .nav-btn{padding:5px 6px;font-size:10.5px;}
-  .nav-primary{font-size:11.5px;padding:6px 10px;}
-  .nav-admin-badge{font-size:9px;padding:2px 5px;}
+  .nav-btn{padding:5px 6px;font-size:11.8px;}
+  .nav-primary{font-size:12.9px;padding:6px 10px;}
+  .nav-admin-badge{font-size:10px;padding:2px 5px;}
   .nav-user{gap:5px;}
-  .logo-text{font-size:16px;}
+  .logo-text{font-size:18px;}
   #notif-panel{width:calc(100vw - 24px);right:12px;left:12px;}
-  .hero-title{font-size:28px;}
-  .hero-sub{font-size:9.5px;gap:4px 10px;}
+  .hero-title{font-size:31px;}
+  .hero-sub{font-size:10.6px;gap:4px 10px;}
 }
 @media(max-width:340px){
   #hdr-in{flex-wrap:wrap;row-gap:6px;}
@@ -366,19 +366,19 @@ nav{display:flex;align-items:center;gap:6px;}
 @media(min-width:769px){
   #hero-photo,#hero-glow{height:1100px;}
   #hdr-in{padding:0 24px;height:62px;gap:16px;}
-  .logo-icon{font-size:28px;}
-  .logo-text{font-size:22px;}
-  .nav-btn{font-size:14px;padding:8px 14px;}
-  .nav-primary{font-size:13px;padding:8px 18px;}
+  .logo-icon{font-size:31px;}
+  .logo-text{font-size:25px;}
+  .nav-btn{font-size:16px;padding:8px 14px;}
+  .nav-primary{font-size:15px;padding:8px 18px;}
   .nav-user-name{display:block;}
   #hero{padding:96px 24px 36px;}
-  .hero-title{font-size:54px;}
-  .hero-sub{font-size:14px;max-width:640px;gap:8px 24px;}
+  .hero-title{font-size:60px;}
+  .hero-sub{font-size:16px;max-width:640px;gap:8px 24px;}
   .hero-sub:last-of-type{margin-bottom:36px;}
   #search-wrap{padding:0;}
-  #search-input{font-size:15px;}
+  #search-input{font-size:17px;}
   #stats-bar{padding:0;}
-  .stat-chip{padding:5px 20px;font-size:14px;}
+  .stat-chip{padding:5px 20px;font-size:16px;}
   #main{padding:0 24px 60px;grid-template-columns:1fr 400px;grid-template-rows:auto auto auto 1fr auto;grid-template-areas:"search ." "statsbar ." "mapwrap cautaPescari" "mapwrap sidebar" "saptamanal saptamanal";gap:14px 24px;}
   #cauta-pescari-card{grid-area:cautaPescari;}
   #saptamanal-wrap{grid-area:saptamanal;grid-template-columns:1fr 1fr;margin:0;}
@@ -390,17 +390,17 @@ nav{display:flex;align-items:center;gap:6px;}
   #sidebar{display:flex;flex-direction:column;gap:16px;align-items:stretch;}
   .hof-card,.balti-card{min-width:unset;}
   .hof-header{padding:14px 16px;}
-  .hof-title{font-size:14px;}
+  .hof-title{font-size:16px;}
   .hof-row{gap:10px;padding:9px 14px;}
-  .hof-loc{width:26px;height:26px;font-size:12px;}
-  .hof-name{font-size:12px;}
-  .hof-detail{font-size:10px;}
+  .hof-loc{width:26px;height:26px;font-size:13px;}
+  .hof-name{font-size:13px;}
+  .hof-detail{font-size:11px;}
   .balti-header{padding:14px 16px;}
-  .balti-title{font-size:14px;}
+  .balti-title{font-size:16px;}
   .balta-row{gap:10px;padding:10px 14px;}
-  .balta-emoji{width:36px;height:36px;font-size:18px;}
-  .balta-name{font-size:13px;}
-  .balta-meta{font-size:10px;}
+  .balta-emoji{width:36px;height:36px;font-size:20px;}
+  .balta-name{font-size:15px;}
+  .balta-meta{font-size:11px;}
   #hof-modal{align-items:center;justify-content:center;}
   .hof-modal-inner{max-width:560px;max-height:85vh;border-radius:20px;margin-top:0;}
   #auth-modal{align-items:center;justify-content:center;}
@@ -408,8 +408,8 @@ nav{display:flex;align-items:center;gap:6px;}
   #edit-modal{align-items:flex-start;justify-content:center;padding:80px 20px 20px;}
   .edit-inner{max-width:760px;border-radius:20px;margin-top:0;}
   .edit-hdr{border-radius:20px 20px 0 0;padding:20px 24px;}
-  .edit-title{font-size:17px;}
-  .edit-save-btn{font-size:13px;padding:8px 20px;}
+  .edit-title{font-size:19px;}
+  .edit-save-btn{font-size:15px;padding:8px 20px;}
   .edit-body{padding:24px;}
   #ab-modal{align-items:center;justify-content:center;}
   .ab-inner{max-width:680px;border-radius:20px;margin-top:0;}
@@ -422,20 +422,20 @@ nav{display:flex;align-items:center;gap:6px;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:24px;width:auto;display:block;opacity:.85;}
-.footer-tagline{font-size:12px;color:#4b5563;line-height:1.6;margin:0;}
+.footer-tagline{font-size:13px;color:#4b5563;line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
-.footer-col-title{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-.footer-col a{color:#94a3b8;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;transition:color .2s;}
+.footer-col-title{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.footer-col a{color:#94a3b8;text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:11px;color:#334155;}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:#334155;}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid #1e293b;padding-top:18px;}
-#footer-company{font-size:11px;color:#4b5563;line-height:1.6;}
+#footer-company{font-size:12px;color:#4b5563;line-height:1.6;}
 #footer-company strong{color:#64748b;}
 #footer-sal{display:flex;flex-direction:column;align-items:center;justify-content:center;width:250px;height:50px;border-radius:8px;background:#111827;border:1px solid #1e293b;text-decoration:none;flex-shrink:0;transition:border-color .2s;}
 #footer-sal:hover{border-color:#38bdf8;}
-.sal-badge-txt{font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.05em;line-height:1.2;}
-.sal-badge-sub{font-size:9px;color:#64748b;line-height:1.2;text-align:center;padding:0 8px;}
+.sal-badge-txt{font-size:16px;font-weight:900;color:#38bdf8;letter-spacing:.05em;line-height:1.2;}
+.sal-badge-sub{font-size:10px;color:#64748b;line-height:1.2;text-align:center;padding:0 8px;}
 @media (max-width:600px){
   #footer-legal{flex-direction:column;align-items:flex-start;}
 }
@@ -480,11 +480,11 @@ nav{display:flex;align-items:center;gap:6px;}
 
 <!-- BANDĂ ACTIVITATE DIN URMĂRIRI — apare doar dacă există evenimente nevăzute -->
 <div id="urmariri-banner" onclick="mergiLaEvenimenteUrmariri()" style="display:none;background:#0c3a4d;border-bottom:1px solid #0e7490;cursor:pointer;">
-  <div style="max-width:1400px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:#38bdf8;font-weight:600;">
+  <div style="max-width:1400px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px;font-size:14px;color:#38bdf8;font-weight:600;">
     <span>🔔</span>
     <span style="flex:1;" id="urmariri-banner-text">Activitate nouă în urmăriri</span>
     <span style="font-weight:800;">→</span>
-    <button onclick="event.stopPropagation();inchideUrmaririBanner();" style="background:transparent;border:none;color:#3a7a94;font-size:15px;cursor:pointer;padding:2px 6px;line-height:1;">✕</button>
+    <button onclick="event.stopPropagation();inchideUrmaririBanner();" style="background:transparent;border:none;color:#3a7a94;font-size:17px;cursor:pointer;padding:2px 6px;line-height:1;">✕</button>
   </div>
 </div>
 
@@ -511,34 +511,34 @@ nav{display:flex;align-items:center;gap:6px;}
   <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:480px;margin:0 16px;overflow:hidden;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;background:#0a0f1a;">
       <div>
-        <div style="font-size:18px;font-weight:900;color:#f1f5f9;">📋 Înregistrează balta ta</div>
-        <div style="font-size:12px;color:#4b5563;margin-top:3px;">Contactează-ne și te adăugăm pe platformă</div>
+        <div style="font-size:20px;font-weight:900;color:#f1f5f9;">📋 Înregistrează balta ta</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:3px;">Contactează-ne și te adăugăm pe platformă</div>
       </div>
-      <button onclick="closeRegModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closeRegModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
     <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
       <div style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:28px;">📧</div>
+        <div style="font-size:31px;">📧</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">EMAIL</div>
-          <a id="reg-email-link" href="#" style="font-size:15px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
+          <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">EMAIL</div>
+          <a id="reg-email-link" href="#" style="font-size:17px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
         </div>
       </div>
       <div style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:28px;">📞</div>
+        <div style="font-size:31px;">📞</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
-          <a id="reg-phone-link" href="#" style="font-size:15px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
+          <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
+          <a id="reg-phone-link" href="#" style="font-size:17px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
         </div>
       </div>
       <a id="reg-wa-link" href="#" target="_blank" style="display:flex;align-items:center;gap:14px;background:#25d366;border-radius:12px;padding:16px;text-decoration:none;cursor:pointer;">
-        <div style="font-size:28px;">💬</div>
+        <div style="font-size:31px;">💬</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
-          <div style="font-size:15px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
+          <div style="font-size:12px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
+          <div style="font-size:17px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
         </div>
       </a>
-      <div id="reg-loading" style="text-align:center;color:#4b5563;font-size:13px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
+      <div id="reg-loading" style="text-align:center;color:#4b5563;font-size:15px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
     </div>
   </div>
 </div>
@@ -548,24 +548,24 @@ nav{display:flex;align-items:center;gap:6px;}
   <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:480px;margin:0 16px;max-height:88vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;background:#0a0f1a;position:sticky;top:0;">
       <div>
-        <div style="font-size:18px;font-weight:900;color:#f1f5f9;">📞 Contact</div>
-        <div style="font-size:12px;color:#4b5563;margin-top:3px;">Suntem aici să te ajutăm</div>
+        <div style="font-size:20px;font-weight:900;color:#f1f5f9;">📞 Contact</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:3px;">Suntem aici să te ajutăm</div>
       </div>
-      <button onclick="closeContactModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closeContactModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
     <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
       <div id="contact-phone-card" style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:28px;">📞</div>
+        <div style="font-size:31px;">📞</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
-          <a id="contact-phone-link" href="#" style="font-size:15px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
+          <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
+          <a id="contact-phone-link" href="#" style="font-size:17px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
         </div>
       </div>
       <a id="contact-wa-link" href="#" target="_blank" style="display:none;align-items:center;gap:14px;background:#25d366;border-radius:12px;padding:16px;text-decoration:none;cursor:pointer;">
-        <div style="font-size:28px;">💬</div>
+        <div style="font-size:31px;">💬</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
-          <div style="font-size:15px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
+          <div style="font-size:12px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
+          <div style="font-size:17px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
         </div>
       </a>
       <div id="contact-social-row" style="display:none;gap:12px;justify-content:center;padding-top:4px;"></div>
@@ -573,18 +573,18 @@ nav{display:flex;align-items:center;gap:6px;}
       <div style="border-top:1px solid #1e293b;margin:2px 0;"></div>
 
       <div id="contact-form-wrap" style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;">
-        <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;">✉️ SAU SCRIE-NE UN MESAJ</div>
-        <input type="text" id="cf-nume" placeholder="Numele tău" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:13px;outline:none;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/>
-        <input type="email" id="cf-email" placeholder="Emailul tău" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:13px;outline:none;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/>
-        <textarea id="cf-mesaj" placeholder="Mesajul tău..." rows="3" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:13px;outline:none;resize:vertical;font-family:inherit;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"></textarea>
+        <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;">✉️ SAU SCRIE-NE UN MESAJ</div>
+        <input type="text" id="cf-nume" placeholder="Numele tău" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/>
+        <input type="email" id="cf-email" placeholder="Emailul tău" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/>
+        <textarea id="cf-mesaj" placeholder="Mesajul tău..." rows="3" style="background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;resize:vertical;font-family:inherit;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"></textarea>
         <div style="display:flex;justify-content:center;">
           <div id="turnstile-contact" class="cf-turnstile" data-sitekey="0x4AAAAAADvJsgO0e3tWAKX2" data-theme="dark" data-callback="onContactTurnstileOk" data-expired-callback="onContactTurnstileExpired"></div>
         </div>
-        <button onclick="submitContactForm()" id="cf-submit-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:13px;">Trimite mesajul</button>
-        <div id="cf-status" style="font-size:12px;text-align:center;min-height:16px;"></div>
+        <button onclick="submitContactForm()" id="cf-submit-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;padding:11px;border-radius:8px;cursor:pointer;font-size:15px;">Trimite mesajul</button>
+        <div id="cf-status" style="font-size:13px;text-align:center;min-height:16px;"></div>
       </div>
 
-      <div id="contact-loading" style="text-align:center;color:#4b5563;font-size:13px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
+      <div id="contact-loading" style="text-align:center;color:#4b5563;font-size:15px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
     </div>
   </div>
 </div>
@@ -607,7 +607,7 @@ nav{display:flex;align-items:center;gap:6px;}
     <div class="stats-inner">
         <div class="stat-chip"><strong id="stat-inregistrate">—</strong> bălți înregistrate</div>
         <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown()">
-          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:15px;font-weight:900;">▾</span>
+          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;">▾</span>
           <div id="public-balti-dropdown">
             <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
             <div id="public-balti-list"></div>
@@ -635,7 +635,7 @@ nav{display:flex;align-items:center;gap:6px;}
     </div>
     <div style="position:relative;padding:0 16px 14px;">
       <input type="text" id="cauta-pescari-input" oninput="cautaPescariUrmarire(this.value)" onfocus="onFocusCautaPescari()" placeholder="Nume sau ZODA-ID..."
-        style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:9px;padding:9px 12px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:9px;padding:9px 12px;color:#f1f5f9;font-size:15px;outline:none;"/>
       <div id="cauta-pescari-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:10px;max-height:255px;overflow-y:auto;z-index:var(--z-dropdown);box-shadow:0 8px 24px rgba(0,0,0,.5);"></div>
     </div>
   </div>
@@ -649,7 +649,7 @@ nav{display:flex;align-items:center;gap:6px;}
           <div class="hof-sub" id="saptamanal-interval-1">—</div>
         </div>
       </div>
-      <div id="saptamanal-capturi-list"><div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Se încarcă...</div></div>
+      <div id="saptamanal-capturi-list"><div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Se încarcă...</div></div>
     </div>
     <div class="hof-card">
       <div class="hof-header">
@@ -658,7 +658,7 @@ nav{display:flex;align-items:center;gap:6px;}
           <div class="hof-sub" id="saptamanal-interval-2">—</div>
         </div>
       </div>
-      <div id="saptamanal-stele-list"><div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Se încarcă...</div></div>
+      <div id="saptamanal-stele-list"><div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Se încarcă...</div></div>
     </div>
   </div>
 
@@ -733,10 +733,10 @@ nav{display:flex;align-items:center;gap:6px;}
 <div id="modal-detalii-firma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
   <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:420px;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;">
-      <div style="font-size:16px;font-weight:800;color:#f1f5f9;">🏢 Detalii firmă</div>
-      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+      <div style="font-size:18px;font-weight:800;color:#f1f5f9;">🏢 Detalii firmă</div>
+      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div style="padding:20px 24px;font-size:13px;color:#94a3b8;line-height:2;">
+    <div style="padding:20px 24px;font-size:15px;color:#94a3b8;line-height:2;">
       <div><strong style="color:#f1f5f9;">Denumire:</strong> ZODA S.R.L.</div>
       <div><strong style="color:#f1f5f9;">CUI:</strong> 55341803</div>
       <div><strong style="color:#f1f5f9;">Reg. Com.:</strong> J2026047446009</div>
@@ -747,7 +747,7 @@ nav{display:flex;align-items:center;gap:6px;}
 
 <!-- FULLSCREEN MODAL (poză) -->
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);align-items:center;justify-content:center;cursor:zoom-out;">
-  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:16px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -815,11 +815,11 @@ nav{display:flex;align-items:center;gap:6px;}
             oninput="judetSearch(this.value)"
             onkeydown="judetKeydown(event)"
             onfocus="judetOpen()"
-            style="width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 36px 10px 12px;color:#f1f5f9;font-size:14px;outline:none;cursor:text;"
+            style="width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 36px 10px 12px;color:#f1f5f9;font-size:16px;outline:none;cursor:text;"
           />
           <input type="hidden" id="ab-judet" />
           <!-- Sageata dropdown -->
-          <div id="judet-arrow" onclick="judetToggle()" style="position:absolute;right:10px;bottom:10px;color:#4b5563;cursor:pointer;font-size:14px;user-select:none;">▾</div>
+          <div id="judet-arrow" onclick="judetToggle()" style="position:absolute;right:10px;bottom:10px;color:#4b5563;cursor:pointer;font-size:16px;user-select:none;">▾</div>
           <!-- Dropdown lista -->
           <div id="judet-dropdown" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;background:#111827;border:1.5px solid #1e293b;border-radius:10px;overflow:hidden;z-index:var(--z-dropdown);box-shadow:0 8px 24px rgba(0,0,0,.6);max-height:220px;overflow-y:auto;">
           </div>
@@ -843,7 +843,7 @@ nav{display:flex;align-items:center;gap:6px;}
         <div class="fg">
           <label>🎬 LINK YOUTUBE — VIDEO DRUM DE ACCES</label>
           <input type="url" id="ab-drum-yt" placeholder="https://youtu.be/... sau https://youtube.com/watch?v=..." />
-          <div style="font-size:10px;color:#4b5563;margin-top:4px;">Videoclip cu drumul de acces către baltă — va apărea pe pagina baltii</div>
+          <div style="font-size:11px;color:#4b5563;margin-top:4px;">Videoclip cu drumul de acces către baltă — va apărea pe pagina baltii</div>
         </div>
 
       </div>
@@ -852,7 +852,7 @@ nav{display:flex;align-items:center;gap:6px;}
       <div class="ab-pane" id="pane-2">
 
         <!-- Instructiuni -->
-        <div style="background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#94a3b8;line-height:1.7;">
+        <div style="background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:13px;color:#94a3b8;line-height:1.7;">
           <strong style="color:#38bdf8;">Cum găsești balta:</strong><br/>
           <span style="color:#64748b;">①</span> Caută <strong style="color:#e2e8f0;">satul sau comuna</strong> unde se află balta<br/>
           <span style="color:#64748b;">②</span> Click pe rezultat → harta se centrează pe zonă<br/>
@@ -866,13 +866,13 @@ nav{display:flex;align-items:center;gap:6px;}
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4b5563" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               <input id="ab-search-input" type="text"
                 placeholder="Caută sat, comună sau oraș... (ex: Naipu, Comana)"
-                style="flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-size:13px;"
+                style="flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-size:15px;"
                 oninput="abSearchInput(this.value)"
                 onkeydown="if(event.key==='Enter'){abDoSearch();event.preventDefault();}"
                 autocomplete="off"/>
-              <button onclick="abClearSearch()" id="ab-search-clear" style="display:none;background:transparent;border:none;color:#4b5563;cursor:pointer;font-size:16px;line-height:1;">✕</button>
+              <button onclick="abClearSearch()" id="ab-search-clear" style="display:none;background:transparent;border:none;color:#4b5563;cursor:pointer;font-size:18px;line-height:1;">✕</button>
             </div>
-            <button onclick="abDoSearch()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:9px 16px;border-radius:9px;cursor:pointer;white-space:nowrap;">
+            <button onclick="abDoSearch()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer;white-space:nowrap;">
               🔍 Caută
             </button>
           </div>
@@ -883,36 +883,36 @@ nav{display:flex;align-items:center;gap:6px;}
         <div id="ab-map"></div>
 
         <!-- Status pin -->
-        <div id="ab-pin-status" style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:12px;">
-          <span style="font-size:16px;">🎯</span>
+        <div id="ab-pin-status" style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:13px;">
+          <span style="font-size:18px;">🎯</span>
           <span style="color:#4b5563;flex:1;" id="ab-coord-display">Click pe hartă pentru a marca locația baltii</span>
-          <button id="ab-coord-clear" onclick="abClearPin()" style="display:none;background:#1e293b;border:none;color:#94a3b8;font-size:11px;padding:3px 8px;border-radius:5px;cursor:pointer;">✕ Resetează</button>
+          <button id="ab-coord-clear" onclick="abClearPin()" style="display:none;background:#1e293b;border:none;color:#94a3b8;font-size:12px;padding:3px 8px;border-radius:5px;cursor:pointer;">✕ Resetează</button>
         </div>
       </div>
 
       <!-- PAS 3: Standuri -->
       <div class="ab-pane" id="pane-3">
-        <div style="font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
+        <div style="font-size:15px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
           Adaugă standurile de pescuit ale baltii. Poți modifica pozițiile lor mai târziu direct pe harta baltii.
         </div>
         <div id="stands-container"></div>
         <button class="add-stand-btn" onclick="addStand()">
-          <span style="font-size:18px;">+</span> Adaugă stand
+          <span style="font-size:20px;">+</span> Adaugă stand
         </button>
       </div>
 
       <!-- PAS 4: Hartă baltă -->
       <div class="ab-pane" id="pane-4">
-        <div style="font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
+        <div style="font-size:15px;color:#94a3b8;margin-bottom:14px;line-height:1.6;">
           Încarcă o imagine cu harta baltii (plan de sus, schiță cu standuri etc.). Poți face zoom și muta imaginea după preferință.
         </div>
 
         <!-- Drop zone -->
         <div id="harta-dropzone" onclick="document.getElementById('harta-file-input').click()"
           style="border:2px dashed #1e293b;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#0d1014;margin-bottom:14px;">
-          <div style="font-size:36px;margin-bottom:10px;">🗺️</div>
-          <div style="font-size:14px;font-weight:700;color:#64748b;margin-bottom:4px;">Click sau trage o imagine aici</div>
-          <div style="font-size:11px;color:#334155;">JPG, PNG, WEBP — max 10MB</div>
+          <div style="font-size:40px;margin-bottom:10px;">🗺️</div>
+          <div style="font-size:16px;font-weight:700;color:#64748b;margin-bottom:4px;">Click sau trage o imagine aici</div>
+          <div style="font-size:12px;color:#334155;">JPG, PNG, WEBP — max 10MB</div>
           <input type="file" id="harta-file-input" accept="image/*" style="display:none;" onchange="hartaOnFile(this)"/>
         </div>
 
@@ -920,24 +920,24 @@ nav{display:flex;align-items:center;gap:6px;}
         <div id="harta-viewer-wrap" style="display:none;">
           <!-- Toolbar -->
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-            <button onclick="hartaZoom(1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:18px;width:34px;height:34px;border-radius:7px;cursor:pointer;line-height:1;" title="Zoom in">＋</button>
-            <button onclick="hartaZoom(1/1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:18px;width:34px;height:34px;border-radius:7px;cursor:pointer;line-height:1;" title="Zoom out">－</button>
-            <button onclick="hartaReset()" style="background:#1e293b;border:none;color:#94a3b8;font-size:11px;font-weight:700;padding:0 12px;height:34px;border-radius:7px;cursor:pointer;" title="Resetează vedere">↺ Reset</button>
-            <span style="font-size:11px;color:#334155;margin-left:4px;">Scroll = zoom · Drag = mută</span>
-            <button onclick="hartaRemove()" style="margin-left:auto;background:transparent;border:1px solid #334155;color:#64748b;font-size:11px;padding:5px 12px;border-radius:7px;cursor:pointer;" title="Elimină imaginea">✕ Elimină</button>
+            <button onclick="hartaZoom(1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:20px;width:34px;height:34px;border-radius:7px;cursor:pointer;line-height:1;" title="Zoom in">＋</button>
+            <button onclick="hartaZoom(1/1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:20px;width:34px;height:34px;border-radius:7px;cursor:pointer;line-height:1;" title="Zoom out">－</button>
+            <button onclick="hartaReset()" style="background:#1e293b;border:none;color:#94a3b8;font-size:12px;font-weight:700;padding:0 12px;height:34px;border-radius:7px;cursor:pointer;" title="Resetează vedere">↺ Reset</button>
+            <span style="font-size:12px;color:#334155;margin-left:4px;">Scroll = zoom · Drag = mută</span>
+            <button onclick="hartaRemove()" style="margin-left:auto;background:transparent;border:1px solid #334155;color:#64748b;font-size:12px;padding:5px 12px;border-radius:7px;cursor:pointer;" title="Elimină imaginea">✕ Elimină</button>
           </div>
 
           <!-- Canvas viewer -->
           <div id="harta-canvas-wrap" style="position:relative;width:100%;height:360px;border:1.5px solid #1e293b;border-radius:10px;overflow:hidden;background:#070b12;cursor:grab;">
             <canvas id="harta-canvas" style="position:absolute;top:0;left:0;"></canvas>
           </div>
-          <div style="margin-top:8px;font-size:11px;color:#1e293b;text-align:center;" id="harta-zoom-label">100%</div>
+          <div style="margin-top:8px;font-size:12px;color:#1e293b;text-align:center;" id="harta-zoom-label">100%</div>
         </div>
 
-        <div style="margin-top:10px;background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:9px 12px;font-size:11px;color:#64748b;line-height:1.7;">
+        <div style="margin-top:10px;background:#071c26;border:1px solid #0c3a4d;border-radius:8px;padding:9px 12px;font-size:12px;color:#64748b;line-height:1.7;">
           💡 Pasul este opțional — poți salva balta și fără hartă. Imaginea va apărea pe pagina baltii.
         </div>
-        <div id="harta-upload-status" style="display:none;margin-top:8px;font-size:12px;font-weight:600;padding:6px 10px;border-radius:6px;background:#111827;"></div>
+        <div id="harta-upload-status" style="display:none;margin-top:8px;font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;background:#111827;"></div>
       </div>
 
       <!-- SUCCES -->
@@ -952,25 +952,25 @@ nav{display:flex;align-items:center;gap:6px;}
 
           <!-- Status vizibilitate -->
           <div style="margin-top:20px;background:#111827;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:left;">
-            <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:10px;">👁️ VIZIBILITATE BALTĂ</div>
+            <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:10px;">👁️ VIZIBILITATE BALTĂ</div>
             <div style="display:flex;gap:8px;">
               <button id="vis-unlisted" onclick="setVizibilitate('unlisted')"
-                style="flex:1;padding:10px;border-radius:9px;border:2px solid #f59e0b;background:#1c1500;color:#f59e0b;font-weight:700;font-size:12px;cursor:pointer;">
+                style="flex:1;padding:10px;border-radius:9px;border:2px solid #f59e0b;background:#1c1500;color:#f59e0b;font-weight:700;font-size:13px;cursor:pointer;">
                 🔒 Unlisted
-                <div style="font-size:10px;font-weight:400;color:#92400e;margin-top:3px;">Nevizibil publicului</div>
+                <div style="font-size:11px;font-weight:400;color:#92400e;margin-top:3px;">Nevizibil publicului</div>
               </button>
               <button id="vis-public" onclick="setVizibilitate('public')"
-                style="flex:1;padding:10px;border-radius:9px;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;font-weight:700;font-size:12px;cursor:pointer;">
+                style="flex:1;padding:10px;border-radius:9px;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;font-weight:700;font-size:13px;cursor:pointer;">
                 🌍 Public
-                <div style="font-size:10px;font-weight:400;color:#334155;margin-top:3px;">Vizibil pe platformă</div>
+                <div style="font-size:11px;font-weight:400;color:#334155;margin-top:3px;">Vizibil pe platformă</div>
               </button>
             </div>
-            <div id="vis-status" style="margin-top:10px;font-size:11px;color:#92400e;background:#1c1500;border-radius:6px;padding:7px 10px;">
+            <div id="vis-status" style="margin-top:10px;font-size:12px;color:#92400e;background:#1c1500;border-radius:6px;padding:7px 10px;">
               🔒 Balta este în modul <strong>Unlisted</strong> — nu apare în căutări sau pe harta publică până nu este setată ca Publică de admin.
             </div>
           </div>
 
-          <button onclick="closeAddBalta()" style="margin-top:16px;background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:14px;padding:11px 28px;border-radius:10px;cursor:pointer;width:100%;">
+          <button onclick="closeAddBalta()" style="margin-top:16px;background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:16px;padding:11px 28px;border-radius:10px;cursor:pointer;width:100%;">
             ✓ Închide
           </button>
         </div>
@@ -982,7 +982,7 @@ nav{display:flex;align-items:center;gap:6px;}
     <div class="ab-footer" id="ab-footer">
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="step-count" id="step-count">Pasul 1 din 3</span>
-        <button onclick="saveDraft()" style="background:transparent;border:1px solid #334155;color:#64748b;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;" title="Salvează progresul și închide">
+        <button onclick="saveDraft()" style="background:transparent;border:1px solid #334155;color:#64748b;font-size:12px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;" title="Salvează progresul și închide">
           💾 Salvează draft
         </button>
       </div>
@@ -1315,7 +1315,7 @@ function renderDropdownRasfoire() {
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
-        ${b.tagline ? `<div style="font-size:12.5px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
+        ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
       </div>
       <button class="dd-open" onclick="event.stopPropagation();__goToBalta(${b.id})">Deschide →</button>
     </div>`).join('');
@@ -1354,7 +1354,7 @@ function onSearch(q) {
   const res = scored.slice(0, 20).map(s => s.b);
 
   if (!res.length) {
-    dd.innerHTML = '<div style="padding:14px 16px;color:#4b5563;font-size:13px;">Nicio baltă găsită</div>';
+    dd.innerHTML = '<div style="padding:14px 16px;color:#4b5563;font-size:15px;">Nicio baltă găsită</div>';
     dd.style.display = 'block';
     return;
   }
@@ -1396,8 +1396,8 @@ document.addEventListener('click', e => {
 // ── HALL OF FAME ──────────────────────────────────────────────────────────────
 function hofRowHtml(h, extended) {
   const steleIcon = h.stele > 0
-    ? `<span style="color:#f59e0b;font-size:11px;font-weight:800;">⭐${h.stele}</span>`
-    : '<span style="color:#334155;font-size:11px;">—</span>';
+    ? `<span style="color:#f59e0b;font-size:12px;font-weight:800;">⭐${h.stele}</span>`
+    : '<span style="color:#334155;font-size:12px;">—</span>';
   const avatarHtml = h.avatar
     ? `<img class="hof-avatar" src="${h.avatar}" alt="" loading="lazy"/>`
     : `<div class="hof-avatar-empty"></div>`;
@@ -1437,8 +1437,52 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; }
+// ── ORIENTARE ECRAN — permite landscape la vizualizare poze/video ───────────
+// Manifest-ul are orientation:"portrait-primary" (ca aplicația instalată să
+// rămână stabilă pe hartă/liste). screen.orientation.unlock() singur NU
+// suprascrie fiabil blocarea din manifest într-un PWA instalat — trebuie
+// combinat cu Fullscreen API (la fel cum un video nativ rotește doar când
+// intră în fullscreen). La deschiderea unei poze/video, cerem fullscreen pe
+// overlay și abia apoi deblocăm orientarea; la închidere ieșim din fullscreen
+// și reblocăm pe portret.
+function _permiteRotire(elId) {
+  var el = (elId && document.getElementById(elId)) || document.documentElement;
+  var req = el && (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen);
+  var afterFS = function () {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        var p = screen.orientation.lock('any');
+        if (p && p.catch) p.catch(function () {});
+      } else if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch (e) {}
+  };
+  if (req) {
+    try {
+      var res = req.call(el);
+      if (res && res.then) res.then(afterFS).catch(afterFS); else afterFS();
+    } catch (e) { afterFS(); }
+  } else {
+    afterFS();
+  }
+}
+function _blocheazaPortret() {
+  try {
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fsEl && exit) exit.call(document);
+  } catch (e) {}
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      var p = screen.orientation.lock('portrait-primary');
+      if (p && p.catch) p.catch(function () {});
+    }
+  } catch (e) {}
+}
+
+function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
 
 async function loadTopSaptamanal() {
@@ -1467,7 +1511,7 @@ async function loadTopSaptamanal() {
       .limit(10), 10000, 'top capturi');
 
     if (!capturi || !capturi.length) {
-      capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Nicio captură aprobată încă săptămâna asta.</div>';
+      capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Nicio captură aprobată încă săptămâna asta.</div>';
     } else {
       capturiListEl.innerHTML = capturi.map(function(c, i) {
         var nameHtml = c.pescar_id
@@ -1482,12 +1526,12 @@ async function loadTopSaptamanal() {
             '<div class="hof-name">' + nameHtml + '</div>' +
             '<div class="hof-detail">' + escH(c.balti?.nume || '—') + (c.specie ? ' · ' + escH(c.specie) : '') + '</div>' +
           '</div>' +
-          '<div style="color:#60a5fa;font-weight:800;font-size:12px;flex-shrink:0;">' + c.kg + ' kg</div>' +
+          '<div style="color:#60a5fa;font-weight:800;font-size:13px;flex-shrink:0;">' + c.kg + ' kg</div>' +
         '</div>';
       }).join('');
     }
   } catch(e) {
-    capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Eroare la încărcare.</div>';
+    capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Eroare la încărcare.</div>';
   }
 
   // ── Top 10 pescari după stele câștigate săptămâna asta ──
@@ -1499,7 +1543,7 @@ async function loadTopSaptamanal() {
       .lt('created_at', luniUrmatoareISO), 10000, 'top stele');
 
     if (!steleRaw || !steleRaw.length) {
-      steleListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Nicio stea câștigată încă săptămâna asta.</div>';
+      steleListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Nicio stea câștigată încă săptămâna asta.</div>';
     } else {
       var contor = {};
       steleRaw.forEach(function(s) { contor[s.zoda_id] = (contor[s.zoda_id] || 0) + 1; });
@@ -1522,12 +1566,12 @@ async function loadTopSaptamanal() {
             '<div class="hof-name">' + nameHtml + '</div>' +
             '<div class="hof-detail">' + escH(zodaId) + '</div>' +
           '</div>' +
-          '<div class="hof-stars"><span style="color:#f59e0b;font-size:11px;font-weight:800;">⭐' + contor[zodaId] + '</span></div>' +
+          '<div class="hof-stars"><span style="color:#f59e0b;font-size:12px;font-weight:800;">⭐' + contor[zodaId] + '</span></div>' +
         '</div>';
       }).join('');
     }
   } catch(e) {
-    steleListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Eroare la încărcare.</div>';
+    steleListEl.innerHTML = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Eroare la încărcare.</div>';
   }
 }
 
@@ -1555,7 +1599,7 @@ async function loadHof() {
     .limit(20);
 
   if (!stele || !stele.length) {
-    const emptyHtml = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Niciun pescar cu stele încă</div>';
+    const emptyHtml = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Niciun pescar cu stele încă</div>';
     document.getElementById('hof-preview').innerHTML = emptyHtml;
     document.getElementById('hof-full').innerHTML = emptyHtml;
     return;
@@ -1595,7 +1639,7 @@ async function loadHof() {
 }
 
 function renderHof() {
-  const empty = '<div style="padding:16px;text-align:center;color:#334155;font-size:12px;">Niciun pescar cu stele încă</div>';
+  const empty = '<div style="padding:16px;text-align:center;color:#334155;font-size:13px;">Niciun pescar cu stele încă</div>';
   document.getElementById('hof-preview').innerHTML = HOF.slice(0, 5).map(h => hofRowHtml(h, false)).join('') || empty;
   document.getElementById('hof-full').innerHTML    = HOF.map(h => hofRowHtml(h, true)).join('') || empty;
 }
@@ -1636,17 +1680,17 @@ async function renderBalti() {
 
   document.getElementById('balti-list').innerHTML = istoric.slice(0, 5).map((b, idx) => {
     return `<div class="balta-row" data-id="${b.id}" onclick="__goToBalta(${b.id})" style="cursor:pointer;">
-      <div style="width:28px;height:28px;border-radius:7px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">
+      <div style="width:28px;height:28px;border-radius:7px;background:#1e293b;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">
         🎣
       </div>
       <div style="flex:1;min-width:0;">
         <div class="balta-name">${escH(b.nume)}</div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;flex-shrink:0;">
+      <div style="font-size:12px;font-weight:700;color:#64748b;white-space:nowrap;flex-shrink:0;">
         ${timeAgo(b.ts)}
       </div>
     </div>`;
-  }).join('') || '<div style="padding:20px;text-align:center;color:#4b5563;font-size:12px;">Nicio baltă vizitată încă — explorează harta! 🗺️</div>';
+  }).join('') || '<div style="padding:20px;text-align:center;color:#4b5563;font-size:13px;">Nicio baltă vizitată încă — explorează harta! 🗺️</div>';
 }
 
 // Mută istoricul local (salvat înainte de logare) în cont, o singură dată la login.
@@ -1907,8 +1951,8 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">🎣 ${escH(b.nume)} <span style="color:#4b5563;font-size:11px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:12.5px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
-      : '<div style="padding:14px;color:#4b5563;font-size:12px;">Momentan nicio baltă publică.</div>';
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">🎣 ${escH(b.nume)} <span style="color:#4b5563;font-size:12px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      : '<div style="padding:14px;color:#4b5563;font-size:13px;">Momentan nicio baltă publică.</div>';
   }
   dd.style.display = willOpen ? 'block' : 'none';
 }
@@ -2146,7 +2190,7 @@ function buildEditBody(b, ext) {
   const hartaThumb = hartaUrl
     ? `<div class="gal-thumb-edit" id="edit-harta-thumb" style="width:100%;height:160px;border-radius:10px;margin-bottom:8px;">
         <img src="${hartaUrl}" style="width:100%;height:100%;object-fit:contain;background:#070b12;" loading="lazy"/>
-        <button class="gal-thumb-del" style="top:6px;right:6px;width:24px;height:24px;font-size:16px;" onclick="editHartaRemove()" title="Elimină hartă">✕</button>
+        <button class="gal-thumb-del" style="top:6px;right:6px;width:24px;height:24px;font-size:18px;" onclick="editHartaRemove()" title="Elimină hartă">✕</button>
        </div>`
     : '';
 
@@ -2174,7 +2218,7 @@ function buildEditBody(b, ext) {
     <div class="fg">
       <label>🎬 LINK YOUTUBE — VIDEO DRUM DE ACCES</label>
       <input type="url" id="e-drum-yt" value="${drumYt}" placeholder="https://youtu.be/... sau https://youtube.com/watch?v=..."/>
-      <div style="font-size:10px;color:#4b5563;margin-top:4px;">Videoclip cu drumul de acces — apare pe pagina baltii</div>
+      <div style="font-size:11px;color:#4b5563;margin-top:4px;">Videoclip cu drumul de acces — apare pe pagina baltii</div>
     </div>
 
     <!-- Hartă baltă -->
@@ -2186,25 +2230,25 @@ function buildEditBody(b, ext) {
       <div id="edit-harta-dropzone"
         onclick="document.getElementById('edit-harta-input').click()"
         style="border:2px dashed #1e293b;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#0d1014;${hartaUrl ? 'display:none;' : ''}">
-        <div style="font-size:28px;margin-bottom:6px;">🗺️</div>
-        <div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:2px;">Click sau trage o imagine</div>
-        <div style="font-size:10px;color:#334155;">JPG, PNG, WEBP — max 10MB</div>
+        <div style="font-size:31px;margin-bottom:6px;">🗺️</div>
+        <div style="font-size:15px;font-weight:700;color:#64748b;margin-bottom:2px;">Click sau trage o imagine</div>
+        <div style="font-size:11px;color:#334155;">JPG, PNG, WEBP — max 10MB</div>
         <input type="file" id="edit-harta-input" accept="image/*" style="display:none;" onchange="editHartaOnFile(this)"/>
       </div>
 
       <!-- Viewer interactiv (apare după upload) -->
       <div id="edit-harta-viewer" style="display:none;">
         <div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px;">
-          <button onclick="editHartaZoom(1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:18px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
-          <button onclick="editHartaZoom(1/1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:18px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
-          <button onclick="editHartaReset()" style="background:#1e293b;border:none;color:#94a3b8;font-size:11px;font-weight:700;padding:0 12px;height:32px;border-radius:6px;cursor:pointer;">↺ Reset</button>
-          <span style="font-size:10px;color:#334155;margin-left:2px;">Scroll = zoom · Drag = mută</span>
-          <button onclick="editHartaRemove()" style="margin-left:auto;background:transparent;border:1px solid #334155;color:#64748b;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;">✕ Elimină</button>
+          <button onclick="editHartaZoom(1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:20px;width:32px;height:32px;border-radius:6px;cursor:pointer;">＋</button>
+          <button onclick="editHartaZoom(1/1.2)" style="background:#1e293b;border:none;color:#f1f5f9;font-size:20px;width:32px;height:32px;border-radius:6px;cursor:pointer;">－</button>
+          <button onclick="editHartaReset()" style="background:#1e293b;border:none;color:#94a3b8;font-size:12px;font-weight:700;padding:0 12px;height:32px;border-radius:6px;cursor:pointer;">↺ Reset</button>
+          <span style="font-size:11px;color:#334155;margin-left:2px;">Scroll = zoom · Drag = mută</span>
+          <button onclick="editHartaRemove()" style="margin-left:auto;background:transparent;border:1px solid #334155;color:#64748b;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;">✕ Elimină</button>
         </div>
         <div id="edit-harta-canvas-wrap" style="position:relative;width:100%;height:280px;border:1.5px solid #1e293b;border-radius:10px;overflow:hidden;background:#070b12;cursor:grab;">
           <canvas id="edit-harta-canvas" style="position:absolute;top:0;left:0;"></canvas>
         </div>
-        <div style="margin-top:4px;font-size:11px;color:#1e293b;text-align:center;" id="edit-harta-zoom-label">100%</div>
+        <div style="margin-top:4px;font-size:12px;color:#1e293b;text-align:center;" id="edit-harta-zoom-label">100%</div>
       </div>
     </div>
   </div>
@@ -2214,14 +2258,14 @@ function buildEditBody(b, ext) {
     <div class="edit-section-title"><span>👁️ VIZIBILITATE</span></div>
     <div style="display:flex;gap:8px;">
       <button id="ev-unlisted" onclick="setEditViz('unlisted')"
-        style="flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;
+        style="flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
         ${(b.vizibilitate||'public')==='unlisted'?'border:2px solid #f59e0b;background:#1c1500;color:#f59e0b;':'border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;'}">
-        🔒 Unlisted<div style="font-size:10px;font-weight:400;margin-top:3px;">Nevizibil publicului</div>
+        🔒 Unlisted<div style="font-size:11px;font-weight:400;margin-top:3px;">Nevizibil publicului</div>
       </button>
       <button id="ev-public" onclick="setEditViz('public')"
-        style="flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;
+        style="flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;
         ${(b.vizibilitate||'public')==='public'?'border:2px solid #38bdf8;background:#071c26;color:#38bdf8;':'border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;'}">
-        🌍 Public<div style="font-size:10px;font-weight:400;margin-top:3px;">Vizibil pe platformă</div>
+        🌍 Public<div style="font-size:11px;font-weight:400;margin-top:3px;">Vizibil pe platformă</div>
       </button>
     </div>
   </div>
@@ -2230,7 +2274,7 @@ function buildEditBody(b, ext) {
   <div class="edit-section">
     <div class="edit-section-title">
       <span>🎣 STANDURI (${ext.standuri.length})</span>
-      <button onclick="addEditStand()" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Adaugă stand</button>
+      <button onclick="addEditStand()" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Adaugă stand</button>
     </div>
     <div id="edit-stands-wrap">
       ${ext.standuri.map(s => buildStandEditCard(s)).join('')}
@@ -2284,7 +2328,7 @@ function buildStandEditCard(s) {
         <div class="gal-edit-wrap" id="se-gal-${s.id}">
           ${gals}
           <div class="gal-add-btn" onclick="addEditGalerie(${s.id})" title="Adaugă fotografie">
-            <span style="font-size:20px;">+</span>
+            <span style="font-size:22px;">+</span>
             <span>Adaugă foto</span>
           </div>
         </div>
@@ -2342,11 +2386,11 @@ function setEditViz(status) {
   const btnU = document.getElementById('ev-unlisted');
   const btnP = document.getElementById('ev-public');
   if(status === 'unlisted') {
-    btnU.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;border:2px solid #f59e0b;background:#1c1500;color:#f59e0b;';
-    btnP.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;';
+    btnU.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #f59e0b;background:#1c1500;color:#f59e0b;';
+    btnP.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;';
   } else {
-    btnP.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;border:2px solid #38bdf8;background:#071c26;color:#38bdf8;';
-    btnU.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:12px;cursor:pointer;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;';
+    btnP.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #38bdf8;background:#071c26;color:#38bdf8;';
+    btnU.style.cssText = 'flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;border:2px solid #1e293b;background:#0a0f1a;color:#4b5563;';
   }
 }
 
@@ -2514,7 +2558,7 @@ async function openRegModal(claimNume, claimId) {
   var phone = s.contact_phone || '';
   var wa    = s.contact_whatsapp || '';
 
-  var titleEl = document.querySelector('#reg-modal [style*="font-size:18px;font-weight:900"]');
+  var titleEl = document.querySelector('#reg-modal [style*="font-size:20px;font-weight:900"]');
   var subEl = titleEl ? titleEl.nextElementSibling : null;
   var waText, mailSubject;
   if (claimNume) {
@@ -2607,7 +2651,7 @@ function renderContactModal(s) {
   const socialRow = document.getElementById('contact-social-row');
   let socialHtml = '';
   const socialBtn = (url, label, icon) =>
-    `<a href="${escH(url)}" target="_blank" rel="noopener" title="${escH(label)}" style="width:44px;height:44px;border-radius:50%;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;justify-content:center;font-size:20px;text-decoration:none;">${icon}</a>`;
+    `<a href="${escH(url)}" target="_blank" rel="noopener" title="${escH(label)}" style="width:44px;height:44px;border-radius:50%;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;justify-content:center;font-size:22px;text-decoration:none;">${icon}</a>`;
   if(fb) socialHtml += socialBtn(fb, 'Facebook', '📘');
   if(ig) socialHtml += socialBtn(ig, 'Instagram', '📷');
   if(yt) socialHtml += socialBtn(yt, 'YouTube', '▶️');
@@ -2899,7 +2943,7 @@ function showAbError(msg) {
   if(!err) {
     err = document.createElement('div');
     err.id = 'ab-error';
-    err.style.cssText = 'background:#3b0f0f;border:1px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:12px;color:#fca5a5;margin-bottom:12px;';
+    err.style.cssText = 'background:#3b0f0f;border:1px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:12px;';
     document.querySelector('.ab-body').prepend(err);
   }
   err.textContent = '⚠️ ' + msg;
@@ -2950,7 +2994,7 @@ async function abDoSearch(isAuto=false) {
   const q = document.getElementById('ab-search-input').value.trim();
   if(!q) return;
   const res = document.getElementById('ab-search-results');
-  res.innerHTML = '<div style="padding:12px 14px;color:#64748b;font-size:12px;">🔍 Se caută...</div>';
+  res.innerHTML = '<div style="padding:12px 14px;color:#64748b;font-size:13px;">🔍 Se caută...</div>';
   res.style.display = 'block';
   try {
     // Nominatim — geocoder OpenStreetMap, gratuit
@@ -2958,9 +3002,9 @@ async function abDoSearch(isAuto=false) {
     const resp = await fetch(url, { headers:{ 'Accept-Language':'ro', 'User-Agent':'Zoda/1.0' } });
     const data = await resp.json();
     if(!data.length) {
-      res.innerHTML = `<div style="padding:12px 14px;color:#4b5563;font-size:12px;">
+      res.innerHTML = `<div style="padding:12px 14px;color:#4b5563;font-size:13px;">
         Niciun rezultat găsit.<br/>
-        <span style="color:#334155;font-size:11px;">Dă click direct pe hartă pentru a seta locația manual.</span>
+        <span style="color:#334155;font-size:12px;">Dă click direct pe hartă pentru a seta locația manual.</span>
       </div>`;
       return;
     }
@@ -2968,11 +3012,11 @@ async function abDoSearch(isAuto=false) {
       <div onclick="abSelectLocation(${r.lat},${r.lon},'${r.display_name.replace(/'/g,"\'")}')"
         style="padding:10px 14px;border-bottom:1px solid #1e293b;cursor:pointer;transition:background .15s;"
         onmouseover="this.style.background='#1e293b'" onmouseout="this.style.background='transparent'">
-        <div style="font-size:12px;font-weight:600;color:#f1f5f9;margin-bottom:2px;">${r.display_name.split(',').slice(0,2).join(',')}</div>
-        <div style="font-size:10px;color:#4b5563;">${r.display_name.split(',').slice(2).join(',').trim()}</div>
+        <div style="font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:2px;">${r.display_name.split(',').slice(0,2).join(',')}</div>
+        <div style="font-size:11px;color:#4b5563;">${r.display_name.split(',').slice(2).join(',').trim()}</div>
       </div>`).join('');
   } catch(e) {
-    res.innerHTML = '<div style="padding:12px 14px;color:#ef4444;font-size:12px;">Eroare la căutare. Verifică conexiunea la internet.</div>';
+    res.innerHTML = '<div style="padding:12px 14px;color:#ef4444;font-size:13px;">Eroare la căutare. Verifică conexiunea la internet.</div>';
   }
 }
 
@@ -3079,7 +3123,7 @@ function judetRenderList(q) {
 
   const dd = document.getElementById('judet-dropdown');
   if(!sorted.length) {
-    dd.innerHTML = '<div style="padding:12px 14px;color:#4b5563;font-size:12px;">Niciun județ găsit</div>';
+    dd.innerHTML = '<div style="padding:12px 14px;color:#4b5563;font-size:13px;">Niciun județ găsit</div>';
     return;
   }
 
@@ -3109,7 +3153,7 @@ function judetRenderList(q) {
     if(items[isFirstGroup]) {
       items[isFirstGroup].style.borderTop = '1px solid #334155';
       items[isFirstGroup].insertAdjacentHTML('beforebegin', 
-        '<div style="padding:4px 14px;font-size:9px;font-weight:700;color:#334155;letter-spacing:.06em;">CONȚINE</div>');
+        '<div style="padding:4px 14px;font-size:10px;font-weight:700;color:#334155;letter-spacing:.06em;">CONȚINE</div>');
     }
   }
 }
@@ -3182,7 +3226,7 @@ function clearStandFoto(nr) {
   var clearBtn = document.getElementById('s'+nr+'-foto-clear');
   if(input) input.value = '';
   if(preview) {
-    preview.innerHTML = '<span style="font-size:24px;">📷</span><span>Adaugă poză</span>';
+    preview.innerHTML = '<span style="font-size:27px;">📷</span><span>Adaugă poză</span>';
     preview.style.border = '1.5px dashed #1e293b';
   }
   if(clearBtn) clearBtn.style.display = 'none';
@@ -3197,9 +3241,9 @@ function addStand() {
   div.id = 'stand-' + nr;
   div.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div>
       <input type="text" id="s${nr}-nume" value="Stand ${nr}"
-        style="flex:1;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:6px 10px;color:#f1f5f9;font-size:13px;font-weight:700;outline:none;"
+        style="flex:1;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:6px 10px;color:#f1f5f9;font-size:15px;font-weight:700;outline:none;"
         placeholder="Denumire stand"
         onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/>
       <button class="stand-del" onclick="delStand(${nr})" title="Șterge stand">✕</button>
@@ -3221,24 +3265,24 @@ function addStand() {
     <div class="fg">
       <label>🎬 LINK YOUTUBE — VIDEO PREZENTARE STAND</label>
       <input type="url" id="s${nr}-yt" placeholder="https://youtu.be/... (opțional)"
-        style="background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:12px;outline:none;width:100%;"
+        style="background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;width:100%;"
         onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='#1e293b'"/>
     </div>
     <div class="fg">
       <label>📸 FOTOGRAFIE STAND</label>
       <div id="s${nr}-foto-wrap" style="display:flex;align-items:flex-start;gap:10px;">
         <label for="s${nr}-foto" style="flex-shrink:0;cursor:pointer;">
-          <div id="s${nr}-foto-preview" style="width:90px;height:90px;border-radius:8px;background:#0a0f1a;border:1.5px dashed #1e293b;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#4b5563;font-size:10px;overflow:hidden;transition:border-color .15s;">
-            <span style="font-size:24px;">📷</span>
+          <div id="s${nr}-foto-preview" style="width:90px;height:90px;border-radius:8px;background:#0a0f1a;border:1.5px dashed #1e293b;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#4b5563;font-size:11px;overflow:hidden;transition:border-color .15s;">
+            <span style="font-size:27px;">📷</span>
             <span>Adaugă poză</span>
           </div>
         </label>
         <input type="file" id="s${nr}-foto" accept="image/*" style="display:none;"
           onchange="previewStandFoto(${nr}, this)"/>
-        <div style="flex:1;font-size:10px;color:#4b5563;line-height:1.7;padding-top:4px;">
+        <div style="flex:1;font-size:11px;color:#4b5563;line-height:1.7;padding-top:4px;">
           Click pe pătrat pentru a selecta o fotografie cu standul.<br/>
           <span style="color:#334155;">Format: JPG, PNG · Calitate originală păstrată</span><br/>
-          <button id="s${nr}-foto-clear" onclick="clearStandFoto(${nr})" style="display:none;margin-top:6px;background:#1e293b;border:none;color:#94a3b8;font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;">✕ Elimină poza</button>
+          <button id="s${nr}-foto-clear" onclick="clearStandFoto(${nr})" style="display:none;margin-top:6px;background:#1e293b;border:none;color:#94a3b8;font-size:11px;padding:3px 8px;border-radius:5px;cursor:pointer;">✕ Elimină poza</button>
         </div>
       </div>
     </div>`;
@@ -3280,7 +3324,7 @@ function getStanduriData() {
     <div class="edit-hdr">
       <div>
         <div class="edit-title" id="edit-modal-title">✏️ Editează balta</div>
-        <div style="font-size:11px;color:#4b5563;margin-top:2px;" id="edit-modal-sub">Modifică informațiile, standurile și media</div>
+        <div style="font-size:12px;color:#4b5563;margin-top:2px;" id="edit-modal-sub">Modifică informațiile, standurile și media</div>
       </div>
       <div class="edit-hdr-btns">
         <button class="edit-save-btn" onclick="saveEditBalta()">💾 Salvează modificările</button>
@@ -3327,7 +3371,7 @@ function getStanduriData() {
       <button class="auth-btn" id="login-btn" type="submit">Intră în cont</button>
       </form>
       <div style="text-align:center;margin-top:8px;">
-        <button onclick="doForgotPassword()" style="background:transparent;border:none;color:#4b5563;font-size:12px;cursor:pointer;text-decoration:underline;padding:0;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#4b5563'">Ai uitat parola?</button>
+        <button onclick="doForgotPassword()" style="background:transparent;border:none;color:#4b5563;font-size:13px;cursor:pointer;text-decoration:underline;padding:0;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#4b5563'">Ai uitat parola?</button>
       </div>
       <div class="auth-divider">sau</div>
       <button class="auth-google" onclick="doGoogleLogin()">
@@ -3357,7 +3401,7 @@ function getStanduriData() {
       </div>
       <div class="auth-remember" style="align-items:flex-start;margin-bottom:14px;">
         <input type="checkbox" id="reg-terms"/>
-        <label for="reg-terms" style="font-size:11px;color:#94a3b8;line-height:1.5;cursor:pointer;">Sunt de acord cu <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a> și <a href="confidentialitate.html" target="_blank" style="color:#38bdf8;">Politica de Confidențialitate</a></label>
+        <label for="reg-terms" style="font-size:12px;color:#94a3b8;line-height:1.5;cursor:pointer;">Sunt de acord cu <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a> și <a href="confidentialitate.html" target="_blank" style="color:#38bdf8;">Politica de Confidențialitate</a></label>
       </div>
       <div style="margin-bottom:14px;display:flex;justify-content:center;">
         <div id="turnstile-register" class="cf-turnstile" data-sitekey="0x4AAAAAADvJsgO0e3tWAKX2" data-theme="dark" data-callback="onTurnstileOk" data-expired-callback="onTurnstileExpired"></div>
@@ -3369,7 +3413,7 @@ function getStanduriData() {
         <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Continuă cu Google
       </button>
-      <div style="font-size:10px;color:#334155;text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:#4b5563;">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:#4b5563;">Politica de Confidențialitate</a>.</div>
+      <div style="font-size:11px;color:#334155;text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:#4b5563;">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:#4b5563;">Politica de Confidențialitate</a>.</div>
     </div>
   </div>
 </div>
@@ -3630,7 +3674,7 @@ function pozitioneazaDropdownPescari() {
 // alfabetic la coadă) — apoi randează rândurile în dropdown.
 async function sorteazaSiRandeazaPescari(dd, rezultate) {
   if (!rezultate.length) {
-    dd.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#4b5563;">Niciun pescar găsit.</div>';
+    dd.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:#4b5563;">Niciun pescar găsit.</div>';
     return;
   }
 
@@ -3654,19 +3698,19 @@ async function sorteazaSiRandeazaPescari(dd, rezultate) {
     const initials = (u.username || '?').slice(0, 2).toUpperCase();
     const avatarHtml = u.avatar_url
       ? `<img src="${u.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" alt=""/>`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:#0c3a4d;color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">${initials}</div>`;
+      : `<div style="width:32px;height:32px;border-radius:50%;background:#0c3a4d;color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">${initials}</div>`;
     return `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid #1e293b;gap:10px;">
         <a href="pescar.html?id=${escH(u.zoda_id)}" style="display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;">
           ${avatarHtml}
           <div style="min-width:0;">
-            <div style="font-size:13px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(u.username || u.zoda_id)}</div>
-            <div style="font-size:10.5px;color:#4b5563;">${escH(u.zoda_id)}</div>
+            <div style="font-size:15px;color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(u.username || u.zoda_id)}</div>
+            <div style="font-size:11.8px;color:#4b5563;">${escH(u.zoda_id)}</div>
           </div>
         </a>
         ${dejaUrmarit
-          ? '<span style="font-size:11px;color:#4b5563;white-space:nowrap;">✓ Urmărit</span>'
-          : `<button onclick="urmarestePescarDinIndex('${escH(u.zoda_id)}','${escH(u.username||u.zoda_id).replace(/'/g,"\\'")}')" style="background:#0e7490;color:#fff;font-weight:700;font-size:11px;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">+ Urmărește</button>`}
+          ? '<span style="font-size:12px;color:#4b5563;white-space:nowrap;">✓ Urmărit</span>'
+          : `<button onclick="urmarestePescarDinIndex('${escH(u.zoda_id)}','${escH(u.username||u.zoda_id).replace(/'/g,"\\'")}')" style="background:#0e7490;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">+ Urmărește</button>`}
       </div>`;
   }).join('');
 }
@@ -3685,7 +3729,7 @@ async function onFocusCautaPescari() {
   const inputEl = document.getElementById('cauta-pescari-input');
   if (inputEl.value.trim()) return; // deja are text -> lasă căutarea normală să preia
   const dd = pozitioneazaDropdownPescari();
-  dd.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#4b5563;">Se încarcă...</div>';
+  dd.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:#4b5563;">Se încarcă...</div>';
   dd.style.display = 'block';
 
   await pregatesteUrmaririMele();
@@ -3707,7 +3751,7 @@ async function cautaPescariUrmarire(q) {
 
   _cautaPescariTimeout = setTimeout(async () => {
     const dd = pozitioneazaDropdownPescari();
-    dd.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#4b5563;">Se caută...</div>';
+    dd.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:#4b5563;">Se caută...</div>';
     dd.style.display = 'block';
 
     await pregatesteUrmaririMele();
@@ -3822,7 +3866,7 @@ async function loadNotifPanel() {
           ${unread ? '<div class="notif-dot"></div>' : '<div style="width:7px;flex-shrink:0;"></div>'}
           <div style="flex:1;">
             <div class="notif-msg">${escHtmlNotif(n.mesaj)}</div>
-            <div class="notif-time">${time}${url ? ' · <span style="color:#38bdf8;font-size:10px;">↗ Vezi</span>' : ''}</div>
+            <div class="notif-time">${time}${url ? ' · <span style="color:#38bdf8;font-size:11px;">↗ Vezi</span>' : ''}</div>
           </div>
         </div>
       </div>`;
@@ -4648,9 +4692,9 @@ setTimeout(showIosToast, 3000);
 <style>
 #cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-bottom-bar);background:#111827;border-top:1px solid #1e293b;padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
 #cookie-notice.show{display:flex;}
-#cookie-notice-text{font-size:12px;color:#94a3b8;line-height:1.6;max-width:640px;}
+#cookie-notice-text{font-size:13px;color:#94a3b8;line-height:1.6;max-width:640px;}
 #cookie-notice-text a{color:#38bdf8;}
-#cookie-notice-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:12px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#cookie-notice-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 </style>
 <div id="cookie-notice">
   <div id="cookie-notice-text">
@@ -4694,13 +4738,13 @@ setTimeout(showIosToast, 3000);
 #promo-bar-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;}
 #promo-img{width:80px;height:45px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#0a0f1a;}
 .promo-bar-text{min-width:0;flex:1;text-align:center;}
-.promo-bar-tag{font-size:8px;font-weight:700;color:#64748b;letter-spacing:.05em;display:block;text-transform:uppercase;}
-.promo-title{font-size:12px;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.promo-sub{font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-bar-tag{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.05em;display:block;text-transform:uppercase;}
+.promo-title{font-size:13px;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-sub{font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #promo-dots{display:flex;gap:4px;justify-content:center;margin-top:6px;}
 .promo-dot{width:5px;height:5px;border-radius:50%;background:#334155;cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0;}
 .promo-dot.active{background:#38bdf8;transform:scale(1.2);}
-#promo-bar-close{background:transparent;border:none;color:#4b5563;font-size:18px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
+#promo-bar-close{background:transparent;border:none;color:#4b5563;font-size:20px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
 #promo-bar-close:hover{color:#94a3b8;}
 </style>
 <div id="promo-bar">
