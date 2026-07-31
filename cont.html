@@ -1535,6 +1535,14 @@ function timeAgo(isoStr) {
   return new Date(isoStr).toLocaleDateString('ro-RO');
 }
 
+// Data curentă LOCALĂ (nu UTC) în format YYYY-MM-DD — new Date().toISOString()
+// convertește la UTC, ceea ce arată greșit data de ieri în primele ore ale
+// zilei (ora României e înaintea UTC). Folosim componentele locale direct.
+function dataLocalaAzi() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function escH(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -1920,7 +1928,7 @@ async function openCaptura(baltaId, baltaNume) {
   _fotoFile = null;
   document.getElementById('mc-stand').innerHTML = '<option value="">Selectează standul...</option>';
   document.getElementById('mc-kg').value = '';
-  document.getElementById('mc-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mc-data').value = dataLocalaAzi();
   document.getElementById('mc-pescar-search').value = '';
   document.getElementById('mc-pescar-id').value = '';
   document.getElementById('mc-pescar-nume').value = '';
@@ -3243,7 +3251,7 @@ document.addEventListener('keydown', function(e) {
       var bar = document.getElementById('promo-bar');
       if(!bar) return;
       if(sessionStorage.getItem('zoda_promo_bar_closed')) return; // închis manual în sesiunea asta
-      var azi = new Date().toISOString().slice(0, 10);
+      var azi = dataLocalaAzi();
       var res = await sb.from('reclame').select('*')
         .eq('activ', true)
         .lte('data_start', azi)
