@@ -2497,13 +2497,31 @@ async function loadStele() {
 // ── CARD DE DISTRIBUIRE CAPTURĂ ──────────────────────────────────────────────
 var _cardBlobCurent = null;
 
+// ── ORIENTARE ECRAN — permite landscape la vizualizare poze ─────────────────
+// Manifest-ul are orientation:"portrait-primary". La deschiderea unei poze,
+// deblocăm temporar orientarea ca telefonul să se rotească dacă userul îl
+// întoarce pe lateral (cu rotirea automată activată din setările telefonului).
+function _permiteRotire() {
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+}
+function _blocheazaPortret() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      var p = screen.orientation.lock('portrait-primary');
+      if (p && p.catch) p.catch(function () {});
+    }
+  } catch (e) {}
+}
+
 // ── LIGHTBOX — vizualizare poză la dimensiune completă ──────────────────────
 function deschideLightboxFoto(url) {
   document.getElementById('lightbox-foto-img').src = url;
   document.getElementById('lightbox-foto').style.display = 'flex';
+  _permiteRotire();
 }
 function closeLightboxFoto() {
   document.getElementById('lightbox-foto').style.display = 'none';
+  _blocheazaPortret();
 }
 
 function deschideCardDistribuire(captureId) {
