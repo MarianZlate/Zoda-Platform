@@ -99,6 +99,7 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-tint:#0c3a4d;
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
+  --zc-hdr-bg:rgba(10,15,26,.97);
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -114,6 +115,7 @@ html[data-theme="light"]{
   --zc-bg-tint:#e0f2fe;
   --zc-bg-deep:#f0f9ff;
   --zc-accent-dark:#0891b2;
+  --zc-hdr-bg:rgba(244,247,251,.92);
 }
 /* Tranziție graduală — activată DOAR de motorul de temă automată (nu la
    schimbarea manuală din Cont, care rămâne instantă) */
@@ -129,10 +131,14 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 ::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
 
 /* HEADER */
-#hdr{background:rgba(10,15,26,.97);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
+#hdr{background:var(--zc-hdr-bg);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
 #hdr-in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:0 14px;height:52px;}
 .logo{font-size:18px;font-weight:800;color:#38bdf8;text-decoration:none;white-space:nowrap;display:flex;align-items:center;}
 .logo-img{height:28px;width:auto;display:block;}
+.logo-img-light{display:none;}
+html[data-theme="light"] .logo-img-dark{display:none;}
+html[data-theme="light"] .logo-img-light{display:block;}
+
 .back-btn{display:flex;align-items:center;gap:6px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;color:var(--zc-text-secondary-2);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0;margin-left:auto;padding:5px 12px;font-size:13px;}
 .back-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 
@@ -277,6 +283,10 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:24px;width:auto;display:block;opacity:.85;}
+.footer-logo-img-light{display:none;}
+html[data-theme="light"] .footer-logo-img-dark{display:none;}
+html[data-theme="light"] .footer-logo-img-light{display:block;}
+
 .footer-tagline{font-size:13px;color:var(--zc-text-muted);line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
@@ -316,7 +326,7 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 
 <div id="hdr" style="display:none;">
   <div id="hdr-in">
-    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img"/></a>
+    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="logo-img logo-img-light"/></a>
     <span style="font-size:13px;color:var(--zc-text-muted);" id="hdr-subtitle">Profil pescar</span>
     <a href="index.html" class="back-btn" onclick="event.preventDefault(); savePescarState(); if(history.length > 1) { history.back(); } else { window.location.href='index.html'; }">← Înapoi</a>
   </div>
@@ -394,7 +404,7 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 <footer id="site-footer">
   <div id="footer-inner">
     <div class="footer-brand">
-      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img"/>
+      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img footer-logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="footer-logo-img footer-logo-img-light"/>
       <p class="footer-tagline">Comunitatea pescarilor din România — bălți, standuri, capturi și clasamente.</p>
     </div>
     <div class="footer-cols">
