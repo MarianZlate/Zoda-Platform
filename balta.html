@@ -586,6 +586,12 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
 <div class="lc">
 
+  <!-- Distribuie balta -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+    <button id="btn-share-balta" onclick="shareBalta()" title="Distribuie balta" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:var(--zc-text-primary);font-size:14px;font-weight:600;cursor:pointer;">🔗 Distribuie</button>
+    <div id="share-balta-toast" style="display:none;align-items:center;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:14px;font-weight:600;">✓ Link copiat!</div>
+  </div>
+
   <!-- Info bar -->
   <div class="info-bar">
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
@@ -2698,6 +2704,33 @@ function setButonUrmarireUI(btn) {
     btn.style.background = 'rgba(56,189,248,.08)';
   }
 }
+function shareBalta() {
+  if (!BALTA || !BALTA.id) return;
+  var url = window.location.origin + '/balta.html?id=' + BALTA.id;
+  var numeBalta = BALTA.nume || 'această baltă';
+  var text = 'Uite balta "' + numeBalta + '" pe Zoda';
+
+  // Web Share API — pe mobil deschide meniul nativ (WhatsApp, Facebook, etc.)
+  if (navigator.share) {
+    navigator.share({ title: 'Zoda — ' + numeBalta, text: text, url: url }).catch(function () {}); // userul a anulat
+    return;
+  }
+
+  // Fallback desktop — copiază linkul
+  navigator.clipboard.writeText(url).then(function () {
+    var btn = document.getElementById('btn-share-balta');
+    var toast = document.getElementById('share-balta-toast');
+    if (btn && toast) {
+      btn.style.display = 'none';
+      toast.style.display = 'flex';
+      setTimeout(function () {
+        toast.style.display = 'none';
+        btn.style.display = 'flex';
+      }, 2000);
+    }
+  });
+}
+
 async function toggleUrmarireBalta() {
   if (!BALTA_USER) { window.location.href = 'cont.html'; return; }
   var btn = document.getElementById('btn-urmareste');
