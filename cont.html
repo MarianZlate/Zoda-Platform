@@ -2498,13 +2498,40 @@ async function loadStele() {
 var _cardBlobCurent = null;
 
 // ── ORIENTARE ECRAN — permite landscape la vizualizare poze ─────────────────
-// Manifest-ul are orientation:"portrait-primary". La deschiderea unei poze,
-// deblocăm temporar orientarea ca telefonul să se rotească dacă userul îl
-// întoarce pe lateral (cu rotirea automată activată din setările telefonului).
-function _permiteRotire() {
-  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+// Manifest-ul are orientation:"portrait-primary". screen.orientation.unlock()
+// singur NU suprascrie fiabil blocarea din manifest într-un PWA instalat —
+// trebuie combinat cu Fullscreen API (la fel cum un video nativ rotește doar
+// când intră în fullscreen). La deschiderea unei poze cerem fullscreen pe
+// overlay și abia apoi deblocăm orientarea; la închidere ieșim din fullscreen
+// și reblocăm pe portret.
+function _permiteRotire(elId) {
+  var el = (elId && document.getElementById(elId)) || document.documentElement;
+  var req = el && (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen);
+  var afterFS = function () {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        var p = screen.orientation.lock('any');
+        if (p && p.catch) p.catch(function () {});
+      } else if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch (e) {}
+  };
+  if (req) {
+    try {
+      var res = req.call(el);
+      if (res && res.then) res.then(afterFS).catch(afterFS); else afterFS();
+    } catch (e) { afterFS(); }
+  } else {
+    afterFS();
+  }
 }
 function _blocheazaPortret() {
+  try {
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fsEl && exit) exit.call(document);
+  } catch (e) {}
   try {
     if (screen.orientation && screen.orientation.lock) {
       var p = screen.orientation.lock('portrait-primary');
@@ -2517,7 +2544,7 @@ function _blocheazaPortret() {
 function deschideLightboxFoto(url) {
   document.getElementById('lightbox-foto-img').src = url;
   document.getElementById('lightbox-foto').style.display = 'flex';
-  _permiteRotire();
+  _permiteRotire('lightbox-foto');
 }
 function closeLightboxFoto() {
   document.getElementById('lightbox-foto').style.display = 'none';
