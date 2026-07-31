@@ -2531,7 +2531,6 @@ function deschideCardDistribuireStand(index) {
 function deseneazaCardCaptura(c) {
   const canvas = document.getElementById('card-canvas');
   const ctx = canvas.getContext('2d');
-  const W = 1080, H = 1080;
 
   function incarcaImagine(src) {
     return new Promise((resolve, reject) => {
@@ -2547,31 +2546,48 @@ function deseneazaCardCaptura(c) {
     incarcaImagine(c.foto_url + (c.foto_url.includes('?') ? '&' : '?') + 'cb=' + Date.now()),
     incarcaImagine('zoda-logo.png').catch(() => null), // dacă logo-ul nu se încarcă, continuăm fără el
   ]).then(([fotoImg, logoImg]) => {
-    // Poza e vedeta — acoperă tot cardul, fără deformare, fără colțuri rotunjite,
-    // fără gradient greu peste ea. Exact convenția din fotografiile de concurs.
-    const scale = Math.max(W / fotoImg.width, H / fotoImg.height);
-    const sw = W / scale, sh = H / scale;
-    const sx = (fotoImg.width - sw) / 2, sy = (fotoImg.height - sh) / 2;
-    ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
+    // Cardul urmează forma reală a pozei încărcate (portret/landscape/pătrat),
+    // cu latura mare limitată la 1080px — fără crop, ca să nu pierzi detalii
+    // din poza originală (ex. un cap de pește tăiat dintr-o poză portret).
+    const LONG_EDGE = 1080;
+    let W, H;
+    if (fotoImg.width >= fotoImg.height) {
+      W = LONG_EDGE;
+      H = Math.round(LONG_EDGE * fotoImg.height / fotoImg.width);
+    } else {
+      H = LONG_EDGE;
+      W = Math.round(LONG_EDGE * fotoImg.width / fotoImg.height);
+    }
+    canvas.width = W;
+    canvas.height = H;
+    // Elementele de design (bandă, fonturi, logo) au fost calibrate pentru
+    // un card 1080×1080 — le scalăm proporțional cu înălțimea reală a
+    // cardului, cu un prag minim ca textul să rămână lizibil chiar și pe
+    // poze foarte late (panoramice). Pentru poze portret/pătrate, H rămâne
+    // 1080 și vScale e exact 1 — design identic cu cel de dinainte.
+    const vScale = Math.max(0.55, H / 1080);
 
-    const marginX = 40;
+    // Poza e vedeta — acoperă tot cardul, la dimensiunea ei reală, fără crop.
+    ctx.drawImage(fotoImg, 0, 0, W, H);
+
+    const marginX = 40 * vScale;
 
     // ── Fâșie semi-transparentă jos, suficient de înaltă cât să încapă
     //    2 rânduri de text cu spațiere reală, fără să se lipească de margini ──
-    const bandH = 148;
+    const bandH = 148 * vScale;
     ctx.fillStyle = 'rgba(4,7,12,.65)';
     ctx.fillRect(0, H - bandH, W, bandH);
 
     // ── Rândul 1 (sus în bandă): balta + standul, cu spațiu real de respirație ──
     if (c.balti?.nume) {
-      ctx.font = '700 30px "Segoe UI", system-ui, sans-serif';
+      ctx.font = '700 ' + (30 * vScale) + 'px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,.95)';
       ctx.shadowColor = 'rgba(0,0,0,.6)';
-      ctx.shadowBlur = 5;
+      ctx.shadowBlur = 5 * vScale;
       ctx.shadowOffsetY = 1;
       ctx.textAlign = 'left';
       const baltaLine = c.balti.nume + (c.standuri?.nume ? '  ·  Stand ' + c.standuri.nume : '');
-      ctx.fillText(baltaLine, marginX, H - bandH + 44);
+      ctx.fillText(baltaLine, marginX, H - bandH + 44 * vScale);
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
@@ -2597,13 +2613,13 @@ function deseneazaCardCaptura(c) {
     const captionParts = [nume, kgText];
     if (dataFormatata) captionParts.push(dataFormatata);
     const caption = captionParts.join('  -  ');
-    const captionBaseline = H - 36;
+    const captionBaseline = H - 36 * vScale;
 
     ctx.textAlign = 'left';
-    ctx.font = '600 38px "Segoe UI", system-ui, sans-serif';
+    ctx.font = '600 ' + (38 * vScale) + 'px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,.5)';
-    ctx.shadowBlur = 4;
+    ctx.shadowBlur = 4 * vScale;
     ctx.shadowOffsetY = 1;
     ctx.fillText(caption, marginX, captionBaseline);
     ctx.shadowBlur = 0;
@@ -2611,7 +2627,7 @@ function deseneazaCardCaptura(c) {
 
     // ── Logo (mai mare) + ".ro" lipit imediat lângă el, la jumătate din
     //    înălțimea logo-ului — dreapta jos ──
-    const logoH = 62;
+    const logoH = 62 * vScale;
     const logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
     const logoY = captionBaseline - logoH * 0.78;
     const logoCenterY = logoY + logoH / 2;
@@ -2624,7 +2640,7 @@ function deseneazaCardCaptura(c) {
     ctx.lineJoin = 'round';
     ctx.miterLimit = 2;
     ctx.strokeStyle = 'rgba(4,7,12,.85)';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 4 * vScale;
     ctx.strokeText('.ro', W - marginX, logoCenterY);
     ctx.fillStyle = '#38bdf8';
     ctx.fillText('.ro', W - marginX, logoCenterY);
@@ -2635,7 +2651,7 @@ function deseneazaCardCaptura(c) {
       const logoRight = W - marginX - roWidth - 2; // aproape lipit, doar 2px respirație
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,.6)';
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 8 * vScale;
       ctx.drawImage(logoImg, logoRight - logoW, logoY, logoW, logoH);
       ctx.restore();
     }
