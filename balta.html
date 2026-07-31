@@ -136,10 +136,11 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
    imaginii pe pagini foarte înalte — aici, cu cover, se decupează corect, nu se întinde. */
 #page-bg{
   position:absolute;top:0;left:0;right:0;height:640px;
-  background-image:linear-gradient(rgba(10,15,26,.45),rgba(10,15,26,.97)), url('balta-bg.jpg?v=2');
+  background-image:linear-gradient(rgba(10,15,26,.45), var(--zc-bg)), url('balta-bg.jpg?v=2');
   background-size:cover;
   background-position:center 68%;
   background-repeat:no-repeat;
+  z-index:-1;
   pointer-events:none;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:var(--zc-bg);}
