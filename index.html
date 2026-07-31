@@ -1621,6 +1621,11 @@ async function loadTopSaptamanal() {
   var luniUrmatoare = new Date(luni.getTime() + 7 * 24 * 60 * 60 * 1000);
   var luniISO = luni.toISOString();
   var luniUrmatoareISO = luniUrmatoare.toISOString();
+  // Date locale (fără trecere prin UTC) — pentru coloana data_captura, care e
+  // o dată calendaristică, nu un timestamp; toISOString ar putea „aluneca" o zi
+  // în urmă pentru fusul orar al României, excluzând greșit ultima zi.
+  var luniDataLocala = luni.getFullYear() + '-' + String(luni.getMonth() + 1).padStart(2, '0') + '-' + String(luni.getDate()).padStart(2, '0');
+  var luniUrmatoareDataLocala = luniUrmatoare.getFullYear() + '-' + String(luniUrmatoare.getMonth() + 1).padStart(2, '0') + '-' + String(luniUrmatoare.getDate()).padStart(2, '0');
 
   var intervalText = luni.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }) + ' – ' +
     new Date(luniUrmatoare.getTime() - 1).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' }) +
@@ -1636,8 +1641,8 @@ async function loadTopSaptamanal() {
     var { data: capturi } = await withTimeout(sb.from('capturi')
       .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, balti(nume)')
       .eq('status', 'approved')
-      .gte('data_captura', luniISO.split('T')[0])
-      .lt('data_captura', luniUrmatoareISO.split('T')[0])
+      .gte('data_captura', luniDataLocala)
+      .lt('data_captura', luniUrmatoareDataLocala)
       .order('kg', { ascending: false })
       .limit(10), 10000, 'top capturi');
 
@@ -4181,6 +4186,14 @@ function escHtmlNotif(str) {
 
 // Escapare generică pentru text inserat via innerHTML (previne XSS stocat din
 // câmpuri controlate de utilizatori, ex: username, sau din admin, ex: nume baltă)
+// Data curentă LOCALĂ (nu UTC) în format YYYY-MM-DD — new Date().toISOString()
+// convertește la UTC, ceea ce arată greșit data de ieri în primele ore ale
+// zilei (ora României e înaintea UTC). Folosim componentele locale direct.
+function dataLocalaAzi() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -5043,7 +5056,7 @@ setTimeout(showIosToast, 3000);
       var bar = document.getElementById('promo-bar');
       if(!bar) return;
       if(sessionStorage.getItem('zoda_promo_bar_closed')) return; // închis manual în sesiunea asta
-      var azi = new Date().toISOString().slice(0, 10);
+      var azi = dataLocalaAzi();
       var res = await sb.from('reclame').select('*')
         .eq('activ', true)
         .contains('pagini', ['index'])
