@@ -102,6 +102,7 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-tint:#0c3a4d;
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
+  --zc-hdr-bg:rgba(10,15,26,.97);
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -117,6 +118,7 @@ html[data-theme="light"]{
   --zc-bg-tint:#e0f2fe;
   --zc-bg-deep:#f0f9ff;
   --zc-accent-dark:#0891b2;
+  --zc-hdr-bg:rgba(244,247,251,.92);
 }
 /* Tranziție graduală — activată DOAR de motorul de temă automată (nu la
    schimbarea manuală din Cont, care rămâne instantă) */
@@ -149,6 +151,8 @@ html.theme-transitioning *{
   --danger:        #ef4444;
   --danger-glow:   rgba(239,68,68,.14);
   --amber:         #f5a524;
+  --hero-grad-1:   #10192b;
+  --hero-grad-2:   #0b1220;
   --r-xl: 24px; --r-lg: 18px; --r-md: 14px; --r-sm: 10px; --r-xs: 7px;
   --shadow-card: 0 14px 36px -18px rgba(0,0,0,.65), 0 2px 8px -2px rgba(0,0,0,.4);
   --shadow-pop:  0 20px 50px -20px rgba(0,0,0,.75);
@@ -166,6 +170,8 @@ html[data-theme="light"]{
   --text-dim:      #64748b;
   --text-faint:    #94a3b8;
   --text-ghost:    #cbd5e1;
+  --hero-grad-1:   #eef6fc;
+  --hero-grad-2:   #ffffff;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -196,7 +202,7 @@ button{font-family:inherit;}
    HEADER
    ============================================================ */
 #hdr{
-  background:rgba(7,11,19,.86);
+  background:var(--zc-hdr-bg);
   border-bottom:1px solid var(--border-soft);
   position:sticky;top:0;z-index:100;
   backdrop-filter:blur(14px) saturate(140%);
@@ -205,6 +211,10 @@ button{font-family:inherit;}
 #hdr-in{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:0 16px;height:56px;}
 .logo{display:flex;align-items:center;text-decoration:none;white-space:nowrap;}
 .logo-img{height:26px;width:auto;display:block;filter:drop-shadow(0 0 14px rgba(56,189,248,.18));}
+.logo-img-light{display:none;}
+html[data-theme="light"] .logo-img-dark{display:none;}
+html[data-theme="light"] .logo-img-light{display:block;}
+
 .badge{font-size:11px;background:#7c3aed;color:#fff;padding:2px 7px;border-radius:5px;font-weight:700;margin-left:6px;}
 .hdr-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-faint);letter-spacing:.01em;}
 .notif-badge-count{display:inline-flex;align-items:center;gap:5px;background:var(--danger-glow);border:1px solid rgba(239,68,68,.4);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:#fca5a5;margin-left:8px;}
@@ -262,7 +272,7 @@ button{font-family:inherit;}
   position:relative;
   background:
     radial-gradient(560px 220px at 85% -20%, rgba(56,189,248,.10), transparent 65%),
-    linear-gradient(175deg, #10192b, #0b1220);
+    linear-gradient(175deg, var(--hero-grad-1), var(--hero-grad-2));
 }
 .section.hero::before{
   content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
@@ -570,6 +580,10 @@ button{font-family:inherit;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:34px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:22px;width:auto;display:block;opacity:.75;}
+.footer-logo-img-light{display:none;}
+html[data-theme="light"] .footer-logo-img-dark{display:none;}
+html[data-theme="light"] .footer-logo-img-light{display:block;}
+
 .footer-tagline{font-size:13px;color:var(--text-faint);line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
@@ -640,7 +654,7 @@ button{font-family:inherit;}
 
 <div id="hdr" style="display:none;">
   <div id="hdr-in">
-    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img"/></a>
+    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="logo-img logo-img-light"/></a>
     <span class="hdr-title">Contul meu</span>
     <a href="index.html" onclick="event.preventDefault(); saveContState(); if(history.length > 1) { history.back(); } else { window.location.href='index.html'; }" class="back-btn">← Înapoi</a>
   </div>
@@ -922,7 +936,7 @@ button{font-family:inherit;}
 <footer id="site-footer">
   <div id="footer-inner">
     <div class="footer-brand">
-      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img"/>
+      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img footer-logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="footer-logo-img footer-logo-img-light"/>
       <p class="footer-tagline">Comunitatea pescarilor din România — bălți, standuri, capturi și clasamente.</p>
     </div>
     <div class="footer-cols">
