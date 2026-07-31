@@ -808,10 +808,10 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
       <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
     </div>
     <div style="padding:20px 24px;font-size:13px;color:#94a3b8;line-height:2;">
-      <div><strong style="color:#f1f5f9;">Denumire:</strong> [DE COMPLETAT]</div>
-      <div><strong style="color:#f1f5f9;">CUI:</strong> [DE COMPLETAT]</div>
-      <div><strong style="color:#f1f5f9;">Reg. Com.:</strong> [DE COMPLETAT]</div>
-      <div><strong style="color:#f1f5f9;">Sediu:</strong> [DE COMPLETAT]</div>
+      <div><strong style="color:#f1f5f9;">Denumire:</strong> ZODA S.R.L.</div>
+      <div><strong style="color:#f1f5f9;">CUI:</strong> 55341803</div>
+      <div><strong style="color:#f1f5f9;">Reg. Com.:</strong> J2026047446009</div>
+      <div><strong style="color:#f1f5f9;">Sediu:</strong> Ilfov, Popești Leordeni, str. Drumul Fermei nr. 112, bl. 2, ap. 5</div>
     </div>
   </div>
 </div>
@@ -2827,8 +2827,16 @@ function initSortListDrag() {
 
   rows.forEach(function(row) {
     // Mouse
+    var allowMouseDrag = false;
     row.setAttribute('draggable', 'true');
+    row.addEventListener('mousedown', function(e) {
+      // dragstart nu ne dă niciodată sub-elementul exact apăsat (e.target e
+      // mereu rândul, care are draggable=true) — de-asta reținem aici, la
+      // mousedown, dacă apăsarea a pornit chiar din mâner.
+      allowMouseDrag = !!e.target.closest('.sort-row-handle');
+    });
     row.addEventListener('dragstart', function(e) {
+      if (!allowMouseDrag) { e.preventDefault(); return; }
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       row.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -2856,6 +2864,7 @@ function initSortListDrag() {
     // Touch
     var touchStartY = 0, touchClone = null;
     row.addEventListener('touchstart', function(e) {
+      if (!e.target.closest('.sort-row-handle')) return; // lasă scroll-ul normal dacă nu ai atins mânerul
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       touchStartY = e.touches[0].clientY;
       row.classList.add('dragging-item');
@@ -2914,7 +2923,12 @@ function initSortableList() {
     item.setAttribute('draggable', 'true');
 
     // Mouse drag
+    var allowMouseDrag = false;
+    item.addEventListener('mousedown', function(e) {
+      allowMouseDrag = !!e.target.closest('.li-drag-handle');
+    });
     item.addEventListener('dragstart', function(e) {
+      if (!allowMouseDrag) { e.preventDefault(); return; }
       _dragSrcId = item.dataset.id;
       item.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -3218,6 +3232,13 @@ function startDrag(e, id) {
   var pin = document.getElementById('pin-' + id);
   if (pin) pin.classList.add('dragging');
 
+  // Ascundem celelalte pin-uri cât timp tragi unul — altfel, mai ales pe
+  // bălți cu multe standuri apropiate, e greu de văzut exact unde ajunge
+  // pin-ul tras printre celelalte deja poziționate.
+  document.querySelectorAll('.stand-pin').forEach(function(p) {
+    if (p.id !== 'pin-' + id) p.style.opacity = '0';
+  });
+
   var isTouch = e.touches !== undefined;
   var startX  = isTouch ? e.touches[0].clientX : e.clientX;
   var startY  = isTouch ? e.touches[0].clientY : e.clientY;
@@ -3245,6 +3266,8 @@ function startDrag(e, id) {
     document.removeEventListener('mouseup',   onEnd);
     document.removeEventListener('touchmove', onMove);
     document.removeEventListener('touchend',  onEnd);
+    // Readucem toate pin-urile la loc, acum că nu mai tragem niciunul
+    document.querySelectorAll('.stand-pin').forEach(function(p) { p.style.opacity = '1'; });
   }
 
   if (isTouch) {
