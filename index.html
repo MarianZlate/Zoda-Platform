@@ -309,8 +309,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-card,.balti-card{min-width:0;}
 .hof-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;}
 .hof-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--zc-border);padding:10px 12px;}
-.hof-title{font-weight:800;color:#f59e0b;display:flex;align-items:center;gap:7px;font-size:13px;}
-.hof-sub{font-size:11px;color:var(--zc-text-muted);margin-top:1px;}
+.hof-header-text{flex:1;min-width:0;}
+.hof-title{font-weight:800;color:#f59e0b;display:flex;align-items:center;gap:7px;font-size:16px;}
+.hof-sub{font-size:12px;color:var(--zc-text-muted);margin-top:1px;}
 .hof-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:7px;padding:7px 10px;}
 .hof-row:last-child{border-bottom:none;}
 .hof-loc{display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;width:18px;font-size:11px;color:var(--zc-text-muted);}
@@ -327,8 +328,8 @@ nav{display:flex;align-items:center;gap:6px;}
 .balti-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;}
 #saptamanal-wrap{display:grid;grid-template-columns:1fr;gap:10px;margin:0 10px;}
 .balti-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--zc-border);padding:10px 12px;}
-.balti-title{font-weight:800;color:var(--zc-text-strong);font-size:13px;}
-.balti-count{background:var(--zc-bg-tint);color:#38bdf8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.balti-title{font-weight:800;color:var(--zc-text-strong);font-size:16px;flex:1;min-width:0;}
+.balti-count{background:var(--zc-bg-tint);color:#38bdf8;font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;}
 .balta-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;cursor:pointer;transition:background .15s;gap:7px;padding:8px 10px;}
 .balta-row:last-child{border-bottom:none;}
 .balta-row:hover{background:var(--zc-border);}
@@ -506,13 +507,13 @@ nav{display:flex;align-items:center;gap:6px;}
   #sidebar{display:flex;flex-direction:column;gap:16px;align-items:stretch;}
   .hof-card,.balti-card{min-width:unset;}
   .hof-header{padding:14px 16px;}
-  .hof-title{font-size:16px;}
+  .hof-title{font-size:19px;}
   .hof-row{gap:10px;padding:9px 14px;}
   .hof-loc{width:26px;height:26px;font-size:13px;}
   .hof-name{font-size:13px;}
   .hof-detail{font-size:11px;}
   .balti-header{padding:14px 16px;}
-  .balti-title{font-size:16px;}
+  .balti-title{font-size:19px;}
   .balta-row{gap:10px;padding:10px 14px;}
   .balta-emoji{width:36px;height:36px;font-size:20px;}
   .balta-name{font-size:15px;}
@@ -748,7 +749,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
   <!-- CĂUTĂ PESCARI DE URMĂRIT — bloc independent, nu mai e legat de sidebar -->
   <div class="hof-card" id="cauta-pescari-card" style="display:none;overflow:visible;">
     <div class="hof-header">
-      <div>
+      <div class="hof-header-text">
         <div class="hof-title">🔍 Caută pescari</div>
         <div class="hof-sub">Găsește și urmărește alți pescari</div>
       </div>
@@ -764,7 +765,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
   <div id="saptamanal-wrap">
     <div class="hof-card">
       <div class="hof-header">
-        <div>
+        <div class="hof-header-text">
           <div class="hof-title" style="color:#60a5fa;">🐟 Top capturi săptămâna asta</div>
           <div class="hof-sub" id="saptamanal-interval-1">—</div>
         </div>
@@ -773,7 +774,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
     <div class="hof-card">
       <div class="hof-header">
-        <div>
+        <div class="hof-header-text">
           <div class="hof-title">⭐ Top stele săptămâna asta</div>
           <div class="hof-sub" id="saptamanal-interval-2">—</div>
         </div>
@@ -788,7 +789,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- HALL OF FAME preview -->
     <div class="hof-card">
       <div class="hof-header">
-        <div>
+        <div class="hof-header-text">
           <div class="hof-title">🏆 Hall of Fame</div>
           <div class="hof-sub">Top pescari după numărul de stele</div>
         </div>
