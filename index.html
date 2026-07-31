@@ -248,11 +248,12 @@ nav{display:flex;align-items:center;gap:6px;}
 .stat-chip-clickable{cursor:pointer;user-select:none;position:relative;transition:border-color .15s;}
 .stat-chip-clickable:hover{border-color:#38bdf8;}
 .stat-chip-clickable strong{color:#38bdf8;}
-#public-balti-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
-#public-balti-dropdown .pbd-hdr{padding:12px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.04em;}
-#public-balti-dropdown a{display:block;padding:9px 14px;font-size:15px;color:var(--zc-text-strong);text-decoration:none;border-bottom:1px solid #0f172a;}
-#public-balti-dropdown a:last-child{border-bottom:none;}
-#public-balti-dropdown a:hover{background:var(--zc-border);color:#38bdf8;}
+.pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
+#balti-aproape-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
+.pbd-panel .pbd-hdr{padding:12px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.04em;}
+.pbd-panel a{display:block;padding:9px 14px;font-size:15px;color:var(--zc-text-strong);text-decoration:none;border-bottom:1px solid var(--zc-border);}
+.pbd-panel a:last-child{border-bottom:none;}
+.pbd-panel a:hover{background:var(--zc-border);color:#38bdf8;}
 #main{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr;align-items:start;padding:0 8px 40px;gap:10px;}
 #map-wrap{position:relative;border:1px solid var(--zc-border);overflow:hidden;border-radius:10px;margin:0 10px;z-index:var(--z-map);}
 #map{width:100%;height:300px;}
@@ -726,10 +727,16 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- STATS BAR -->
     <div id="stats-bar">
     <div class="stats-inner">
-        <div class="stat-chip"><strong id="stat-inregistrate">—</strong> bălți înregistrate</div>
-        <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown()">
+        <div class="stat-chip stat-chip-clickable" id="stat-aproape-chip" onclick="toggleBaltiAproapeDropdown(event)">
+          <span>📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;">▾</span>
+          <div id="balti-aproape-dropdown" class="pbd-panel">
+            <div class="pbd-hdr">📍 Raza 30 km · nu salvăm locația ta</div>
+            <div id="balti-aproape-list"><div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Apasă ca să vezi bălțile din apropiere.</div></div>
+          </div>
+        </div>
+        <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown(event)">
           <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;">▾</span>
-          <div id="public-balti-dropdown">
+          <div id="public-balti-dropdown" class="pbd-panel">
             <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
             <div id="public-balti-list"></div>
           </div>
@@ -2080,6 +2087,75 @@ function sorteazaBaltiPeNiveluri(lista) {
   return [...n3, ...n2, ...n1];
 }
 
+// ── BĂLȚI ÎN JURUL MEU ───────────────────────────────────────────────────────
+// Locația se cere doar prin promptul nativ al browserului (geolocation API) și
+// se folosește STRICT în memorie, pe acest ecran — nu se salvează în
+// localStorage, nu se trimite la server, nu se leagă de cont. La reîncărcarea
+// paginii se cere din nou, intenționat, ca să rămână complet efemeră.
+let _baltiAproapeCoords = null;
+
+function toggleBaltiAproapeDropdown(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('balti-aproape-dropdown');
+  const willOpen = dd.style.display !== 'block';
+  if (willOpen) {
+    const chip = document.getElementById('stat-aproape-chip');
+    dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
+  }
+  dd.style.display = willOpen ? 'block' : 'none';
+  if (willOpen) {
+    if (_baltiAproapeCoords) renderBaltiAproape(_baltiAproapeCoords);
+    else cereLocatieBaltiAproape();
+  }
+}
+
+function cereLocatieBaltiAproape() {
+  const list = document.getElementById('balti-aproape-list');
+  if (!navigator.geolocation) {
+    list.innerHTML = '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;line-height:1.5;">Browserul tău nu suportă localizarea.</div>';
+    return;
+  }
+  list.innerHTML = '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">📍 Se cere locația...</div>';
+  navigator.geolocation.getCurrentPosition(
+    function (pos) {
+      _baltiAproapeCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      renderBaltiAproape(_baltiAproapeCoords);
+    },
+    function (err) {
+      let msg = 'Nu am putut obține locația. Încearcă din nou.';
+      if (err.code === err.PERMISSION_DENIED) {
+        msg = '🔒 Ai blocat accesul la locație pentru zoda.ro. Activeaz-o din setările browserului/telefonului, apoi apasă din nou pe „Bălți în jurul meu".';
+      } else if (err.code === err.POSITION_UNAVAILABLE) {
+        msg = 'Locația nu e disponibilă acum. Verifică dacă GPS-ul e activat pe telefon, apoi încearcă din nou.';
+      } else if (err.code === err.TIMEOUT) {
+        msg = 'A durat prea mult să obținem locația. Încearcă din nou.';
+      }
+      list.innerHTML = '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;line-height:1.5;">' + msg + '</div>';
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+  );
+}
+
+function _haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function renderBaltiAproape(coords) {
+  const list = document.getElementById('balti-aproape-list');
+  const cuDistanta = BALTI
+    .filter(b => b.lat && b.lng && b.vizibilitate !== 'unlisted')
+    .map(b => ({ b, dist: _haversineKm(coords.lat, coords.lng, b.lat, b.lng) }))
+    .filter(x => x.dist <= 30)
+    .sort((a, c) => a.dist - c.dist);
+  list.innerHTML = cuDistanta.length
+    ? cuDistanta.map(x => `<a href="balta.html?id=${x.b.id}">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
+    : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
+}
+
 function togglePublicBaltiDropdown(e) {
   if (e) e.stopPropagation();
   const dd = document.getElementById('public-balti-dropdown');
@@ -2098,6 +2174,11 @@ document.addEventListener('click', function(e) {
   const dd = document.getElementById('public-balti-dropdown');
   if (dd && dd.style.display === 'block' && chip && !chip.contains(e.target)) {
     dd.style.display = 'none';
+  }
+  const chipAproape = document.getElementById('stat-aproape-chip');
+  const ddAproape = document.getElementById('balti-aproape-dropdown');
+  if (ddAproape && ddAproape.style.display === 'block' && chipAproape && !chipAproape.contains(e.target)) {
+    ddAproape.style.display = 'none';
   }
 });
 
