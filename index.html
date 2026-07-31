@@ -1650,8 +1650,24 @@ async function goToAdmin(e) {
   window.location.href = 'admin.html';
 }
 
-function openHof()  { document.getElementById('hof-modal').classList.add('open'); document.body.style.overflow = 'hidden'; }
-function closeHof() { document.getElementById('hof-modal').classList.remove('open'); document.body.style.overflow = ''; }
+// La deschidere, adăugăm o intrare în istoric — astfel butonul "înapoi" al
+// telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
+// userul din aplicație. La închidere din X, dăm history.back() ca să curățăm
+// intrarea adăugată; popstate-ul rezultat închide efectiv modalul.
+function openHof()  { document.getElementById('hof-modal').classList.add('open'); document.body.style.overflow = 'hidden'; history.pushState({ modal: 'hof' }, ''); }
+function closeHof() {
+  document.getElementById('hof-modal').classList.remove('open'); document.body.style.overflow = '';
+  if (history.state && history.state.modal === 'hof') history.back();
+}
+window.addEventListener('popstate', function (e) {
+  if (!(e.state && e.state.modal === 'hof')) {
+    var hofEl = document.getElementById('hof-modal');
+    if (hofEl && hofEl.classList.contains('open')) {
+      hofEl.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+});
 
 // ── ISTORIC BALTI VIZITATE (personal — din cont dacă ești logat, altfel local) ─
 async function renderBalti() {
