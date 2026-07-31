@@ -1677,12 +1677,12 @@ function setStatsInterval(days) {
   const de = document.getElementById('stats-de-la');
   const pana = document.getElementById('stats-pana-la');
   const azi = new Date();
-  pana.value = azi.toISOString().slice(0, 10);
+  pana.value = dataLocala(azi);
   if (days === null) {
     de.value = '2026-01-01'; // "tot timpul" — de la lansarea platformei
   } else {
     const start = new Date(azi.getTime() - days * 86400000);
-    de.value = start.toISOString().slice(0, 10);
+    de.value = dataLocala(start);
   }
   loadStatistici();
 }
@@ -1693,7 +1693,7 @@ async function loadStatistici() {
   grid.innerHTML = '<div class="empty-state">Se încarcă...</div>';
 
   const deLa = document.getElementById('stats-de-la').value || '2020-01-01';
-  const panaLa = document.getElementById('stats-pana-la').value || new Date().toISOString().slice(0,10);
+  const panaLa = document.getElementById('stats-pana-la').value || dataLocalaAzi();
   const panaLaExclusiv = panaLa + 'T23:59:59';
 
   const [
@@ -2518,7 +2518,7 @@ async function loadReclame() {
   RECLAME = data || [];
   if(!RECLAME.length) { wrap.innerHTML = '<div class="empty-state">Nicio reclamă adăugată încă.</div>'; return; }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = dataLocalaAzi();
   wrap.innerHTML = RECLAME.map(r => {
     let statusTxt, statusColor;
     if(!r.activ)                statusTxt = '⏸️ Dezactivată',  statusColor = '#4b5563';
@@ -2550,6 +2550,16 @@ async function loadReclame() {
   }).join('');
 }
 
+// Data LOCALĂ (nu UTC) a unui obiect Date, în format YYYY-MM-DD — toISOString()
+// convertește la UTC, ceea ce arată greșit data de ieri în primele ore ale
+// zilei (ora României e înaintea UTC). Folosim componentele locale direct.
+function dataLocala(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function dataLocalaAzi() {
+  return dataLocala(new Date());
+}
+
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -2574,7 +2584,7 @@ function rcResetForm() {
   document.getElementById('rc-titlu').value = '';
   document.getElementById('rc-subtitlu').value = '';
   document.getElementById('rc-link').value = '';
-  document.getElementById('rc-start').value = new Date().toISOString().slice(0,10);
+  document.getElementById('rc-start').value = dataLocalaAzi();
   document.getElementById('rc-sfarsit').value = '';
   document.getElementById('rc-sort').value = '0';
   document.querySelectorAll('.rc-pagina-check').forEach(c => { c.checked = (c.value === 'balta'); }); // implicit "balta", ca înainte
@@ -2717,7 +2727,7 @@ function exportReclamaRaport(id) {
   const r = RECLAME.find(x => x.id === id);
   if(!r) return;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = dataLocalaAzi();
   let status;
   if(!r.activ)                     status = 'Dezactivată';
   else if(r.data_sfarsit < today)  status = 'Expirată';
