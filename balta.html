@@ -2486,12 +2486,24 @@ async function saveOverlayStandDetails() {
   }
 }
 
+// Oprește (unload) videoclipul de prezentare YouTube din overlay-ul de stand,
+// altfel continuă să ruleze pe fundal după ce overlay-ul e închis.
+function _opresteVideoOverlayStand() {
+  var iframe = document.getElementById('ov-yt-iframe');
+  if (iframe) iframe.src = '';
+  var iframeWrap = document.getElementById('ov-yt-iframe-wrap');
+  var thumbWrap = document.getElementById('ov-yt-thumb-wrap');
+  if (iframeWrap) iframeWrap.style.display = 'none';
+  if (thumbWrap) thumbWrap.style.display = 'block';
+}
+
 function closeOverlay() {
   document.getElementById('stand-overlay').style.display = 'none';
   document.getElementById('stand-overlay-backdrop').style.display = 'none';
   document.getElementById('stand-overlay-topbar').style.display = 'none';
   document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
+  _opresteVideoOverlayStand();
 }
 
 // Poziționează bara flotantă (editează + închide) EXACT deasupra colțului din
@@ -2690,6 +2702,7 @@ function deselectStand() {
   document.getElementById('map-yt-bar').style.display = 'none';
   document.getElementById('spr').style.display = 'block';
   document.getElementById('legend-card').style.display = 'none';
+  _opresteVideoOverlayStand();
 }
 
 function showAll() {
@@ -2709,6 +2722,7 @@ function showDrumAcces() {
   selId = null;
   document.getElementById('stand-overlay').style.display = 'none';
   document.getElementById('stand-overlay-backdrop').style.display = 'none';
+  _opresteVideoOverlayStand();
   renderPins();
   document.querySelectorAll('.pill').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.li').forEach(function(l) { l.classList.remove('active'); });
@@ -3141,6 +3155,7 @@ function toggleEdit() {
   document.getElementById('legend-card').style.display = 'none';
   document.getElementById('stand-overlay').style.display = 'none';
   document.getElementById('stand-overlay-backdrop').style.display = 'none';
+  _opresteVideoOverlayStand();
   renderSortList();
 }
 
