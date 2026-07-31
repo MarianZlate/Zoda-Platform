@@ -252,6 +252,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .stat-chip-clickable strong{color:#38bdf8;}
 .pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
 #balti-aproape-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
+#public-balti-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
 .pbd-panel .pbd-hdr{padding:12px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.04em;}
 .pbd-panel a{display:block;padding:9px 14px;font-size:15px;color:var(--zc-text-strong);text-decoration:none;border-bottom:1px solid var(--zc-border);}
 .pbd-panel a:last-child{border-bottom:none;}
@@ -2175,6 +2176,8 @@ function togglePublicBaltiDropdown(e) {
   const dd = document.getElementById('public-balti-dropdown');
   const willOpen = dd.style.display !== 'block';
   if (willOpen) {
+    const chip = document.getElementById('stat-publice-chip');
+    dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
