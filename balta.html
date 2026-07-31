@@ -269,7 +269,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #pill-all{border:1.5px solid #38bdf8;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;
   /* mobil */
   padding:3px 10px;}
-#pill-drum{border:1.5px solid var(--zc-text-dim);border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:var(--zc-bg);color:var(--zc-text-secondary);
+#pill-drum{border:1.5px solid #38bdf8;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;
   /* mobil */
   padding:3px 10px;}
 
@@ -779,7 +779,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="map-sidebar-left">
     <div id="pw" style="margin:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;">
-        <button id="pill-drum" onclick="showDrumAcces()" style="border:1.5px solid var(--zc-text-dim);border-radius:20px;padding:4px 14px;cursor:pointer;font-size:13px;font-weight:700;background:var(--zc-bg);color:#cbd5e1;">🎬 Videoclip drum de acces</button>
+        <button id="pill-drum" onclick="showDrumAcces()" style="border:1.5px solid #38bdf8;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:13px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;">🎬 Videoclip drum de acces</button>
         <button id="pill-all" onclick="showAll()">🗺️ Toate standurile</button>
       </div>
       <div style="width:100%;font-size:13px;font-weight:700;color:#38bdf8;margin-top:6px;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
@@ -2850,7 +2850,7 @@ function deselectStand() {
   renderPins(); updatePills();
   document.querySelectorAll('.li').forEach(function(l) { l.classList.remove('active'); });
   var db = document.getElementById('pill-drum');
-  if (db) { db.style.borderColor = 'var(--zc-text-dim)'; db.style.background = 'var(--zc-bg)'; db.style.color = '#cbd5e1'; }
+  if (db) { db.style.borderColor = 'var(--zc-text-dim)'; db.style.background = 'var(--zc-bg)'; db.style.color = 'var(--zc-text-secondary-2)'; }
   document.getElementById('map-yt-iframe').src = '';
   document.getElementById('map-yt-bar').style.display = 'none';
   document.getElementById('spr').style.display = 'block';
@@ -2880,9 +2880,9 @@ function showDrumAcces() {
   document.querySelectorAll('.pill').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.li').forEach(function(l) { l.classList.remove('active'); });
   var pb = document.getElementById('pill-all');
-  pb.style.borderColor = 'var(--zc-text-dim)'; pb.style.background = 'var(--zc-bg)'; pb.style.color = '#cbd5e1';
+  pb.style.borderColor = 'var(--zc-text-dim)'; pb.style.background = 'var(--zc-bg)'; pb.style.color = 'var(--zc-text-secondary-2)';
   var db = document.getElementById('pill-drum');
-  db.style.borderColor = '#f59e0b'; db.style.background = '#1c1500'; db.style.color = '#f59e0b';
+  db.style.borderColor = '#f59e0b'; db.style.background = 'rgba(245,158,11,.14)'; db.style.color = '#f59e0b';
 
   document.getElementById('legend-card').style.display = 'none';
   document.getElementById('spr').style.display = 'none';
@@ -2896,7 +2896,7 @@ function updatePills() {
   var ab = document.getElementById('pill-all');
   ab.style.borderColor = selId ? 'var(--zc-text-dim)' : '#38bdf8';
   ab.style.background = selId ? 'var(--zc-bg)' : 'var(--zc-bg-tint)';
-  ab.style.color = selId ? '#cbd5e1' : '#38bdf8';
+  ab.style.color = selId ? 'var(--zc-text-secondary-2)' : '#38bdf8';
 }
 
 // ─── YOUTUBE ───────────────────────────────────────────────────────────────
