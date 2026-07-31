@@ -99,6 +99,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
   --zc-hdr-bg:rgba(10,15,26,.97);
+  --zc-cta-1:#0c3a4d;
+  --zc-cta-2:#0e7490;
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -296,7 +298,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .t10h{display:flex;align-items:center;gap:7px;padding:10px 14px 6px;font-weight:700;font-size:13px;color:var(--zc-text-strong);}
 .lbdg{background:var(--zc-bg-tint);color:#38bdf8;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;}
 .t10e{padding:14px;color:var(--zc-text-muted);text-align:center;font-size:13px;}
-.t10r{display:flex;align-items:stretch;border-bottom:1px solid #0f172a;}
+.t10r{display:flex;align-items:stretch;border-bottom:1px solid var(--zc-border);}
 .t10r-foto{width:72px;flex-shrink:0;position:relative;}
 .t10r-foto img{width:72px;height:72px;object-fit:cover;display:block;}
 .t10r-foto-empty{width:72px;height:72px;background:var(--zc-bg);display:flex;align-items:center;justify-content:center;color:var(--zc-text-dim);font-size:22px;}
@@ -346,7 +348,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .li.drag-over{border-color:#38bdf8;background:var(--zc-bg-deep);}
 .li.dragging-item{opacity:.4;}
 /* Sort list in edit mode */
-.sort-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #0f172a;cursor:grab;touch-action:none;transition:background .15s;}
+.sort-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--zc-border);cursor:grab;touch-action:none;transition:background .15s;}
 .sort-row:last-child{border-bottom:none;}
 .sort-row:hover{background:var(--zc-border);}
 .sort-row.drag-over{background:var(--zc-bg-deep);border-color:#38bdf8;}
@@ -381,7 +383,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* ============================================================
    DESKTOP (min-width: 769px) — adăugăm peste baza mobilă
    ============================================================ */
-.info-overlay-body{padding:18px;overflow-y:auto;font-size:17.4px;color:#cbd5e1;line-height:1.8;white-space:pre-wrap;}
+.info-overlay-body{padding:18px;overflow-y:auto;font-size:17.4px;color:var(--zc-text-strong);line-height:1.8;white-space:pre-wrap;}
 .ib-name-tagline-wrap{display:flex;flex-direction:column;}
 
 @media(min-width:769px){
@@ -636,7 +638,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="edit-bar-hint">
       📍 <strong style="color:#38bdf8;">Trage pinurile</strong> pentru a le repoziționa pe harta baltii.<br/>
       📋 Apasă <strong style="color:#38bdf8;">🗺️ Toate standurile</strong> și trage rândurile (⠿) pentru a reordona lista.<br/>
-      Apasă <strong style="color:#fff;">💾 Salvează</strong> când ești mulțumit sau <strong style="color:var(--zc-text-secondary-2);">✕ Anulează</strong> pentru a renunța.
+      Apasă <strong style="color:var(--zc-text-strong);">💾 Salvează</strong> când ești mulțumit sau <strong style="color:var(--zc-text-secondary-2);">✕ Anulează</strong> pentru a renunța.
     </div>
   </div>
 
@@ -876,7 +878,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <!-- Panel istoric -->
       <div id="lunar-istoric-panel" style="display:none;">
         <!-- Selector luni -->
-        <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid #0f172a;overflow-x:auto;">
+        <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--zc-border);overflow-x:auto;">
           <div id="lunar-luna-buttons"></div>
         </div>
         <div id="lunar-istoric-list"><div class="t10e">Selectează o lună.</div></div>
@@ -1678,12 +1680,12 @@ async function loadHallOfFame(baltaId) {
     var dataStr   = c.data_captura ? ' · ' + c.data_captura : '';
     var fotoHtml  = c.foto_url
       ? '<img src="' + c.foto_url + '" loading="lazy" id="hof-img-' + c.id + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:zoom-in;display:block;"/>'
-      : '<div style="width:32px;height:32px;border-radius:4px;background:#0d1520;flex-shrink:0;"></div>';
+      : '<div style="width:32px;height:32px;border-radius:4px;background:var(--zc-border);flex-shrink:0;"></div>';
     var pescarLink = c.pescar_id
       ? '<a href="pescar.html?id=' + c.pescar_id + '" onclick="saveBaltaState();event.stopPropagation()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;" onmouseover="this.style.color=\'#38bdf8\'" onmouseout="this.style.color=\'var(--zc-text-strong)\'">' + escH(pescarNume) + '</a>'
       : escH(pescarNume);
     var pescarStele = steleHtml(c.pescar_id);
-    return '<div class="t10r" style="display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:8px;padding:7px 10px;">'
+    return '<div class="t10r" style="display:flex;align-items:center;border-bottom:1px solid var(--zc-border);gap:8px;padding:7px 10px;">'
       + '<div style="width:18px;text-align:center;font-size:11px;font-weight:800;color:var(--zc-text-muted);flex-shrink:0;">' + nr + '</div>'
       + fotoHtml
       + '<div style="flex:1;min-width:0;">'
@@ -1748,14 +1750,14 @@ function renderLunarRows(rows, containerId, isIstoric) {
 
     var fotoHtml = fotoUrl
       ? '<img src="' + fotoUrl + '" loading="lazy" id="lun-img-' + r.id + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:zoom-in;display:block;"/>'
-      : '<div style="width:32px;height:32px;border-radius:4px;background:#0d1520;flex-shrink:0;"></div>';
+      : '<div style="width:32px;height:32px;border-radius:4px;background:var(--zc-border);flex-shrink:0;"></div>';
 
     var pescarLink = zodaId
       ? '<a href="pescar.html?id=' + zodaId + '" onclick="saveBaltaState()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;" onmouseover="this.style.color=\'#38bdf8\'" onmouseout="this.style.color=\'var(--zc-text-strong)\'">' + escH(pescarNume) + '</a>'
       : escH(pescarNume);
     var pescarStele = steleHtml(zodaId);
 
-    return '<div style="display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:8px;padding:7px 10px;">'
+    return '<div style="display:flex;align-items:center;border-bottom:1px solid var(--zc-border);gap:8px;padding:7px 10px;">'
       + '<div style="width:18px;text-align:center;font-size:11px;font-weight:800;color:var(--zc-text-muted);flex-shrink:0;">' + nr + '</div>'
       + fotoHtml
       + '<div style="flex:1;min-width:0;">'
