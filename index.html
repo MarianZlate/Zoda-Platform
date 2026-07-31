@@ -1437,8 +1437,25 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; }
+// ── ORIENTARE ECRAN — permite landscape la vizualizare poze/video ───────────
+// Manifest-ul are orientation:"portrait-primary" (ca aplicația instalată să
+// rămână stabilă pe hartă/liste). La deschiderea unei poze/video, deblocăm
+// temporar orientarea ca telefonul să se rotească dacă userul îl întoarce
+// pe lateral (cu rotirea automată activată din setările telefonului).
+function _permiteRotire() {
+  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+}
+function _blocheazaPortret() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      var p = screen.orientation.lock('portrait-primary');
+      if (p && p.catch) p.catch(function () {});
+    }
+  } catch (e) {}
+}
+
+function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire(); }
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
 
 async function loadTopSaptamanal() {
