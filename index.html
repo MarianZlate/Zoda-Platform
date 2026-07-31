@@ -103,6 +103,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg-deep:#071c26;
   --zc-accent-dark:#0e7490;
   --zc-hdr-bg:rgba(10,15,26,.97);
+  --zc-cta-1:#0c3a4d;
+  --zc-cta-2:#0e7490;
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -216,12 +218,12 @@ nav{display:flex;align-items:center;gap:6px;}
 .notif-mark-all{font-size:12px;color:var(--zc-text-muted);cursor:pointer;transition:color .2s;}
 .notif-mark-all:hover{color:#38bdf8;}
 .notif-list{overflow-y:auto;flex:1;}
-.notif-item{padding:12px 16px;border-bottom:1px solid #0f172a;cursor:pointer;transition:background .15s;}
-.notif-item:hover{background:#0f172a;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--zc-border);cursor:pointer;transition:background .15s;}
+.notif-item:hover{background:var(--zc-border);}
 .notif-item.unread{background:var(--zc-bg-deep);}
-.notif-item.unread:hover{background:#0c2a38;}
+.notif-item.unread:hover{background:var(--zc-border);}
 .notif-dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;flex-shrink:0;margin-top:4px;}
-.notif-msg{font-size:13px;color:#cbd5e1;line-height:1.5;flex:1;}
+.notif-msg{font-size:13px;color:var(--zc-text-strong);line-height:1.5;flex:1;}
 .notif-time{font-size:11px;color:var(--zc-text-muted);margin-top:3px;}
 .notif-empty{padding:32px 16px;text-align:center;color:var(--zc-text-muted);font-size:15px;}
 #hero{max-width:1400px;margin:0 auto;text-align:center;padding:60px 14px 20px;}
@@ -313,11 +315,11 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-header-text{flex:1;min-width:0;text-align:center;}
 .hof-title{font-weight:800;color:#f59e0b;display:flex;align-items:center;justify-content:center;gap:7px;font-size:16px;white-space:nowrap;}
 .hof-sub{font-size:13px;color:var(--zc-text-secondary);margin-top:1px;text-align:center;}
-.hof-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:7px;padding:7px 10px;}
+.hof-row{display:flex;align-items:center;border-bottom:1px solid var(--zc-border);gap:7px;padding:7px 10px;}
 .hof-row:last-child{border-bottom:none;}
 .hof-loc{display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;width:18px;font-size:11px;color:var(--zc-text-muted);}
-.hof-avatar{width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;background:#0d1520;}
-.hof-avatar-empty{width:32px;height:32px;border-radius:4px;flex-shrink:0;background:#0d1520;}
+.hof-avatar{width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0;background:var(--zc-border);}
+.hof-avatar-empty{width:32px;height:32px;border-radius:4px;flex-shrink:0;background:var(--zc-border);}
 .hof-name{font-weight:700;color:var(--zc-text-strong);font-size:12px;}
 .hof-detail{color:var(--zc-text-muted);margin-top:1px;font-size:10px;}
 .hof-stars{display:flex;align-items:center;gap:2px;margin-left:auto;flex-shrink:0;}
@@ -331,7 +333,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .balti-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--zc-border);padding:10px 12px;}
 .balti-title{font-weight:800;color:var(--zc-text-strong);font-size:16px;flex:1;min-width:0;text-align:center;}
 .balti-count{background:var(--zc-bg-tint);color:#38bdf8;font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;}
-.balta-row{display:flex;align-items:center;border-bottom:1px solid #0f172a;cursor:pointer;transition:background .15s;gap:7px;padding:8px 10px;}
+.balta-row{display:flex;align-items:center;border-bottom:1px solid var(--zc-border);cursor:pointer;transition:background .15s;gap:7px;padding:8px 10px;}
 .balta-row:last-child{border-bottom:none;}
 .balta-row:hover{background:var(--zc-border);}
 .balta-emoji{background:var(--zc-bg-deep);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;font-size:16px;}
@@ -347,7 +349,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-modal-sub{font-size:13px;color:var(--zc-text-muted);margin-top:3px;}
 .modal-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
 .hof-modal-list{overflow-y:auto;padding:8px 0;}
-.judet-opt{padding:9px 14px;cursor:pointer;font-size:15px;color:var(--zc-text-primary);display:flex;align-items:center;gap:8px;border-bottom:1px solid #0f172a;transition:background .1s;}
+.judet-opt{padding:9px 14px;cursor:pointer;font-size:15px;color:var(--zc-text-primary);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--zc-border);transition:background .1s;}
 .judet-opt:last-child{border-bottom:none;}
 .judet-opt:hover,.judet-opt.focused{background:var(--zc-border);}
 .judet-opt.match-first{background:var(--zc-bg-deep);}
@@ -394,7 +396,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .edit-section-title span{flex:1;}
 .se-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative;}
 .se-card-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;}
-.se-nr-badge{width:28px;height:28px;border-radius:50%;background:var(--zc-bg-tint);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;}
+.se-nr-badge{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;}
 .se-card-name{font-weight:700;font-size:15px;color:var(--zc-text-strong);flex:1;}
 .se-card-toggle{color:var(--zc-text-muted);font-size:16px;transition:transform .2s;}
 .se-card-body{display:none;}
@@ -407,7 +409,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .gal-thumb-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:16px;width:18px;height:18px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 .gal-add-btn{width:72px;height:72px;border:1.5px dashed var(--zc-border);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;cursor:pointer;color:var(--zc-text-muted);font-size:11px;transition:all .15s;}
 .gal-add-btn:hover{border-color:var(--zc-bg-tint);color:#38bdf8;}
-.save-toast{position:fixed;bottom:24px;right:24px;background:var(--zc-bg-tint);color:#fff;font-weight:700;font-size:15px;padding:12px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:var(--z-save-toast);opacity:0;pointer-events:none;transform:translateY(10px);transition:all .3s;}
+.save-toast{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));color:#fff;font-weight:700;font-size:15px;padding:12px 20px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:var(--z-save-toast);opacity:0;pointer-events:none;transform:translateY(10px);transition:all .3s;}
 .save-toast.show{pointer-events:auto;opacity:1;transform:translateY(0);}
 #ab-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
 #ab-modal.open{display:flex;}
@@ -431,7 +433,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .ab-back:hover{border-color:var(--zc-text-dim);color:var(--zc-text-primary);}
 .ab-next{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:15px;font-weight:700;padding:9px 24px;border-radius:8px;cursor:pointer;}
 .ab-next:hover{background:#0891b2;}
-.ab-submit{background:linear-gradient(135deg,var(--zc-bg-tint),var(--zc-accent-dark));border:none;color:#fff;font-size:16px;font-weight:800;padding:10px 28px;border-radius:8px;cursor:pointer;}
+.ab-submit{background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));border:none;color:#fff;font-size:16px;font-weight:800;padding:10px 28px;border-radius:8px;cursor:pointer;}
 .ab-submit:hover{background:linear-gradient(135deg,#0891b2,var(--zc-accent-dark));}
 #ab-search-box:focus-within{border-color:var(--zc-bg-tint)!important;}
 .step-count{font-size:12px;color:var(--zc-text-muted);}
@@ -1037,7 +1039,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
         <!-- Drop zone -->
         <div id="harta-dropzone" onclick="document.getElementById('harta-file-input').click()"
-          style="border:2px dashed var(--zc-border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#0d1014;margin-bottom:14px;">
+          style="border:2px dashed var(--zc-border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--zc-border);margin-bottom:14px;">
           <div style="font-size:40px;margin-bottom:10px;">🗺️</div>
           <div style="font-size:16px;font-weight:700;color:var(--zc-text-secondary);margin-bottom:4px;">Click sau trage o imagine aici</div>
           <div style="font-size:12px;color:var(--zc-text-dim);">JPG, PNG, WEBP — max 10MB</div>
@@ -1056,7 +1058,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
           </div>
 
           <!-- Canvas viewer -->
-          <div id="harta-canvas-wrap" style="position:relative;width:100%;height:360px;border:1.5px solid var(--zc-border);border-radius:10px;overflow:hidden;background:#070b12;cursor:grab;">
+          <div id="harta-canvas-wrap" style="position:relative;width:100%;height:360px;border:1.5px solid var(--zc-border);border-radius:10px;overflow:hidden;background:var(--zc-border);cursor:grab;">
             <canvas id="harta-canvas" style="position:absolute;top:0;left:0;"></canvas>
           </div>
           <div style="margin-top:8px;font-size:12px;color:var(--zc-border);text-align:center;" id="harta-zoom-label">100%</div>
@@ -2407,7 +2409,7 @@ function buildEditBody(b, ext) {
   const hartaUrl = (ext.harta_url || '');
   const hartaThumb = hartaUrl
     ? `<div class="gal-thumb-edit" id="edit-harta-thumb" style="width:100%;height:160px;border-radius:10px;margin-bottom:8px;">
-        <img src="${hartaUrl}" style="width:100%;height:100%;object-fit:contain;background:#070b12;" loading="lazy"/>
+        <img src="${hartaUrl}" style="width:100%;height:100%;object-fit:contain;background:var(--zc-border);" loading="lazy"/>
         <button class="gal-thumb-del" style="top:6px;right:6px;width:24px;height:24px;font-size:18px;" onclick="editHartaRemove()" title="Elimină hartă">✕</button>
        </div>`
     : '';
@@ -2447,7 +2449,7 @@ function buildEditBody(b, ext) {
       <!-- Drop zone (ascuns dacă există deja imagine) -->
       <div id="edit-harta-dropzone"
         onclick="document.getElementById('edit-harta-input').click()"
-        style="border:2px dashed var(--zc-border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#0d1014;${hartaUrl ? 'display:none;' : ''}">
+        style="border:2px dashed var(--zc-border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--zc-border);${hartaUrl ? 'display:none;' : ''}">
         <div style="font-size:31px;margin-bottom:6px;">🗺️</div>
         <div style="font-size:15px;font-weight:700;color:var(--zc-text-secondary);margin-bottom:2px;">Click sau trage o imagine</div>
         <div style="font-size:11px;color:var(--zc-text-dim);">JPG, PNG, WEBP — max 10MB</div>
@@ -2463,7 +2465,7 @@ function buildEditBody(b, ext) {
           <span style="font-size:11px;color:var(--zc-text-dim);margin-left:2px;">Scroll = zoom · Drag = mută</span>
           <button onclick="editHartaRemove()" style="margin-left:auto;background:transparent;border:1px solid var(--zc-text-dim);color:var(--zc-text-secondary);font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;">✕ Elimină</button>
         </div>
-        <div id="edit-harta-canvas-wrap" style="position:relative;width:100%;height:280px;border:1.5px solid var(--zc-border);border-radius:10px;overflow:hidden;background:#070b12;cursor:grab;">
+        <div id="edit-harta-canvas-wrap" style="position:relative;width:100%;height:280px;border:1.5px solid var(--zc-border);border-radius:10px;overflow:hidden;background:var(--zc-border);cursor:grab;">
           <canvas id="edit-harta-canvas" style="position:absolute;top:0;left:0;"></canvas>
         </div>
         <div style="margin-top:4px;font-size:12px;color:var(--zc-border);text-align:center;" id="edit-harta-zoom-label">100%</div>
@@ -3459,7 +3461,7 @@ function addStand() {
   div.id = 'stand-' + nr;
   div.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--zc-bg-tint);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div>
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div>
       <input type="text" id="s${nr}-nume" value="Stand ${nr}"
         style="flex:1;background:var(--zc-bg);border:1.5px solid var(--zc-border);border-radius:7px;padding:6px 10px;color:var(--zc-text-primary);font-size:15px;font-weight:700;outline:none;"
         placeholder="Denumire stand"
