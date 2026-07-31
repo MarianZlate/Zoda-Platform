@@ -2827,9 +2827,16 @@ function initSortListDrag() {
 
   rows.forEach(function(row) {
     // Mouse
+    var allowMouseDrag = false;
     row.setAttribute('draggable', 'true');
+    row.addEventListener('mousedown', function(e) {
+      // dragstart nu ne dă niciodată sub-elementul exact apăsat (e.target e
+      // mereu rândul, care are draggable=true) — de-asta reținem aici, la
+      // mousedown, dacă apăsarea a pornit chiar din mâner.
+      allowMouseDrag = !!e.target.closest('.sort-row-handle');
+    });
     row.addEventListener('dragstart', function(e) {
-      if (!e.target.closest('.sort-row-handle')) { e.preventDefault(); return; }
+      if (!allowMouseDrag) { e.preventDefault(); return; }
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       row.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -2916,8 +2923,12 @@ function initSortableList() {
     item.setAttribute('draggable', 'true');
 
     // Mouse drag
+    var allowMouseDrag = false;
+    item.addEventListener('mousedown', function(e) {
+      allowMouseDrag = !!e.target.closest('.li-drag-handle');
+    });
     item.addEventListener('dragstart', function(e) {
-      if (!e.target.closest('.li-drag-handle')) { e.preventDefault(); return; }
+      if (!allowMouseDrag) { e.preventDefault(); return; }
       _dragSrcId = item.dataset.id;
       item.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
