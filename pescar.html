@@ -11,36 +11,152 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
 <title>Zoda — Profil pescar</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
+// Fără GPS, fără date personale — coordonată fixă de referință (centrul
+// României); diferența de răsărit/apus în interiorul țării e sub 30 min,
+// nesemnificativă pentru un simplu switch de temă. Zero implicații GDPR.
+var ZC_LAT = 45.9432, ZC_LNG = 24.9668;
+var ZC_TEMA_KEY = 'zoda-tema'; // localStorage: 'light' | 'dark' | 'auto' (implicit)
+
+function _zcSunTimesUTC(date, lat, lng) {
+  // Algoritm uzual de calcul răsărit/apus (ecuația Soarelui, precizie de
+  // câteva minute — suficientă pentru un switch de temă).
+  var rad = Math.PI / 180;
+  var start = Date.UTC(date.getUTCFullYear(), 0, 1);
+  var dayOfYear = Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - start) / 86400000) + 1;
+  var lngHour = lng / 15;
+  function calc(isRise) {
+    var t = dayOfYear + ((isRise ? 6 : 18) - lngHour) / 24;
+    var M = 0.9856 * t - 3.289;
+    var L = M + 1.916 * Math.sin(M * rad) + 0.020 * Math.sin(2 * M * rad) + 282.634;
+    L = (L + 360) % 360;
+    var RA = (1 / rad) * Math.atan(0.91764 * Math.tan(L * rad));
+    RA = (RA + 360) % 360;
+    var Lq = Math.floor(L / 90) * 90, RAq = Math.floor(RA / 90) * 90;
+    RA = (RA + (Lq - RAq)) / 15;
+    var sinDec = 0.39782 * Math.sin(L * rad);
+    var cosDec = Math.cos(Math.asin(sinDec));
+    var cosH = (Math.cos(90.833 * rad) - (sinDec * Math.sin(lat * rad))) / (cosDec * Math.cos(lat * rad));
+    if (cosH > 1 || cosH < -1) return null;
+    var H = (isRise ? 360 - (1 / rad) * Math.acos(cosH) : (1 / rad) * Math.acos(cosH)) / 15;
+    var T = H + RA - 0.06571 * t - 6.622;
+    return (T - lngHour + 24) % 24; // ore UTC, zecimal
+  }
+  return { sunrise: calc(true), sunset: calc(false) };
+}
+function _zcEsteZi() {
+  var now = new Date();
+  var t = _zcSunTimesUTC(now, ZC_LAT, ZC_LNG);
+  if (t.sunrise == null || t.sunset == null) return true;
+  var h = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  return h >= t.sunrise && h < t.sunset;
+}
+function _zcTemaSalvata() {
+  try { return localStorage.getItem(ZC_TEMA_KEY) || 'auto'; } catch (e) { return 'auto'; }
+}
+function _zcTemaEfectiva() {
+  var pref = _zcTemaSalvata();
+  if (pref === 'light' || pref === 'dark') return pref;
+  return _zcEsteZi() ? 'light' : 'dark';
+}
+function _zcAplicaTema(gradual) {
+  var tema = _zcTemaEfectiva();
+  var root = document.documentElement;
+  var curent = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  if (curent === tema) return;
+  if (gradual) {
+    root.classList.add('theme-transitioning');
+    setTimeout(function () { root.classList.remove('theme-transitioning'); }, 4000);
+  }
+  if (tema === 'light') root.setAttribute('data-theme', 'light');
+  else root.removeAttribute('data-theme');
+}
+// Apelată din selectorul "Temă" din Cont — schimbare INSTANTĂ (fără gradual)
+function setZodaTema(pref) {
+  try { localStorage.setItem(ZC_TEMA_KEY, pref); } catch (e) {}
+  _zcAplicaTema(false);
+}
+// Aplicare instant la încărcare (înaintea primului paint, fără "flash" greșit)
+_zcAplicaTema(false);
+// Reverificare periodică — doar în modul automat prinde momentul exact al
+// răsăritului/apusului, cu tranziție graduală (3-5s)
+setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); }, 5 * 60 * 1000);
+</script>
+
 <style>
+:root{
+  /* Paletă DARK (implicită) — valorile originale ale platformei */
+  --zc-bg:#0a0f1a;
+  --zc-bg-panel:#111827;
+  --zc-border:#1e293b;
+  --zc-text-dim:#334155;
+  --zc-text-muted:#4b5563;
+  --zc-text-secondary:#64748b;
+  --zc-text-secondary-2:#94a3b8;
+  --zc-text-strong:#e2e8f0;
+  --zc-text-primary:#f1f5f9;
+  --zc-bg-tint:#0c3a4d;
+  --zc-bg-deep:#071c26;
+  --zc-accent-dark:#0e7490;
+  --zc-hdr-bg:rgba(10,15,26,.97);
+}
+html[data-theme="light"]{
+  /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
+  --zc-bg:#f4f7fb;
+  --zc-bg-panel:#ffffff;
+  --zc-border:#dde4ec;
+  --zc-text-dim:#94a3b8;
+  --zc-text-muted:#64748b;
+  --zc-text-secondary:#475569;
+  --zc-text-secondary-2:#64748b;
+  --zc-text-strong:#1e293b;
+  --zc-text-primary:#0f172a;
+  --zc-bg-tint:#e0f2fe;
+  --zc-bg-deep:#f0f9ff;
+  --zc-accent-dark:#0891b2;
+  --zc-hdr-bg:rgba(244,247,251,.92);
+}
+/* Tranziție graduală — activată DOAR de motorul de temă automată (nu la
+   schimbarea manuală din Cont, care rămâne instantă) */
+html.theme-transitioning,
+html.theme-transitioning *{
+  transition:background-color .8s ease,border-color .8s ease,color .8s ease,fill .8s ease,stroke .8s ease !important;
+}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;}
+html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;}
 ::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:#0a0f1a;}
-::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+::-webkit-scrollbar-track{background:var(--zc-bg);}
+::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
 
 /* HEADER */
-#hdr{background:rgba(10,15,26,.97);border-bottom:1px solid #1e293b;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
+#hdr{background:var(--zc-hdr-bg);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
 #hdr-in{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:0 14px;height:52px;}
 .logo{font-size:18px;font-weight:800;color:#38bdf8;text-decoration:none;white-space:nowrap;display:flex;align-items:center;}
 .logo-img{height:28px;width:auto;display:block;}
-.back-btn{display:flex;align-items:center;gap:6px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;color:#94a3b8;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0;margin-left:auto;padding:5px 12px;font-size:13px;}
+.logo-img-light{display:none;}
+html[data-theme="light"] .logo-img-dark{display:none;}
+html[data-theme="light"] .logo-img-light{display:block;}
+
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;color:var(--zc-text-secondary-2);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0;margin-left:auto;padding:5px 12px;font-size:13px;}
 .back-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 
 /* LOADING */
-#loading-screen{position:fixed;inset:0;background:#0a0f1a;display:flex;align-items:center;justify-content:center;z-index:9000;flex-direction:column;gap:16px;}
-.spinner{width:40px;height:40px;border:3px solid #1e293b;border-top-color:#38bdf8;border-radius:50%;animation:spin .8s linear infinite;}
+#loading-screen{position:fixed;inset:0;background:var(--zc-bg);display:flex;align-items:center;justify-content:center;z-index:9000;flex-direction:column;gap:16px;}
+.spinner{width:40px;height:40px;border:3px solid var(--zc-border);border-top-color:#38bdf8;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ERROR */
-#error-screen{display:none;position:fixed;inset:0;background:#0a0f1a;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9000;}
+#error-screen{display:none;position:fixed;inset:0;background:var(--zc-bg);align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9000;}
 
 /* PAGE */
 #page{display:none;max-width:900px;margin:0 auto;padding:24px 14px 60px;}
 
 /* HERO CARD */
-.hero-card{background:#111827;border:1px solid #1e293b;border-radius:18px;padding:28px 24px;margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;}
+.hero-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:28px 24px;margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(56,189,248,.04) 0%,transparent 60%);pointer-events:none;}
-.hero-avatar{width:80px;height:80px;border-radius:50%;background:#0c3a4d;border:3px solid #0e7490;display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
+.hero-avatar{width:80px;height:80px;border-radius:50%;background:var(--zc-bg-tint);border:3px solid var(--zc-accent-dark);display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
 .hero-avatar img{width:100%;height:100%;object-fit:cover;}
 .hero-info{flex:1;min-width:0;}
 .hero-share-row{width:100%;position:relative;z-index:2;}
@@ -56,39 +172,39 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 }
 .hero-follow-btn:hover{background:rgba(56,189,248,.2);transform:scale(1.03);}
 .hero-share-btn{
-  background:#0a0f1a;border:1px solid #1e293b;color:#94a3b8;
+  background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);
   font-size:12px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;
   transition:border-color .2s,color .2s;width:100%;
 }
 .hero-share-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 .hero-share-toast{
-  display:none;background:#0c3a4d;border:1px solid #38bdf8;color:#38bdf8;
+  display:none;background:var(--zc-bg-tint);border:1px solid #38bdf8;color:#38bdf8;
   font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;text-align:center;width:100%;
 }
 @media(min-width:481px){
   .hero-share-row{width:auto;margin-left:auto;}
   .hero-share-btn,.hero-share-toast{width:auto;}
 }
-.hero-name{font-size:25px;font-weight:900;color:#f1f5f9;margin-bottom:4px;}
-.hero-zoda{font-size:13px;color:#4b5563;font-family:monospace;margin-bottom:10px;}
+.hero-name{font-size:25px;font-weight:900;color:var(--zc-text-primary);margin-bottom:4px;}
+.hero-zoda{font-size:13px;color:var(--zc-text-muted);font-family:monospace;margin-bottom:10px;}
 .hero-stele{display:flex;align-items:center;gap:8px;}
 .stele-badge{background:#1c1500;border:1px solid #92400e;border-radius:8px;padding:6px 14px;display:flex;align-items:center;gap:6px;}
 .stele-num{font-size:25px;font-weight:900;color:#f59e0b;}
 .stele-lbl{font-size:12px;color:#92400e;font-weight:700;letter-spacing:.04em;}
-.stele-breakdown{font-size:11px;color:#4b5563;line-height:1.8;}
+.stele-breakdown{font-size:11px;color:var(--zc-text-muted);line-height:1.8;}
 
 /* TABS */
-.tabs{display:flex;background:#111827;border:1px solid #1e293b;border-radius:12px;padding:4px;margin-bottom:16px;gap:4px;}
-.tab{flex:1;background:transparent;border:none;color:#4b5563;font-size:13px;font-weight:700;padding:9px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.03em;}
-.tab.active{background:#0c3a4d;color:#38bdf8;}
+.tabs{display:flex;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;padding:4px;margin-bottom:16px;gap:4px;}
+.tab{flex:1;background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;font-weight:700;padding:9px;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.03em;}
+.tab.active{background:var(--zc-bg-tint);color:#38bdf8;}
 
 /* SECTION */
-.section{background:#111827;border:1px solid #1e293b;border-radius:14px;margin-bottom:12px;overflow:hidden;}
-.section-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1e293b;}
+.section{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+.section-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--zc-border);}
 .section-icon{font-size:18px;}
-.section-title{font-size:15px;font-weight:800;color:#f1f5f9;flex:1;}
-.section-count{font-size:11px;background:#0c3a4d;color:#38bdf8;padding:2px 8px;border-radius:10px;font-weight:700;}
+.section-title{font-size:15px;font-weight:800;color:var(--zc-text-primary);flex:1;}
+.section-count{font-size:11px;background:var(--zc-bg-tint);color:#38bdf8;padding:2px 8px;border-radius:10px;font-weight:700;}
 .section-body{padding:0;}
 
 /* REALIZARE ROW */
@@ -97,25 +213,25 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 .rez-row:hover{background:#0d1520;}
 .rez-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
 .rez-icon-wrap.gold{background:#1c1500;border:1px solid #92400e;}
-.rez-icon-wrap.green{background:#071c26;border:1px solid #0c3a4d;}
+.rez-icon-wrap.green{background:var(--zc-bg-deep);border:1px solid var(--zc-bg-tint);}
 .rez-icon-wrap.blue{background:#0c1a2e;border:1px solid #1e40af;}
-.rez-icon-wrap.gray{background:#0f172a;border:1px solid #1e293b;}
+.rez-icon-wrap.gray{background:#0f172a;border:1px solid var(--zc-border);}
 .rez-body{flex:1;min-width:0;}
-.rez-title{font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:2px;}
-.rez-meta{font-size:12px;color:#4b5563;line-height:1.6;}
+.rez-title{font-size:15px;font-weight:700;color:var(--zc-text-strong);margin-bottom:2px;}
+.rez-meta{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 .rez-star{font-size:12px;color:#f59e0b;font-weight:800;flex-shrink:0;white-space:nowrap;}
-.rez-date{font-size:11px;color:#334155;margin-top:2px;}
+.rez-date{font-size:11px;color:var(--zc-text-dim);margin-top:2px;}
 
 /* TRECUT row — mai subtil */
 .rez-row.trecut .rez-title{color:#475569;}
 .rez-row.trecut .rez-icon-wrap{opacity:.5;}
-.rez-row.trecut .rez-star{color:#64748b;}
+.rez-row.trecut .rez-star{color:var(--zc-text-secondary);}
 
 /* EMPTY */
 .empty-state{padding:32px 20px;text-align:center;}
 .empty-icon{font-size:45px;margin-bottom:10px;}
-.empty-title{font-size:15px;font-weight:700;color:#334155;margin-bottom:4px;}
-.empty-sub{font-size:12px;color:#1e293b;line-height:1.6;}
+.empty-title{font-size:15px;font-weight:700;color:var(--zc-text-dim);margin-bottom:4px;}
+.empty-sub{font-size:12px;color:var(--zc-border);line-height:1.6;}
 
 /* ECRANE FOARTE MICI (320-360px) */
 @media(max-width:480px){
@@ -153,34 +269,38 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 #page.blurred{filter:blur(6px);pointer-events:none;user-select:none;}
 #pescar-guest-overlay{display:none;position:fixed;inset:0;z-index:500;align-items:center;justify-content:center;padding:20px;}
 #pescar-guest-overlay.open{display:flex;}
-.pgo-box{background:#111827;border:1px solid #1e293b;border-radius:20px;padding:36px 28px;max-width:360px;width:100%;text-align:center;}
+.pgo-box{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;padding:36px 28px;max-width:360px;width:100%;text-align:center;}
 .pgo-icon{font-size:49px;margin-bottom:14px;}
-.pgo-title{font-size:19px;font-weight:900;color:#f1f5f9;margin-bottom:8px;}
-.pgo-sub{font-size:15px;color:#64748b;line-height:1.6;margin-bottom:24px;}
-.pgo-btn{display:block;width:100%;background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:10px;}
+.pgo-title{font-size:19px;font-weight:900;color:var(--zc-text-primary);margin-bottom:8px;}
+.pgo-sub{font-size:15px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:24px;}
+.pgo-btn{display:block;width:100%;background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:13px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:10px;}
 .pgo-btn:hover{background:#0891b2;}
-.pgo-back{background:transparent;border:none;color:#4b5563;font-size:15px;cursor:pointer;transition:color .2s;}
-.pgo-back:hover{color:#94a3b8;}
+.pgo-back{background:transparent;border:none;color:var(--zc-text-muted);font-size:15px;cursor:pointer;transition:color .2s;}
+.pgo-back:hover{color:var(--zc-text-secondary-2);}
 
 /* ── FOOTER ────────────────────────────────────────────────────────────── */
-#site-footer{border-top:1px solid #1e293b;background:#0a0f1a;margin-top:32px;}
+#site-footer{border-top:1px solid var(--zc-border);background:var(--zc-bg);margin-top:32px;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:24px;width:auto;display:block;opacity:.85;}
-.footer-tagline{font-size:13px;color:#4b5563;line-height:1.6;margin:0;}
+.footer-logo-img-light{display:none;}
+html[data-theme="light"] .footer-logo-img-dark{display:none;}
+html[data-theme="light"] .footer-logo-img-light{display:block;}
+
+.footer-tagline{font-size:13px;color:var(--zc-text-muted);line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
-.footer-col-title{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-.footer-col a{color:#94a3b8;text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
+.footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:#334155;}
-#footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid #1e293b;padding-top:18px;}
-#footer-company{font-size:12px;color:#4b5563;line-height:1.6;}
-#footer-company strong{color:#64748b;}
-#footer-sal{display:flex;flex-direction:column;align-items:center;justify-content:center;width:250px;height:50px;border-radius:8px;background:#111827;border:1px solid #1e293b;text-decoration:none;flex-shrink:0;transition:border-color .2s;}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:var(--zc-text-dim);}
+#footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
+#footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
+#footer-company strong{color:var(--zc-text-secondary);}
+#footer-sal{display:flex;flex-direction:column;align-items:center;justify-content:center;width:250px;height:50px;border-radius:8px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);text-decoration:none;flex-shrink:0;transition:border-color .2s;}
 #footer-sal:hover{border-color:#38bdf8;}
 .sal-badge-txt{font-size:16px;font-weight:900;color:#38bdf8;letter-spacing:.05em;line-height:1.2;}
-.sal-badge-sub{font-size:10px;color:#64748b;line-height:1.2;text-align:center;padding:0 8px;}
+.sal-badge-sub{font-size:10px;color:var(--zc-text-secondary);line-height:1.2;text-align:center;padding:0 8px;}
 @media (max-width:600px){
   #footer-legal{flex-direction:column;align-items:flex-start;}
 }
@@ -195,19 +315,19 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 
 <div id="loading-screen">
   <div class="spinner"></div>
-  <div style="color:#64748b;font-size:15px;">Se încarcă profilul...</div>
+  <div style="color:var(--zc-text-secondary);font-size:15px;">Se încarcă profilul...</div>
 </div>
 
 <div id="error-screen">
   <div style="font-size:54px;margin-bottom:12px;">🎣</div>
-  <div style="font-size:18px;font-weight:700;color:#334155;" id="error-msg">Pescar negăsit</div>
+  <div style="font-size:18px;font-weight:700;color:var(--zc-text-dim);" id="error-msg">Pescar negăsit</div>
   <a href="index.html" style="margin-top:16px;color:#38bdf8;font-size:15px;text-decoration:none;">← Înapoi la hartă</a>
 </div>
 
 <div id="hdr" style="display:none;">
   <div id="hdr-in">
-    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img"/></a>
-    <span style="font-size:13px;color:#4b5563;" id="hdr-subtitle">Profil pescar</span>
+    <a href="index.html" class="logo" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}"><img src="zoda-logo.png" alt="Zoda" class="logo-img logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="logo-img logo-img-light"/></a>
+    <span style="font-size:13px;color:var(--zc-text-muted);" id="hdr-subtitle">Profil pescar</span>
     <a href="index.html" class="back-btn" onclick="event.preventDefault(); savePescarState(); if(history.length > 1) { history.back(); } else { window.location.href='index.html'; }">← Înapoi</a>
   </div>
 </div>
@@ -284,7 +404,7 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 <footer id="site-footer">
   <div id="footer-inner">
     <div class="footer-brand">
-      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img"/>
+      <img src="zoda-logo.png" alt="Zoda" class="footer-logo-img footer-logo-img-dark"/><img src="zoda-logo-light.png" alt="Zoda" class="footer-logo-img footer-logo-img-light"/>
       <p class="footer-tagline">Comunitatea pescarilor din România — bălți, standuri, capturi și clasamente.</p>
     </div>
     <div class="footer-cols">
@@ -318,16 +438,16 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 
 <!-- MODAL DETALII FIRMĂ -->
 <div id="modal-detalii-firma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
-  <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:420px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;">
-      <div style="font-size:18px;font-weight:800;color:#f1f5f9;">🏢 Detalii firmă</div>
-      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;width:100%;max-width:420px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);">
+      <div style="font-size:18px;font-weight:800;color:var(--zc-text-primary);">🏢 Detalii firmă</div>
+      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div style="padding:20px 24px;font-size:15px;color:#94a3b8;line-height:2;">
-      <div><strong style="color:#f1f5f9;">Denumire:</strong> ZODA S.R.L.</div>
-      <div><strong style="color:#f1f5f9;">CUI:</strong> 55341803</div>
-      <div><strong style="color:#f1f5f9;">Reg. Com.:</strong> J2026047446009</div>
-      <div><strong style="color:#f1f5f9;">Sediu:</strong> Ilfov, Popești Leordeni, str. Drumul Fermei nr. 112, bl. 2, ap. 5</div>
+    <div style="padding:20px 24px;font-size:15px;color:var(--zc-text-secondary-2);line-height:2;">
+      <div><strong style="color:var(--zc-text-primary);">Denumire:</strong> ZODA S.R.L.</div>
+      <div><strong style="color:var(--zc-text-primary);">CUI:</strong> 55341803</div>
+      <div><strong style="color:var(--zc-text-primary);">Reg. Com.:</strong> J2026047446009</div>
+      <div><strong style="color:var(--zc-text-primary);">Sediu:</strong> Ilfov, Popești Leordeni, str. Drumul Fermei nr. 112, bl. 2, ap. 5</div>
     </div>
   </div>
 </div>
@@ -420,8 +540,8 @@ function setButonUrmarirePescarUI(btn) {
     btn.style.borderColor = 'rgba(56,189,248,.4)';
   } else {
     btn.innerHTML = '☆ <span>Urmărește</span>';
-    btn.style.color = '#94a3b8';
-    btn.style.borderColor = '#1e293b';
+    btn.style.color = 'var(--zc-text-secondary-2)';
+    btn.style.borderColor = 'var(--zc-border)';
   }
 }
 async function toggleUrmarirePescar() {
@@ -660,7 +780,7 @@ function renderHero(profile, steleData) {
   if (t10) parts.push(`📅 ${t10} top 10 lunar`);
   if (hof) parts.push(`🏆 ${hof} Hall of Fame`);
   document.getElementById('hero-stele-breakdown').innerHTML = parts.join('<br/>') ||
-    '<span style="color:#1e293b;">Nicio stea câștigată încă</span>';
+    '<span style="color:var(--zc-border);">Nicio stea câștigată încă</span>';
 }
 
 function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecuteMap, hofActiveMap, hofBaltaIds) {
@@ -869,11 +989,11 @@ boot();
 
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
-#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:#111827;border-top:1px solid #1e293b;padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
+#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
 #cookie-notice.show{display:flex;}
-#cookie-notice-text{font-size:13px;color:#94a3b8;line-height:1.6;max-width:640px;}
+#cookie-notice-text{font-size:13px;color:var(--zc-text-secondary-2);line-height:1.6;max-width:640px;}
 #cookie-notice-text a{color:#38bdf8;}
-#cookie-notice-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#cookie-notice-btn{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 </style>
 <div id="cookie-notice">
   <div id="cookie-notice-text">
@@ -904,20 +1024,20 @@ boot();
 
 <!-- ═══════════ RECLAMA / BARĂ FIXĂ JOS PE ECRAN — stil + logică ═══════════ -->
 <style>
-#promo-bar{display:none;flex-direction:column;position:fixed;left:0;right:0;bottom:0;z-index:4000;background:#111827;border-top:1px solid #1e293b;box-shadow:0 -6px 24px rgba(0,0,0,.5);padding:8px 10px;transition:bottom .2s;}
+#promo-bar{display:none;flex-direction:column;position:fixed;left:0;right:0;bottom:0;z-index:4000;background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.5);padding:8px 10px;transition:bottom .2s;}
 #promo-bar.show{display:flex;}
 #promo-bar-top{display:flex;align-items:center;gap:8px;width:100%;}
 #promo-bar-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;}
-#promo-img{width:80px;height:45px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#0a0f1a;}
+#promo-img{width:80px;height:45px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--zc-bg);}
 .promo-bar-text{min-width:0;flex:1;text-align:center;}
-.promo-bar-tag{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.05em;display:block;text-transform:uppercase;}
-.promo-title{font-size:13px;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.promo-sub{font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-bar-tag{font-size:9px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.05em;display:block;text-transform:uppercase;}
+.promo-title{font-size:13px;font-weight:800;color:var(--zc-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-sub{font-size:11px;color:var(--zc-text-secondary-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #promo-dots{display:flex;gap:4px;justify-content:center;margin-top:6px;}
-.promo-dot{width:5px;height:5px;border-radius:50%;background:#334155;cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0;}
+.promo-dot{width:5px;height:5px;border-radius:50%;background:var(--zc-text-dim);cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0;}
 .promo-dot.active{background:#38bdf8;transform:scale(1.2);}
-#promo-bar-close{background:transparent;border:none;color:#4b5563;font-size:20px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
-#promo-bar-close:hover{color:#94a3b8;}
+#promo-bar-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:20px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
+#promo-bar-close:hover{color:var(--zc-text-secondary-2);}
 </style>
 <div id="promo-bar">
   <div id="promo-bar-top">
