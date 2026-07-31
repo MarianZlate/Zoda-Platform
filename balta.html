@@ -2793,13 +2793,40 @@ function ytVideoId(url) {
 
 // ── ORIENTARE ECRAN — permite landscape la vizualizare poze/video ───────────
 // Manifest-ul are orientation:"portrait-primary" (ca aplicația instalată să
-// rămână stabilă pe hartă/liste). La deschiderea unei poze/video, deblocăm
-// temporar orientarea ca telefonul să se rotească dacă userul îl întoarce
-// pe lateral (cu rotirea automată activată din setările telefonului).
-function _permiteRotire() {
-  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+// rămână stabilă pe hartă/liste). screen.orientation.unlock() singur NU
+// suprascrie fiabil blocarea din manifest într-un PWA instalat — trebuie
+// combinat cu Fullscreen API (la fel cum un video nativ rotește doar când
+// intră în fullscreen). La deschiderea unei poze/video, cerem fullscreen pe
+// overlay și abia apoi deblocăm orientarea; la închidere ieșim din fullscreen
+// și reblocăm pe portret.
+function _permiteRotire(elId) {
+  var el = (elId && document.getElementById(elId)) || document.documentElement;
+  var req = el && (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen);
+  var afterFS = function () {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        var p = screen.orientation.lock('any');
+        if (p && p.catch) p.catch(function () {});
+      } else if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    } catch (e) {}
+  };
+  if (req) {
+    try {
+      var res = req.call(el);
+      if (res && res.then) res.then(afterFS).catch(afterFS); else afterFS();
+    } catch (e) { afterFS(); }
+  } else {
+    afterFS();
+  }
 }
 function _blocheazaPortret() {
+  try {
+    var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (fsEl && exit) exit.call(document);
+  } catch (e) {}
   try {
     if (screen.orientation && screen.orientation.lock) {
       var p = screen.orientation.lock('portrait-primary');
@@ -2808,9 +2835,9 @@ function _blocheazaPortret() {
   } catch (e) {}
 }
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire(); }
+function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
 function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
-function openYT(url) { var emb = ytEmbed(url); if (!emb) return; document.getElementById('yt-iframe').src = emb.replace('?rel=0','?rel=0&autoplay=1'); document.getElementById('yt-modal').style.display = 'flex'; _permiteRotire(); }
+function openYT(url) { var emb = ytEmbed(url); if (!emb) return; document.getElementById('yt-iframe').src = emb.replace('?rel=0','?rel=0&autoplay=1'); document.getElementById('yt-modal').style.display = 'flex'; _permiteRotire('yt-modal'); }
 function closeYT() { document.getElementById('yt-iframe').src = ''; document.getElementById('yt-modal').style.display = 'none'; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeFS(); closeYT(); closeClaimModal(); } });
 
