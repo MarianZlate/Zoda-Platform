@@ -15,7 +15,7 @@
    RESET & BAZĂ COMUNĂ
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;overflow-x:hidden;}
+html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;overflow-x:hidden;}
 
 /* FUNDAL DECORATIV — strat separat, înălțime fixă, ancorat la începutul paginii.
    Folosim un div dedicat (nu background pe html/body) ca să evităm distorsionarea
@@ -40,21 +40,21 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 #hdr-in{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
   /* mobil */
   padding:8px 12px;}
-.logo{font-size:16px;font-weight:800;color:#38bdf8;text-decoration:none;white-space:nowrap;display:flex;align-items:center;order:0;}
+.logo{font-size:18px;font-weight:800;color:#38bdf8;text-decoration:none;white-space:nowrap;display:flex;align-items:center;order:0;}
 .logo-img{height:28px;width:auto;display:block;}
-.badge{font-size:10px;background:#7c3aed;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:6px;}
+.badge{font-size:11px;background:#7c3aed;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:6px;}
 #hdr-balta-info{display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;
   /* mobil: rând propriu, sub logo/buton, ca numele lung să nu se suprapună peste nimic */
   order:2;flex-basis:100%;width:100%;}
 #hdr-balta-name{font-weight:700;color:#f8fafc;
   /* mobil: până la 2 rânduri, apoi tăiat cu ... */
-  font-size:13px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:ellipsis;}
-#hdr-balta-loc{color:#64748b;font-size:12px;white-space:nowrap;
+  font-size:15px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:ellipsis;}
+#hdr-balta-loc{color:#64748b;font-size:13px;white-space:nowrap;
   /* mobil */
   display:none;}
 .back-btn{display:flex;align-items:center;gap:6px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;color:#94a3b8;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0;order:1;
   /* mobil */
-  padding:5px 10px;font-size:11px;}
+  padding:5px 10px;font-size:12px;}
 .back-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 
 /* LAYOUT */
@@ -69,14 +69,14 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
   padding:8px 10px;}
 .ebtn{border-radius:8px;font-weight:700;cursor:pointer;border:none;
   /* mobil */
-  font-size:12px;padding:6px 12px;}
+  font-size:13px;padding:6px 12px;}
 
 /* EDIT BAR */
 #edit-bar{display:none;flex-direction:column;gap:0;background:#111827;border:1px solid #1e293b;border-radius:12px;overflow:hidden;}
 #edit-bar-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
   /* mobil */
   padding:8px 10px;}
-#edit-bar-hint{font-size:11px;color:#4b5563;background:#0a0f1a;border-top:1px solid #1e293b;padding:8px 14px;display:none;line-height:1.6;}
+#edit-bar-hint{font-size:12px;color:#4b5563;background:#0a0f1a;border-top:1px solid #1e293b;padding:8px 14px;display:none;line-height:1.6;}
 #edit-bar-hint.active{display:block;}
 
 /* MAIN AREA — mobil: coloane stivuite */
@@ -122,17 +122,17 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 #stand-overlay > div:nth-child(2){grid-template-columns:1fr 1fr!important;flex:1;}
 #ov-rec-foto,#ov-stand-foto{display:block!important;}
 .ov-hdr{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:#071c26;border-bottom:1px solid #0c3a4d;}
-.spnr{font-size:14px;font-weight:900;color:#38bdf8;}
-.xbtn{background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;line-height:1;padding:0 4px;}
+.spnr{font-size:16px;font-weight:900;color:#38bdf8;}
+.xbtn{background:transparent;border:none;color:#4b5563;font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
 .xbtn:hover{color:#f1f5f9;}
-.sec-lbl{font-size:9px;font-weight:700;color:#4b5563;letter-spacing:.07em;margin-bottom:6px;}
+.sec-lbl{font-size:10px;font-weight:700;color:#4b5563;letter-spacing:.07em;margin-bottom:6px;}
 .foto-wrap{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1/1;cursor:zoom-in;background:#0a0f1a;display:block;}
 .foto-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
-.zoom-hint{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:9px;color:#94a3b8;pointer-events:none;}
-.foto-empty{aspect-ratio:1/1;background:#0a0f1a;border-radius:8px;border:1px dashed #1e293b;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#334155;font-size:10px;}
+.zoom-hint{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;color:#94a3b8;pointer-events:none;}
+.foto-empty{aspect-ratio:1/1;background:#0a0f1a;border-radius:8px;border:1px dashed #1e293b;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:#334155;font-size:11px;}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:#0a0f1a;border-radius:5px;}
-.stat-lbl{color:#64748b;font-size:10px;}
-.stat-val{color:#38bdf8;font-size:14px;font-weight:900;}
+.stat-lbl{color:#64748b;font-size:11px;}
+.stat-val{color:#38bdf8;font-size:16px;font-weight:900;}
 .ov-yt{padding:8px 10px;border-top:1px solid #1e293b;}
 
 /* MAP SIDEBAR — mobil: lățime 100% */
@@ -145,15 +145,15 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 
 /* PILLS */
 #pw{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.pl{color:#64748b;font-size:12px;white-space:nowrap;}
-.pill{border:1.5px solid #1e293b;border-radius:20px;cursor:pointer;font-size:11px;font-weight:700;background:#111827;color:#94a3b8;
+.pl{color:#64748b;font-size:13px;white-space:nowrap;}
+.pill{border:1.5px solid #1e293b;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:#111827;color:#94a3b8;
   /* mobil */
   padding:3px 10px;}
 .pill.active{background:#f59e0b;color:#000;border-color:#fcd34d;}
-#pill-all{border:1.5px solid #38bdf8;border-radius:20px;cursor:pointer;font-size:11px;font-weight:700;background:#0c3a4d;color:#38bdf8;
+#pill-all{border:1.5px solid #38bdf8;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:#0c3a4d;color:#38bdf8;
   /* mobil */
   padding:3px 10px;}
-#pill-drum{border:1.5px solid #334155;border-radius:20px;cursor:pointer;font-size:11px;font-weight:700;background:#0a0f1a;color:#64748b;
+#pill-drum{border:1.5px solid #334155;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:#0a0f1a;color:#64748b;
   /* mobil */
   padding:3px 10px;}
 
@@ -162,7 +162,7 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 
 /* CARD GENERIC */
 .card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:14px;}
-.ct{font-weight:700;font-size:13px;color:#e2e8f0;margin-bottom:8px;}
+.ct{font-weight:700;font-size:15px;color:#e2e8f0;margin-bottom:8px;}
 
 /* TOP 10 — mobil: lățime 100% */
 #rc-top10{
@@ -173,29 +173,29 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 .t10tabs{display:flex;border-bottom:1px solid #1e293b;padding:0 14px;overflow-x:auto;}
 .t10t{background:transparent;border:none;color:#64748b;cursor:pointer;font-weight:600;border-bottom:2px solid transparent;white-space:nowrap;
   /* mobil */
-  font-size:11px;padding:8px 10px;}
+  font-size:12px;padding:8px 10px;}
 .t10t.active{color:#38bdf8;border-bottom-color:#38bdf8;font-weight:700;}
 .t10ct{display:none;}
 .t10ct.active{display:block;}
-.t10h{display:flex;align-items:center;gap:7px;padding:10px 14px 6px;font-weight:700;font-size:12px;color:#e2e8f0;}
-.lbdg{background:#0c3a4d;color:#38bdf8;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;}
-.t10e{padding:14px;color:#4b5563;text-align:center;font-size:12px;}
+.t10h{display:flex;align-items:center;gap:7px;padding:10px 14px 6px;font-weight:700;font-size:13px;color:#e2e8f0;}
+.lbdg{background:#0c3a4d;color:#38bdf8;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;}
+.t10e{padding:14px;color:#4b5563;text-align:center;font-size:13px;}
 .t10r{display:flex;align-items:stretch;border-bottom:1px solid #0f172a;}
 .t10r-foto{width:72px;flex-shrink:0;position:relative;}
 .t10r-foto img{width:72px;height:72px;object-fit:cover;display:block;}
-.t10r-foto-empty{width:72px;height:72px;background:#0a0f1a;display:flex;align-items:center;justify-content:center;color:#334155;font-size:20px;}
-.medal{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.t10r-foto-empty{width:72px;height:72px;background:#0a0f1a;display:flex;align-items:center;justify-content:center;color:#334155;font-size:22px;}
+.medal{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;}
 .t10r-info{flex:1;min-width:0;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:3px;}
-.t10-name{font-weight:700;font-size:12px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.t10-meta{font-size:10px;color:#4b5563;}
+.t10-name{font-weight:700;font-size:13px;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t10-meta{font-size:11px;color:#4b5563;}
 .t10-kg{padding:8px 12px 8px 0;display:flex;align-items:center;flex-shrink:0;}
-.t10-kg span{font-weight:900;color:#38bdf8;font-size:14px;}
+.t10-kg span{font-weight:900;color:#38bdf8;font-size:16px;}
 .isub{display:flex;gap:5px;padding:8px 14px;flex-wrap:wrap;}
-.ist{background:#0a0f1a;border:1px solid #1e293b;color:#64748b;font-size:10px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;}
+.ist{background:#0a0f1a;border:1px solid #1e293b;color:#64748b;font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;}
 .ist.active{background:#0c3a4d;border-color:#0e7490;color:#38bdf8;font-weight:700;}
 /* Butoane selector luni istoric */
 #lunar-luna-buttons{display:flex;gap:6px;flex-wrap:nowrap;}
-.luna-btn{background:#0a0f1a;border:1px solid #1e293b;color:#64748b;font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.luna-btn{background:#0a0f1a;border:1px solid #1e293b;color:#64748b;font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .luna-btn:hover{border-color:#334155;color:#94a3b8;}
 .luna-btn.active{background:#0c3a4d;border-color:#38bdf8;color:#38bdf8;font-weight:700;}
 
@@ -211,10 +211,10 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 #hof-blur-wrap.blurred #t10-list{filter:blur(5px);pointer-events:none;user-select:none;opacity:.6;}
 #hof-unlock-overlay{display:none;position:absolute;inset:0;z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:16px;text-align:center;background:rgba(10,15,26,.7);border-radius:0 0 12px 12px;}
 #hof-blur-wrap.blurred #hof-unlock-overlay{display:flex;}
-.unlock-icon{font-size:28px;}
-.unlock-title{font-size:13px;font-weight:800;color:#f1f5f9;line-height:1.4;}
-.unlock-sub{font-size:11px;color:#64748b;line-height:1.5;}
-.unlock-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:9px 20px;border-radius:9px;cursor:pointer;margin-top:4px;transition:background .2s;}
+.unlock-icon{font-size:31px;}
+.unlock-title{font-size:15px;font-weight:800;color:#f1f5f9;line-height:1.4;}
+.unlock-sub{font-size:12px;color:#64748b;line-height:1.5;}
+.unlock-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:9px 20px;border-radius:9px;cursor:pointer;margin-top:4px;transition:background .2s;}
 .unlock-btn:hover{background:#0891b2;}
 
 /* LEGENDĂ */
@@ -224,7 +224,7 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 /* Drag & drop ordine standuri */
 .li.sortable{cursor:default;}
 .li.sortable:hover{background:#111827;border-color:#1e293b;}
-.li-drag-handle{display:none;color:#334155;font-size:16px;cursor:grab;padding:0 4px;flex-shrink:0;touch-action:none;}
+.li-drag-handle{display:none;color:#334155;font-size:18px;cursor:grab;padding:0 4px;flex-shrink:0;touch-action:none;}
 .li-drag-handle:active{cursor:grabbing;}
 .li.sortable .li-drag-handle{display:flex;align-items:center;}
 .li.drag-over{border-color:#38bdf8;background:#071c26;}
@@ -235,24 +235,24 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 .sort-row:hover{background:#1e293b;}
 .sort-row.drag-over{background:#071c26;border-color:#38bdf8;}
 .sort-row.dragging-item{opacity:.4;}
-.sort-row-handle{color:#334155;font-size:20px;flex-shrink:0;}
-.sort-row-name{font-size:13px;font-weight:700;color:#f1f5f9;flex:1;}
-.lnr{width:22px;height:22px;border-radius:50%;background:#e8142a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;color:#fff;flex-shrink:0;}
-.lz{font-size:11px;color:#94a3b8;}
-.ls{font-size:9px;color:#4b5563;margin-top:1px;}
-.lrec{font-weight:700;color:#f59e0b;font-size:11px;white-space:nowrap;margin-left:auto;}
+.sort-row-handle{color:#334155;font-size:22px;flex-shrink:0;}
+.sort-row-name{font-size:15px;font-weight:700;color:#f1f5f9;flex:1;}
+.lnr{width:22px;height:22px;border-radius:50%;background:#e8142a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;flex-shrink:0;}
+.lz{font-size:12px;color:#94a3b8;}
+.ls{font-size:10px;color:#4b5563;margin-top:1px;}
+.lrec{font-weight:700;color:#f59e0b;font-size:12px;white-space:nowrap;margin-left:auto;}
 
 /* INFO BAR — mobil mic: numele e deja în header, ascundem aici; 2 rânduri de butoane */
 @media(max-width:480px){
   .logo-img{height:20px;}
   .info-bar{gap:6px;}
   .info-bar > div:first-child{display:none!important;} /* numele băltii — deja vizibil în header */
-  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{flex:1 1 calc(33% - 6px);justify-content:center;padding:7px 4px;font-size:11px;gap:3px;}
+  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{flex:1 1 calc(33% - 6px);justify-content:center;padding:7px 4px;font-size:12px;gap:3px;}
   #btn-fb,#btn-wa{flex:0 0 auto;padding:7px 10px;}
   .ebtn{flex:1;text-align:center;}
 }
 @media(max-width:360px){
-  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{font-size:10px;padding:6px 2px;gap:2px;}
+  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{font-size:11px;padding:6px 2px;gap:2px;}
   #btn-fb,#btn-wa{padding:6px 8px;}
 }
 
@@ -265,30 +265,30 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 /* ============================================================
    DESKTOP (min-width: 769px) — adăugăm peste baza mobilă
    ============================================================ */
-.info-overlay-body{padding:18px;overflow-y:auto;font-size:15.5px;color:#cbd5e1;line-height:1.8;white-space:pre-wrap;}
+.info-overlay-body{padding:18px;overflow-y:auto;font-size:17.4px;color:#cbd5e1;line-height:1.8;white-space:pre-wrap;}
 .ib-name-tagline-wrap{display:flex;flex-direction:column;}
 
 @media(min-width:769px){
   /* HEADER */
   #hdr-in{padding:0 20px;height:52px;gap:12px;flex-wrap:nowrap;}
   #hdr-balta-info{order:0;flex-basis:auto;width:auto;}
-  #hdr-balta-name{font-size:15px;white-space:nowrap;display:block;-webkit-line-clamp:unset;}
+  #hdr-balta-name{font-size:17px;white-space:nowrap;display:block;-webkit-line-clamp:unset;}
   .ib-name-tagline-wrap{flex-direction:row;align-items:baseline;gap:8px;}
   #hdr-balta-loc{display:block;}
-  .back-btn{padding:6px 12px;font-size:12px;order:2;}
+  .back-btn{padding:6px 12px;font-size:13px;order:2;}
 
-  .info-overlay-body{font-size:13px;line-height:1.7;}
+  .info-overlay-body{font-size:15px;line-height:1.7;}
 
   /* LAYOUT */
   #layout{max-width:1300px;padding:150px 20px 50px;}
 
   /* INFO BAR */
   .info-bar{padding:10px 14px;gap:10px;}
-  #btn-tel,#btn-fb,#btn-wa,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{padding:7px 12px;font-size:13px;}
+  #btn-tel,#btn-fb,#btn-wa,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{padding:7px 12px;font-size:15px;}
 
   /* EDIT BAR */
   #edit-bar-top{padding:10px 14px;gap:10px;}
-  .ebtn{font-size:13px;padding:8px 18px;}
+  .ebtn{font-size:15px;padding:8px 18px;}
 
   /* MAIN AREA — desktop: 3 rânduri stivuite (hartă / butoane+video / top10+HOF) */
   #main-area{flex-direction:column;}
@@ -313,17 +313,17 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
     max-height:85vh;overflow-y:auto;}
   #stand-overlay > div:nth-child(2) > div{padding:22px!important;}
   #stand-overlay .ov-hdr{padding:14px 22px;}
-  #stand-overlay .spnr{font-size:20px;}
-  #stand-overlay .xbtn{font-size:24px;}
-  #stand-overlay .sec-lbl{font-size:12px;margin-bottom:10px;}
+  #stand-overlay .spnr{font-size:22px;}
+  #stand-overlay .xbtn{font-size:27px;}
+  #stand-overlay .sec-lbl{font-size:13px;margin-bottom:10px;}
   #stand-overlay .stat-row{padding:9px 12px;}
-  #stand-overlay .stat-lbl{font-size:13px;}
-  #stand-overlay #ov-kg,#stand-overlay #ov-la,#stand-overlay #ov-di{font-size:19px!important;}
-  #stand-overlay #ov-pe,#stand-overlay #ov-da{font-size:14px!important;max-width:170px!important;}
-  #stand-overlay .zoom-hint{font-size:11px;padding:3px 7px;}
+  #stand-overlay .stat-lbl{font-size:15px;}
+  #stand-overlay #ov-kg,#stand-overlay #ov-la,#stand-overlay #ov-di{font-size:21px!important;}
+  #stand-overlay #ov-pe,#stand-overlay #ov-da{font-size:16px!important;max-width:170px!important;}
+  #stand-overlay .zoom-hint{font-size:12px;padding:3px 7px;}
 
   /* PILLS */
-  .pill,#pill-all,#pill-drum{padding:4px 12px;font-size:12px;}
+  .pill,#pill-all,#pill-drum{padding:4px 12px;font-size:13px;}
   #pill-all{padding:4px 14px;}
 
   /* TOP 10 — desktop: Top 10 Lunar (stânga) + Hall of Fame (dreapta), sub video */
@@ -331,7 +331,7 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
   #rc-top10 > .t10c{flex:1;min-width:0;}
 
   /* TABS */
-  .t10t{font-size:11px;padding:10px 8px;}
+  .t10t{font-size:12px;padding:10px 8px;}
 }
 
 /* ── FOOTER ────────────────────────────────────────────────────────────── */
@@ -339,20 +339,20 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-brand{display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:320px;}
 .footer-logo-img{height:24px;width:auto;display:block;opacity:.85;}
-.footer-tagline{font-size:12px;color:#4b5563;line-height:1.6;margin:0;}
+.footer-tagline{font-size:13px;color:#4b5563;line-height:1.6;margin:0;}
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
-.footer-col-title{font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
-.footer-col a{color:#94a3b8;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;transition:color .2s;}
+.footer-col-title{font-size:12px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.footer-col a{color:#94a3b8;text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:11px;color:#334155;}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:#334155;}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid #1e293b;padding-top:18px;}
-#footer-company{font-size:11px;color:#4b5563;line-height:1.6;}
+#footer-company{font-size:12px;color:#4b5563;line-height:1.6;}
 #footer-company strong{color:#64748b;}
 #footer-sal{display:flex;flex-direction:column;align-items:center;justify-content:center;width:250px;height:50px;border-radius:8px;background:#111827;border:1px solid #1e293b;text-decoration:none;flex-shrink:0;transition:border-color .2s;}
 #footer-sal:hover{border-color:#38bdf8;}
-.sal-badge-txt{font-size:14px;font-weight:900;color:#38bdf8;letter-spacing:.05em;line-height:1.2;}
-.sal-badge-sub{font-size:9px;color:#64748b;line-height:1.2;text-align:center;padding:0 8px;}
+.sal-badge-txt{font-size:16px;font-weight:900;color:#38bdf8;letter-spacing:.05em;line-height:1.2;}
+.sal-badge-sub{font-size:10px;color:#64748b;line-height:1.2;text-align:center;padding:0 8px;}
 @media (max-width:600px){
   #footer-legal{flex-direction:column;align-items:flex-start;}
 }
@@ -369,14 +369,14 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 <!-- Loading -->
 <div id="loading-screen">
   <div class="spinner"></div>
-  <div style="color:#64748b;font-size:13px;">Se încarcă balta...</div>
+  <div style="color:#64748b;font-size:15px;">Se încarcă balta...</div>
 </div>
 
 <!-- Error -->
 <div id="error-screen" style="display:none;flex-direction:column;">
-  <div style="font-size:48px;">⚠️</div>
-  <div style="font-weight:700;font-size:18px;color:#f1f5f9;">Balta nu a fost găsită</div>
-  <div style="color:#64748b;font-size:13px;" id="error-msg">Nu am putut încărca datele pentru această baltă.</div>
+  <div style="font-size:54px;">⚠️</div>
+  <div style="font-weight:700;font-size:20px;color:#f1f5f9;">Balta nu a fost găsită</div>
+  <div style="color:#64748b;font-size:15px;" id="error-msg">Nu am putut încărca datele pentru această baltă.</div>
   <a href="index.html" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:#0c3a4d;border:1px solid #0e7490;border-radius:8px;padding:9px 18px;color:#38bdf8;font-weight:700;text-decoration:none;">← Înapoi la hartă</a>
 </div>
 
@@ -398,57 +398,57 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 <!-- Panou ambasador — sus de tot, header compact (doar titlul, fără descriere lungă) -->
 <div id="ambasador-bar" style="display:none;background:#111827;border:1px solid #0c3a4d;border-radius:12px;margin-bottom:10px;overflow:hidden;">
   <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #1e293b;">
-    <span style="font-size:16px;">🎥</span>
-    <span style="font-weight:700;font-size:12.5px;color:#38bdf8;">Mod ambasador</span>
+    <span style="font-size:18px;">🎥</span>
+    <span style="font-weight:700;font-size:14px;color:#38bdf8;">Mod ambasador</span>
   </div>
   <div style="padding:14px;display:flex;flex-direction:column;gap:12px;">
     <div>
-      <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">STAND</label>
-      <select id="amb-stand-select" onchange="ambSelectStand()" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;cursor:pointer;">
+      <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">STAND</label>
+      <select id="amb-stand-select" onchange="ambSelectStand()" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;cursor:pointer;">
         <option value="">+ Stand nou</option>
       </select>
-      <div id="amb-stand-confirm" style="font-size:11.5px;margin-top:6px;padding:7px 10px;border-radius:7px;"></div>
+      <div id="amb-stand-confirm" style="font-size:12.9px;margin-top:6px;padding:7px 10px;border-radius:7px;"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">NUME STAND</label>
-        <input type="text" id="amb-nume" placeholder="ex: Stand 14" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">NUME STAND</label>
+        <input type="text" id="amb-nume" placeholder="ex: Stand 14" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">ADÂNCIME (m)</label>
-        <input type="number" step="0.1" id="amb-adancime" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">ADÂNCIME (m)</label>
+        <input type="number" step="0.1" id="amb-adancime" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">DISTANȚĂ (m)</label>
-        <input type="number" id="amb-distanta" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">DISTANȚĂ (m)</label>
+        <input type="number" id="amb-distanta" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">LĂȚIME (m)</label>
-        <input type="number" id="amb-latime" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">LĂȚIME (m)</label>
+        <input type="number" id="amb-latime" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
       </div>
     </div>
     <div>
-      <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">FOTO STAND</label>
+      <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">FOTO STAND</label>
       <div onclick="document.getElementById('amb-foto-input').click()" style="margin-top:5px;border:1.5px dashed #1e293b;border-radius:10px;padding:16px;text-align:center;cursor:pointer;">
         <div id="amb-foto-preview-wrap">
-          <div style="font-size:22px;">📷</div>
-          <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Click sau trage poza aici</div>
+          <div style="font-size:25px;">📷</div>
+          <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Click sau trage poza aici</div>
         </div>
         <img id="amb-foto-preview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-top:8px;"/>
       </div>
       <input type="file" id="amb-foto-input" accept="image/*" style="display:none;" onchange="ambOnFotoSelect(this)"/>
     </div>
     <div>
-      <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">POZIȚIE PE HARTĂ</label>
-      <button onclick="ambTogglePozitionare()" id="amb-poz-btn" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px;color:#94a3b8;font-size:12.5px;font-weight:600;cursor:pointer;">📍 Poziționează pe hartă</button>
-      <div id="amb-poz-status" style="font-size:11px;color:#4b5563;margin-top:4px;"></div>
+      <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">POZIȚIE PE HARTĂ</label>
+      <button onclick="ambTogglePozitionare()" id="amb-poz-btn" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px;color:#94a3b8;font-size:14px;font-weight:600;cursor:pointer;">📍 Poziționează pe hartă</button>
+      <div id="amb-poz-status" style="font-size:12px;color:#4b5563;margin-top:4px;"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <button onclick="ambTrimiteSubmisie()" id="amb-trimite-btn" style="background:#0e7490;color:#fff;font-weight:700;font-size:13px;padding:10px 18px;border:none;border-radius:8px;cursor:pointer;">🚀 Trimite spre aprobare</button>
-      <button onclick="ambRenuntaModificari()" style="background:transparent;border:1px solid #1e293b;color:#64748b;font-weight:600;font-size:12.5px;padding:10px 14px;border-radius:8px;cursor:pointer;">↺ Renunță</button>
-      <span id="amb-status" style="font-size:12px;color:#64748b;"></span>
+      <button onclick="ambTrimiteSubmisie()" id="amb-trimite-btn" style="background:#0e7490;color:#fff;font-weight:700;font-size:15px;padding:10px 18px;border:none;border-radius:8px;cursor:pointer;">🚀 Trimite spre aprobare</button>
+      <button onclick="ambRenuntaModificari()" style="background:transparent;border:1px solid #1e293b;color:#64748b;font-weight:600;font-size:14px;padding:10px 14px;border-radius:8px;cursor:pointer;">↺ Renunță</button>
+      <span id="amb-status" style="font-size:13px;color:#64748b;"></span>
     </div>
   </div>
   <div id="amb-submisii-mele" style="padding:0 14px 14px;"></div>
@@ -456,12 +456,12 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 
 <!-- BANNER LISTARE DE BAZA — vizibil doar cand BALTA.vizibilitate === 'basic' -->
 <div id="basic-tier-banner" style="display:none;background:linear-gradient(135deg,#1e293b,#111827);border:1px solid #334155;border-radius:14px;padding:16px 20px;margin-bottom:14px;align-items:center;gap:16px;flex-wrap:wrap;">
-  <div style="font-size:28px;flex-shrink:0;">🔍</div>
+  <div style="font-size:31px;flex-shrink:0;">🔍</div>
   <div style="flex:1;min-width:220px;">
-    <div style="font-weight:800;font-size:14px;color:#f1f5f9;margin-bottom:3px;">Listare de bază — neverificată încă</div>
-    <div style="font-size:12.5px;color:#94a3b8;line-height:1.5;">Datele de mai jos provin din surse publice și n-au fost confirmate de administratorul bălții. Nu există încă poze, standuri sau video de prezentare.</div>
+    <div style="font-weight:800;font-size:16px;color:#f1f5f9;margin-bottom:3px;">Listare de bază — neverificată încă</div>
+    <div style="font-size:14px;color:#94a3b8;line-height:1.5;">Datele de mai jos provin din surse publice și n-au fost confirmate de administratorul bălții. Nu există încă poze, standuri sau video de prezentare.</div>
   </div>
-  <a href="#" onclick="openClaimModal();return false;" style="flex-shrink:0;background:#38bdf8;color:#0a0f1a;font-weight:800;font-size:13px;padding:10px 18px;border-radius:9px;text-decoration:none;white-space:nowrap;">Ești administratorul? Revendic-o →</a>
+  <a href="#" onclick="openClaimModal();return false;" style="flex-shrink:0;background:#38bdf8;color:#0a0f1a;font-weight:800;font-size:15px;padding:10px 18px;border-radius:9px;text-decoration:none;white-space:nowrap;">Ești administratorul? Revendic-o →</a>
 </div>
 
 <div class="lc">
@@ -469,38 +469,38 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
   <!-- Info bar -->
   <div class="info-bar">
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
-      <span style="font-size:20px;">🎣</span>
+      <span style="font-size:22px;">🎣</span>
       <div>
         <div class="ib-name-tagline-wrap">
-          <div id="ib-name" style="font-weight:800;font-size:15px;color:#f1f5f9;">—</div>
-          <div id="ib-tagline" style="font-size:13px;font-style:italic;color:#60a5fa;font-weight:600;display:none;"></div>
+          <div id="ib-name" style="font-weight:800;font-size:17px;color:#f1f5f9;">—</div>
+          <div id="ib-tagline" style="font-size:15px;font-style:italic;color:#60a5fa;font-weight:600;display:none;"></div>
         </div>
-        <div id="ib-loc" style="font-size:11px;color:#64748b;"></div>
+        <div id="ib-loc" style="font-size:12px;color:#64748b;"></div>
       </div>
     </div>
-    <div id="ib-ambasador-credit" style="font-size:10.5px;color:#64748b;flex-basis:100%;display:none;"></div>
-    <a id="btn-tel" href="#" style="display:none;align-items:center;gap:7px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:7px 12px;text-decoration:none;color:#f1f5f9;font-size:13px;font-weight:600;white-space:nowrap;">📞 <span id="tel-txt"></span></a>
+    <div id="ib-ambasador-credit" style="font-size:11.8px;color:#64748b;flex-basis:100%;display:none;"></div>
+    <a id="btn-tel" href="#" style="display:none;align-items:center;gap:7px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:7px 12px;text-decoration:none;color:#f1f5f9;font-size:15px;font-weight:600;white-space:nowrap;">📞 <span id="tel-txt"></span></a>
     <a id="btn-fb" href="#" target="_blank" title="Pagina de Facebook" style="display:none;align-items:center;justify-content:center;background:#1877f2;border-radius:8px;padding:7px 12px;text-decoration:none;color:#fff;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
     </a>
     <a id="btn-wa" href="#" target="_blank" title="WhatsApp" style="display:none;align-items:center;justify-content:center;background:#25d366;border-radius:8px;padding:7px 12px;text-decoration:none;color:#fff;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
     </a>
-    <button id="btn-tarife" onclick="openTarifeOrWa()" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">💰 Tarife</button>
-    <button id="btn-regulament" onclick="openInfoOverlay('regulament')" style="display:none;align-items:center;gap:7px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:7px 12px;color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">📋 Regulament</button>
-    <button id="btn-waze" onclick="" style="display:none;align-items:center;gap:7px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🚗 Waze</button>
-    <button id="btn-gmaps" onclick="" style="display:none;align-items:center;gap:7px;background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.25);border-radius:8px;padding:7px 12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🗺️ Google Maps</button>
-    <button id="btn-urmareste" onclick="toggleUrmarireBalta()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">☆ Urmărește</button>
+    <button id="btn-tarife" onclick="openTarifeOrWa()" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">💰 Tarife</button>
+    <button id="btn-regulament" onclick="openInfoOverlay('regulament')" style="display:none;align-items:center;gap:7px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:7px 12px;color:#e2e8f0;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">📋 Regulament</button>
+    <button id="btn-waze" onclick="" style="display:none;align-items:center;gap:7px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);border-radius:8px;padding:7px 12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">🚗 Waze</button>
+    <button id="btn-gmaps" onclick="" style="display:none;align-items:center;gap:7px;background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.25);border-radius:8px;padding:7px 12px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">🗺️ Google Maps</button>
+    <button id="btn-urmareste" onclick="toggleUrmarireBalta()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">☆ Urmărește</button>
   </div>
 
   <!-- Edit bar (only for admins) -->
   <div id="edit-bar">
     <div id="edit-bar-top">
       <div id="edit-status" style="display:flex;align-items:center;gap:8px;flex:1;">
-        <span id="edit-status-icon" style="font-size:18px;">🔒</span>
+        <span id="edit-status-icon" style="font-size:20px;">🔒</span>
         <div>
-          <div id="edit-status-title" style="font-weight:700;font-size:13px;color:#e2e8f0;">Poziții blocate</div>
-          <div id="edit-status-sub" style="font-size:11px;color:#64748b;">Apasă Editează pentru a muta standurile pe hartă</div>
+          <div id="edit-status-title" style="font-weight:700;font-size:15px;color:#e2e8f0;">Poziții blocate</div>
+          <div id="edit-status-sub" style="font-size:12px;color:#64748b;">Apasă Editează pentru a muta standurile pe hartă</div>
         </div>
       </div>
       <button id="btn-edit"   onclick="toggleEdit()"     class="ebtn" style="background:#0c3a4d;color:#38bdf8;">✏️ Editează poziții</button>
@@ -517,36 +517,36 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
   <!-- Editare informații baltă (telefon, whatsapp, facebook, tarife, regulament) -->
   <div id="edit-info-panel" style="display:none;background:#111827;border:1px solid #1e293b;border-radius:12px;margin-top:10px;overflow:hidden;">
     <div onclick="toggleEditInfoPanel()" style="display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;">
-      <span style="font-size:16px;">✏️</span>
-      <div style="flex:1;font-weight:700;font-size:13px;color:#e2e8f0;">Editare informații baltă</div>
+      <span style="font-size:18px;">✏️</span>
+      <div style="flex:1;font-weight:700;font-size:15px;color:#e2e8f0;">Editare informații baltă</div>
       <span id="edit-info-arrow" style="color:#64748b;">▸</span>
     </div>
     <div id="edit-info-body" style="display:none;padding:0 14px 16px;flex-direction:column;gap:12px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">TELEFON</label>
-          <input type="tel" id="einfo-telefon" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+          <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">TELEFON</label>
+          <input type="tel" id="einfo-telefon" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
         </div>
         <div>
-          <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">WHATSAPP</label>
-          <input type="tel" id="einfo-whatsapp" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+          <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">WHATSAPP</label>
+          <input type="tel" id="einfo-whatsapp" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
         </div>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">LINK FACEBOOK</label>
-        <input type="url" id="einfo-facebook" placeholder="https://facebook.com/..." style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">LINK FACEBOOK</label>
+        <input type="url" id="einfo-facebook" placeholder="https://facebook.com/..." style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;"/>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">💰 TARIFE</label>
-        <textarea id="einfo-tarife" rows="4" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit;resize:vertical;"></textarea>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">💰 TARIFE</label>
+        <textarea id="einfo-tarife" rows="4" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;"></textarea>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;">📋 REGULAMENT</label>
-        <textarea id="einfo-regulament" rows="5" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;font-family:inherit;resize:vertical;"></textarea>
+        <label style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;">📋 REGULAMENT</label>
+        <textarea id="einfo-regulament" rows="5" style="width:100%;margin-top:5px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;"></textarea>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button onclick="saveEditInfoPanel()" style="background:#0e7490;color:#fff;font-weight:700;font-size:13px;padding:9px 18px;border:none;border-radius:8px;cursor:pointer;">💾 Salvează</button>
-        <span id="einfo-status" style="font-size:12px;color:#64748b;"></span>
+        <button onclick="saveEditInfoPanel()" style="background:#0e7490;color:#fff;font-weight:700;font-size:15px;padding:9px 18px;border:none;border-radius:8px;cursor:pointer;">💾 Salvează</button>
+        <span id="einfo-status" style="font-size:13px;color:#64748b;"></span>
       </div>
     </div>
   </div>
@@ -561,39 +561,39 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
       </div>
       <div id="stand-overlay-backdrop" onclick="closeOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1999;"></div>
       <div id="stand-overlay-topbar" style="display:none;position:fixed;z-index:2001;height:34px;">
-        <button id="ov-edit-btn" onclick="toggleOverlayEdit()" style="display:none;position:absolute;left:50%;top:0;transform:translateX(-50%);background:#0c3a4d;border:1px solid rgba(56,189,248,.4);color:#38bdf8;font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">✏️ Editează</button>
-        <button class="xbtn" onclick="closeOverlay()" style="position:absolute;right:0;top:0;background:#111827;border:1px solid #1e293b;border-radius:50%;width:32px;height:32px;font-size:16px;">✕</button>
+        <button id="ov-edit-btn" onclick="toggleOverlayEdit()" style="display:none;position:absolute;left:50%;top:0;transform:translateX(-50%);background:#0c3a4d;border:1px solid rgba(56,189,248,.4);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">✏️ Editează</button>
+        <button class="xbtn" onclick="closeOverlay()" style="position:absolute;right:0;top:0;background:#111827;border:1px solid #1e293b;border-radius:50%;width:32px;height:32px;font-size:18px;">✕</button>
       </div>
 
       <div id="stand-overlay">
       <div class="ov-hdr">
-        <button id="ov-prev-btn" onclick="navigheazaStand(-1)" title="Standul anterior" style="background:#0a0f1a;border:1px solid #1e293b;color:#94a3b8;font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
+        <button id="ov-prev-btn" onclick="navigheazaStand(-1)" title="Standul anterior" style="background:#0a0f1a;border:1px solid #1e293b;color:#94a3b8;font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
         <div class="spnr" id="ov-nr" style="flex:1;text-align:center;">Stand 1</div>
-        <button id="ov-next-btn" onclick="navigheazaStand(1)" title="Standul următor" style="background:#0a0f1a;border:1px solid #1e293b;color:#94a3b8;font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
+        <button id="ov-next-btn" onclick="navigheazaStand(1)" title="Standul următor" style="background:#0a0f1a;border:1px solid #1e293b;color:#94a3b8;font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         <div style="padding:10px;border-right:1px solid #1e293b;">
           <div class="sec-lbl">📸 CEA MAI MARE CAPTURĂ</div>
-          <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:24px;">🐟</span><span>Fără fotografie</span></div>
+          <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">🐟</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
-            <div class="stat-row"><span class="stat-lbl">🏆 Greutate</span><strong id="ov-kg" style="color:#38bdf8;font-size:14px;font-weight:900;">-</strong></div>
-            <div class="stat-row"><span class="stat-lbl">👤 Pescar</span><strong id="ov-pe" style="color:#e2e8f0;font-size:11px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">-</strong></div>
-            <div class="stat-row"><span class="stat-lbl">📅 Data</span><strong id="ov-da" style="color:#e2e8f0;font-size:11px;">-</strong></div>
+            <div class="stat-row"><span class="stat-lbl">🏆 Greutate</span><strong id="ov-kg" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
+            <div class="stat-row"><span class="stat-lbl">👤 Pescar</span><strong id="ov-pe" style="color:#e2e8f0;font-size:12px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">-</strong></div>
+            <div class="stat-row"><span class="stat-lbl">📅 Data</span><strong id="ov-da" style="color:#e2e8f0;font-size:12px;">-</strong></div>
           </div>
         </div>
         <div style="padding:10px;">
           <div class="sec-lbl">📸 STAND</div>
-          <div id="ov-stand-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:24px;">📷</span><span>Fără fotografie</span></div>
+          <div id="ov-stand-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">📷</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
-            <div class="stat-row"><span class="stat-lbl">📏 Lățime stand</span><strong id="ov-la" style="color:#38bdf8;font-size:14px;font-weight:900;">-</strong></div>
-            <div class="stat-row"><span class="stat-lbl">🎯 Distanță aproximativă</span><strong id="ov-di" style="color:#38bdf8;font-size:14px;font-weight:900;">-</strong></div>
+            <div class="stat-row"><span class="stat-lbl">📏 Lățime stand</span><strong id="ov-la" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
+            <div class="stat-row"><span class="stat-lbl">🎯 Distanță aproximativă</span><strong id="ov-di" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
           </div>
         </div>
       </div>
 
       <!-- Videoclip de prezentare a standului — direct în overlay, nu separat mai jos -->
       <div id="ov-yt-section" style="display:none;padding:10px;border-top:1px solid #1e293b;">
-        <div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;">🎬 VIDEOCLIP DE PREZENTARE A STANDULUI</div>
+        <div style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;">🎬 VIDEOCLIP DE PREZENTARE A STANDULUI</div>
         <div id="ov-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid #1e293b;cursor:pointer;" onclick="playOverlayYT()">
           <img id="ov-yt-thumb" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">
@@ -614,33 +614,33 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
       <div id="ov-edit-section" style="display:none;padding:12px 10px;border-top:1px solid #1e293b;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
           <div>
-            <label style="font-size:10px;font-weight:700;color:#4b5563;">NUMĂR STAND</label>
-            <input type="text" id="ov-edit-zona" placeholder="ex: 7" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:12.5px;outline:none;"/>
+            <label style="font-size:11px;font-weight:700;color:#4b5563;">NUMĂR STAND</label>
+            <input type="text" id="ov-edit-zona" placeholder="ex: 7" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:14px;outline:none;"/>
           </div>
           <div>
-            <label style="font-size:10px;font-weight:700;color:#4b5563;">ADÂNCIME (m)</label>
-            <input type="number" step="0.1" id="ov-edit-adancime" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:12.5px;outline:none;"/>
+            <label style="font-size:11px;font-weight:700;color:#4b5563;">ADÂNCIME (m)</label>
+            <input type="number" step="0.1" id="ov-edit-adancime" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:14px;outline:none;"/>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
           <div>
-            <label style="font-size:10px;font-weight:700;color:#4b5563;">DISTANȚĂ LANSARE (m)</label>
-            <input type="number" id="ov-edit-distanta" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:12.5px;outline:none;"/>
+            <label style="font-size:11px;font-weight:700;color:#4b5563;">DISTANȚĂ LANSARE (m)</label>
+            <input type="number" id="ov-edit-distanta" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:14px;outline:none;"/>
           </div>
           <div>
-            <label style="font-size:10px;font-weight:700;color:#4b5563;">LĂȚIME ZONĂ (m)</label>
-            <input type="number" id="ov-edit-latime" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:12.5px;outline:none;"/>
+            <label style="font-size:11px;font-weight:700;color:#4b5563;">LĂȚIME ZONĂ (m)</label>
+            <input type="number" id="ov-edit-latime" style="width:100%;margin-top:3px;background:#0a0f1a;border:1px solid #1e293b;border-radius:7px;padding:6px 8px;color:#f1f5f9;font-size:14px;outline:none;"/>
           </div>
         </div>
-        <label style="font-size:10px;font-weight:700;color:#4b5563;">📸 POZE STAND</label>
+        <label style="font-size:11px;font-weight:700;color:#4b5563;">📸 POZE STAND</label>
         <div id="ov-edit-gallery" style="display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 10px;"></div>
-        <label class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
+        <label class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
           📷 Adaugă poză
           <input type="file" accept="image/*" style="display:none;" onchange="uploadOverlayStandFoto(this)"/>
         </label>
         <div style="display:flex;align-items:center;gap:10px;">
-          <button onclick="saveOverlayStandDetails()" style="background:#0e7490;color:#fff;font-weight:700;font-size:12.5px;padding:8px 16px;border:none;border-radius:7px;cursor:pointer;">💾 Salvează stand</button>
-          <span id="ov-edit-status" style="font-size:11.5px;color:#64748b;"></span>
+          <button onclick="saveOverlayStandDetails()" style="background:#0e7490;color:#fff;font-weight:700;font-size:14px;padding:8px 16px;border:none;border-radius:7px;cursor:pointer;">💾 Salvează stand</button>
+          <span id="ov-edit-status" style="font-size:12.9px;color:#64748b;"></span>
         </div>
       </div>
     </div>
@@ -653,24 +653,24 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
     <div id="map-sidebar-left">
     <div id="pw" style="margin:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;">
-        <button id="pill-drum" onclick="showDrumAcces()" style="border:1.5px solid #334155;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:12px;font-weight:700;background:#0a0f1a;color:#cbd5e1;">🎬 Videoclip drum de acces</button>
+        <button id="pill-drum" onclick="showDrumAcces()" style="border:1.5px solid #334155;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:13px;font-weight:700;background:#0a0f1a;color:#cbd5e1;">🎬 Videoclip drum de acces</button>
         <button id="pill-all" onclick="showAll()">🗺️ Toate standurile</button>
       </div>
-      <div style="width:100%;font-size:12px;font-weight:700;color:#38bdf8;margin-top:6px;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
+      <div style="width:100%;font-size:13px;font-weight:700;color:#38bdf8;margin-top:6px;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
       <div id="pills"></div>
     </div><!-- /#pw -->
 
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
     <div id="sort-list" style="display:none;background:#111827;border:1px solid #1e293b;border-radius:12px;overflow:hidden;">
-      <div style="padding:10px 14px;border-bottom:1px solid #1e293b;font-size:11px;font-weight:700;color:#f59e0b;">⠿ Trage pentru a reordona standurile</div>
+      <div style="padding:10px 14px;border-bottom:1px solid #1e293b;font-size:12px;font-weight:700;color:#f59e0b;">⠿ Trage pentru a reordona standurile</div>
       <div id="sort-list-items"></div>
     </div>
 
     <!-- Placeholder când niciun stand nu e selectat -->
     <div id="spr" style="background:#111827;border:1px dashed #1e293b;border-radius:12px;padding:20px;text-align:center;">
-      <div style="font-size:28px;margin-bottom:6px;">👆</div>
-      <div style="color:#94a3b8;font-weight:600;font-size:12px;">Click pe un stand</div>
-      <div id="spr-count" style="color:#4b5563;font-size:10px;margin-top:4px;"></div>
+      <div style="font-size:31px;margin-bottom:6px;">👆</div>
+      <div style="color:#94a3b8;font-weight:600;font-size:13px;">Click pe un stand</div>
+      <div id="spr-count" style="color:#4b5563;font-size:11px;margin-top:4px;"></div>
     </div>
 
     <!-- Legendă standuri -->
@@ -683,7 +683,7 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
     <div id="map-sidebar-right">
     <!-- YouTube player -->
     <div id="map-yt-bar" style="display:none;">
-      <div id="map-yt-label" style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;"></div>
+      <div id="map-yt-label" style="font-size:12px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;"></div>
       <div id="map-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid #1e293b;cursor:pointer;" onclick="playMapYT()">
         <img id="map-yt-thumb" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">
@@ -730,8 +730,8 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
     <!-- Top 10 Lunar -->
     <div class="t10c" id="top10-lunar-card" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #1e293b;">
-        <div style="font-weight:800;font-size:12px;color:#38bdf8;">📅 <span id="lunar-titlu">Top 10 Lunar</span></div>
-        <button id="btn-istoric" onclick="toggleIstoric()" style="background:#1e293b;border:none;color:#94a3b8;font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;" onmouseover="this.style.background='#334155';this.style.color='#f1f5f9'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">📜 Istoric</button>
+        <div style="font-weight:800;font-size:13px;color:#38bdf8;">📅 <span id="lunar-titlu">Top 10 Lunar</span></div>
+        <button id="btn-istoric" onclick="toggleIstoric()" style="background:#1e293b;border:none;color:#94a3b8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;" onmouseover="this.style.background='#334155';this.style.color='#f1f5f9'" onmouseout="this.style.background='#1e293b';this.style.color='#94a3b8'">📜 Istoric</button>
       </div>
 
       <!-- Panel curent -->
@@ -804,10 +804,10 @@ html,body{background:#0a0f1a;color:#f1f5f9;font-family:'Segoe UI',system-ui,sans
 <div id="modal-detalii-firma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
   <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:420px;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;">
-      <div style="font-size:16px;font-weight:800;color:#f1f5f9;">🏢 Detalii firmă</div>
-      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+      <div style="font-size:18px;font-weight:800;color:#f1f5f9;">🏢 Detalii firmă</div>
+      <button onclick="closeDetaliiFirmaModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div style="padding:20px 24px;font-size:13px;color:#94a3b8;line-height:2;">
+    <div style="padding:20px 24px;font-size:15px;color:#94a3b8;line-height:2;">
       <div><strong style="color:#f1f5f9;">Denumire:</strong> ZODA S.R.L.</div>
       <div><strong style="color:#f1f5f9;">CUI:</strong> 55341803</div>
       <div><strong style="color:#f1f5f9;">Reg. Com.:</strong> J2026047446009</div>
@@ -826,34 +826,34 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:480px;margin:0 16px;overflow:hidden;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;background:#0a0f1a;">
       <div>
-        <div style="font-size:18px;font-weight:900;color:#f1f5f9;">🔍 Revendică balta</div>
-        <div style="font-size:12px;color:#4b5563;margin-top:3px;">Ești administratorul acestei bălți? Contactează-ne să preiei controlul complet.</div>
+        <div style="font-size:20px;font-weight:900;color:#f1f5f9;">🔍 Revendică balta</div>
+        <div style="font-size:13px;color:#4b5563;margin-top:3px;">Ești administratorul acestei bălți? Contactează-ne să preiei controlul complet.</div>
       </div>
-      <button onclick="closeClaimModal()" style="background:transparent;border:none;color:#4b5563;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closeClaimModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
     </div>
     <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
       <div style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:28px;">📧</div>
+        <div style="font-size:31px;">📧</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">EMAIL</div>
-          <a id="claim-email-link" href="#" style="font-size:15px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
+          <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">EMAIL</div>
+          <a id="claim-email-link" href="#" style="font-size:17px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
         </div>
       </div>
       <div style="background:#0a0f1a;border:1px solid #1e293b;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:28px;">📞</div>
+        <div style="font-size:31px;">📞</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
-          <a id="claim-phone-link" href="#" style="font-size:15px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
+          <div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.06em;margin-bottom:4px;">TELEFON</div>
+          <a id="claim-phone-link" href="#" style="font-size:17px;font-weight:700;color:#38bdf8;text-decoration:none;">—</a>
         </div>
       </div>
       <a id="claim-wa-link" href="#" target="_blank" style="display:flex;align-items:center;gap:14px;background:#25d366;border-radius:12px;padding:16px;text-decoration:none;cursor:pointer;">
-        <div style="font-size:28px;">💬</div>
+        <div style="font-size:31px;">💬</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
-          <div style="font-size:15px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
+          <div style="font-size:12px;font-weight:700;color:rgba(0,0,0,.5);letter-spacing:.06em;margin-bottom:4px;">WHATSAPP</div>
+          <div style="font-size:17px;font-weight:700;color:#fff;">Trimite mesaj pe WhatsApp →</div>
         </div>
       </a>
-      <div id="claim-loading" style="text-align:center;color:#4b5563;font-size:13px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
+      <div id="claim-loading" style="text-align:center;color:#4b5563;font-size:15px;padding:8px 0;display:none;">Se încarcă informațiile de contact...</div>
     </div>
   </div>
 </div>
@@ -861,15 +861,15 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 <div id="info-overlay-backdrop" onclick="closeInfoOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2099;"></div>
 <div id="info-overlay" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2100;background:#111827;border:1px solid #1e293b;border-radius:14px;width:calc(100% - 24px);max-width:480px;max-height:80vh;overflow:hidden;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.85);">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #1e293b;flex-shrink:0;">
-    <span id="info-overlay-title" style="font-weight:800;font-size:14px;color:#f1f5f9;">—</span>
-    <button onclick="closeInfoOverlay()" style="background:transparent;border:none;color:#64748b;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    <span id="info-overlay-title" style="font-weight:800;font-size:16px;color:#f1f5f9;">—</span>
+    <button onclick="closeInfoOverlay()" style="background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
   </div>
   <div id="info-overlay-body" class="info-overlay-body"></div>
 </div>
 
 <!-- FULLSCREEN MODAL -->
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
-  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:16px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -879,7 +879,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
     <div style="position:relative;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;">
       <iframe id="yt-iframe" src="" frameborder="0" allow="autoplay;encrypted-media;fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe>
     </div>
-    <button onclick="closeYT()" style="position:absolute;top:8px;right:8px;width:32px;height:32px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:14px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:10;">✕</button>
+    <button onclick="closeYT()" style="position:absolute;top:8px;right:8px;width:32px;height:32px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:16px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;z-index:10;">✕</button>
   </div>
 </div>
 
@@ -1003,7 +1003,7 @@ async function renderAmbasadorCredit(ambasadorZodaId) {
   try {
     var { data } = await sb.from('user_profiles_public').select('username').eq('zoda_id', ambasadorZodaId).single();
     if (data?.username) {
-      el.innerHTML = '🎥 Conținut media: <a href="ambasador-galerie.html?id=' + encodeURIComponent(ambasadorZodaId) + '" style="color:#38bdf8;font-weight:700;font-size:12px;text-decoration:underline;">' + escH(data.username) + '</a>';
+      el.innerHTML = '🎥 Conținut media: <a href="ambasador-galerie.html?id=' + encodeURIComponent(ambasadorZodaId) + '" style="color:#38bdf8;font-weight:700;font-size:13px;text-decoration:underline;">' + escH(data.username) + '</a>';
       el.style.display = 'block';
     } else {
       el.style.display = 'none';
@@ -1055,16 +1055,16 @@ async function checkPreviewSubmisie() {
   panel.id = 'preview-submisie-panel';
   panel.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;">
-      <div style="font-weight:800;font-size:13px;color:#c4b5fd;">👁️ Previzualizare submisie ambasador</div>
-      <button onclick="this.closest('#preview-submisie-panel').remove(); document.querySelectorAll('.preview-pin-marker').forEach(m=>m.remove());" style="background:transparent;border:none;color:#94a3b8;font-size:16px;cursor:pointer;line-height:1;">✕</button>
+      <div style="font-weight:800;font-size:15px;color:#c4b5fd;">👁️ Previzualizare submisie ambasador</div>
+      <button onclick="this.closest('#preview-submisie-panel').remove(); document.querySelectorAll('.preview-pin-marker').forEach(m=>m.remove());" style="background:transparent;border:none;color:#94a3b8;font-size:18px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div style="font-size:11px;color:#a78bfa;margin-bottom:10px;">${s.stand_id ? 'Editare stand existent' : '🆕 Propunere de stand nou'}${s.pozitie ? ' · 📍 marker-ul mov de pe hartă = poziția propusă' : ''}</div>
+    <div style="font-size:12px;color:#a78bfa;margin-bottom:10px;">${s.stand_id ? 'Editare stand existent' : '🆕 Propunere de stand nou'}${s.pozitie ? ' · 📍 marker-ul mov de pe hartă = poziția propusă' : ''}</div>
     ${randuri.length ? randuri.map(function(r) {
-      return `<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-top:1px solid rgba(124,58,237,.25);">
+      return `<div style="display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-top:1px solid rgba(124,58,237,.25);">
         <span style="color:#c4b5fd;">${r.label}</span>
         <span style="color:#e2e8f0;">${r.vechi ? '<span style="color:#64748b;text-decoration:line-through;">' + escHtmlPreview(r.vechi) + '</span> → ' : ''}<b>${escHtmlPreview(r.nou)}</b></span>
       </div>`;
-    }).join('') : '<div style="font-size:12px;color:#64748b;">Fără modificări de text — doar poză și/sau poziție.</div>'}
+    }).join('') : '<div style="font-size:13px;color:#64748b;">Fără modificări de text — doar poză și/sau poziție.</div>'}
     ${s.foto_url ? `<div style="margin-top:10px;"><img src="${escHtmlPreview(s.foto_url)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:8px;"/></div>` : ''}
   `;
   document.body.appendChild(panel);
@@ -1456,13 +1456,13 @@ function renderPage(hartaUrl) {
   if (ST.length > 0) {
     // legend-card e ascunsă inițial — apare la 'Toate standurile'
     document.getElementById('legend-list').innerHTML = ST.map(function(s){
-      var recText = s.r.kg ? '<span style="font-weight:800;color:#f59e0b;font-size:14px;white-space:nowrap;margin-left:auto;">🏆 ' + s.r.kg + ' kg</span>' : '';
-      var recSub  = s.r.pe ? '<div style="font-size:12px;color:#f59e0b;margin-top:3px;">👤 ' + s.r.pe + (s.r.da ? ' · ' + s.r.da : '') + '</div>' : '';
+      var recText = s.r.kg ? '<span style="font-weight:800;color:#f59e0b;font-size:16px;white-space:nowrap;margin-left:auto;">🏆 ' + s.r.kg + ' kg</span>' : '';
+      var recSub  = s.r.pe ? '<div style="font-size:13px;color:#f59e0b;margin-top:3px;">👤 ' + s.r.pe + (s.r.da ? ' · ' + s.r.da : '') + '</div>' : '';
       return '<div class="li" data-id="'+s.id+'" onclick="liClick(event,'+s.id+')">'
         +'<span class="li-drag-handle" title="Trage pentru a reordona">⠿</span>'
         +'<div class="lnr">'+s.nr+'</div>'
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:14px;font-weight:700;color:#f1f5f9;">'+s.z+'</div>'
+        +'<div style="font-size:16px;font-weight:700;color:#f1f5f9;">'+s.z+'</div>'
         + recSub
         +'</div>'
         + recText
@@ -1523,7 +1523,7 @@ function steleHtml(zodaId) {
   if (!zodaId) return '';
   var n = STELE_CACHE[zodaId];
   if (!n) return '';
-  return ' <span title="' + n + ' stele" style="color:#f59e0b;font-size:11px;font-weight:800;">⭐' + n + '</span>';
+  return ' <span title="' + n + ' stele" style="color:#f59e0b;font-size:12px;font-weight:800;">⭐' + n + '</span>';
 }
 
 async function loadHallOfFame(baltaId) {
@@ -1558,13 +1558,13 @@ async function loadHallOfFame(baltaId) {
       : escH(pescarNume);
     var pescarStele = steleHtml(c.pescar_id);
     return '<div class="t10r" style="display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:8px;padding:7px 10px;">'
-      + '<div style="width:18px;text-align:center;font-size:10px;font-weight:800;color:#4b5563;flex-shrink:0;">' + nr + '</div>'
+      + '<div style="width:18px;text-align:center;font-size:11px;font-weight:800;color:#4b5563;flex-shrink:0;">' + nr + '</div>'
       + fotoHtml
       + '<div style="flex:1;min-width:0;">'
-      + '<div style="font-size:12px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + escH(standNume) + '</div>'
-      + '<div style="font-size:10px;color:#4b5563;margin-top:1px;">👤 ' + pescarLink + pescarStele + dataStr + '</div>'
+      + '<div style="font-size:13px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + escH(standNume) + '</div>'
+      + '<div style="font-size:11px;color:#4b5563;margin-top:1px;">👤 ' + pescarLink + pescarStele + dataStr + '</div>'
       + '</div>'
-      + '<div style="font-weight:900;color:#38bdf8;font-size:14px;flex-shrink:0;">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
+      + '<div style="font-weight:900;color:#38bdf8;font-size:16px;flex-shrink:0;">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
       + '</div>';
   }).join('');
 
@@ -1630,13 +1630,13 @@ function renderLunarRows(rows, containerId, isIstoric) {
     var pescarStele = steleHtml(zodaId);
 
     return '<div style="display:flex;align-items:center;border-bottom:1px solid #0f172a;gap:8px;padding:7px 10px;">'
-      + '<div style="width:18px;text-align:center;font-size:10px;font-weight:800;color:#4b5563;flex-shrink:0;">' + nr + '</div>'
+      + '<div style="width:18px;text-align:center;font-size:11px;font-weight:800;color:#4b5563;flex-shrink:0;">' + nr + '</div>'
       + fotoHtml
       + '<div style="flex:1;min-width:0;">'
-      + (standNume ? '<div style="font-size:12px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + escH(standNume) + '</div>' : '')
-      + '<div style="font-size:10px;color:#4b5563;margin-top:1px;">👤 ' + pescarLink + pescarStele + dataStr + '</div>'
+      + (standNume ? '<div style="font-size:13px;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + escH(standNume) + '</div>' : '')
+      + '<div style="font-size:11px;color:#4b5563;margin-top:1px;">👤 ' + pescarLink + pescarStele + dataStr + '</div>'
       + '</div>'
-      + '<div style="font-weight:900;color:#38bdf8;font-size:14px;flex-shrink:0;">' + parseFloat(kg).toFixed(1) + ' kg</div>'
+      + '<div style="font-weight:900;color:#38bdf8;font-size:16px;flex-shrink:0;">' + parseFloat(kg).toFixed(1) + ' kg</div>'
       + '</div>';
   }).join('');
 
@@ -1798,13 +1798,13 @@ function pinScale() {
   // multe, dar mai puțin loc ocupat fiecare, ca să nu se contopească într-o pată.
   var n = ST.length;
   var base;
-  if (n <= 15) base = 1;
-  else if (n <= 25) base = 0.85;
-  else if (n <= 40) base = 0.72;
-  else base = 0.6;
+  if (n <= 15) base = 1.12;
+  else if (n <= 25) base = 0.95;
+  else if (n <= 40) base = 0.81;
+  else base = 0.67;
   // Pe mobil, harta e mult mai îngustă — același procent de distanță între
   // standuri înseamnă mult mai puțini pixeli reali, deci micșorăm suplimentar.
-  if (window.innerWidth <= 768) base = Math.max(0.38, base * 0.55);
+  if (window.innerWidth <= 768) base = Math.max(0.43, base * 0.55);
   return base;
 }
 
@@ -1943,7 +1943,7 @@ function openOverlay(id) {
     var sp = document.createElement('span');
     sp.id = 'ov-pe-stele';
     sp.title = STELE_CACHE[s.r.pid] + ' stele';
-    sp.style.cssText = 'color:#f59e0b;font-size:11px;font-weight:800;margin-left:4px;';
+    sp.style.cssText = 'color:#f59e0b;font-size:12px;font-weight:800;margin-left:4px;';
     sp.textContent = '⭐' + STELE_CACHE[s.r.pid];
     peEl.parentNode.appendChild(sp);
   }
@@ -1962,7 +1962,7 @@ function openOverlay(id) {
     recFoto.addEventListener('click', function() { openFS(s.r.foto); });
   } else {
     recFoto.className = 'foto-empty';
-    recFoto.innerHTML = '<span style="font-size:24px;">🐟</span><span>Fără fotografie</span>';
+    recFoto.innerHTML = '<span style="font-size:27px;">🐟</span><span>Fără fotografie</span>';
   }
 
   var oldSt = document.getElementById('ov-stand-foto');
@@ -1977,7 +1977,7 @@ function openOverlay(id) {
     stFoto.addEventListener('click', function() { openFS(su); });
   } else {
     stFoto.className = 'foto-empty';
-    stFoto.innerHTML = '<span style="font-size:24px;">📷</span><span>Fără fotografie</span>';
+    stFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
   }
 
   var ovYtSection = document.getElementById('ov-yt-section');
@@ -2023,13 +2023,13 @@ function renderOverlayGallery(s) {
   var wrap = document.getElementById('ov-edit-gallery');
   var gal = s.g || [];
   if (!gal.length) {
-    wrap.innerHTML = '<div style="font-size:11px;color:#4b5563;">Nicio poză adăugată încă.</div>';
+    wrap.innerHTML = '<div style="font-size:12px;color:#4b5563;">Nicio poză adăugată încă.</div>';
     return;
   }
   wrap.innerHTML = gal.map(function(p) {
     return '<div style="position:relative;width:64px;height:64px;border-radius:6px;overflow:hidden;border:1px solid #1e293b;">' +
       '<img src="' + p.u + '" data-retries="0" onerror="retryStandFoto(this)" style="width:100%;height:100%;object-fit:cover;"/>' +
-      '<button onclick="deleteOverlayStandFoto(' + p.id + ')" title="Șterge" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:11px;width:18px;height:18px;border-radius:4px;cursor:pointer;line-height:1;">✕</button>' +
+      '<button onclick="deleteOverlayStandFoto(' + p.id + ')" title="Șterge" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:12px;width:18px;height:18px;border-radius:4px;cursor:pointer;line-height:1;">✕</button>' +
       '</div>';
   }).join('');
 }
@@ -2445,11 +2445,11 @@ async function ambLoadSubmisiiMele() {
   var iconMap = { pending: '⏳', aprobat: '✅', respins: '❌' };
   var culoareMap = { pending: '#f59e0b', aprobat: '#38bdf8', respins: '#ef4444' };
 
-  wrap.innerHTML = '<div style="font-size:11px;font-weight:700;color:#4b5563;letter-spacing:.05em;margin-bottom:8px;border-top:1px solid #1e293b;padding-top:12px;">SUBMISIILE MELE PENTRU BALTA ASTA</div>' +
+  wrap.innerHTML = '<div style="font-size:12px;font-weight:700;color:#4b5563;letter-spacing:.05em;margin-bottom:8px;border-top:1px solid #1e293b;padding-top:12px;">SUBMISIILE MELE PENTRU BALTA ASTA</div>' +
     submisii.map(function(s) {
       var linie = iconMap[s.status] + ' ' + (s.nume || 'Fără nume') + ' — ' + new Date(s.created_at).toLocaleDateString('ro-RO');
-      var motiv = (s.status === 'respins' && s.motiv_respingere) ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px;margin-left:20px;">Motiv: ' + s.motiv_respingere.replace(/</g,'&lt;') + '</div>' : '';
-      return '<div style="font-size:12.5px;color:' + culoareMap[s.status] + ';margin-bottom:4px;">' + linie + '</div>' + motiv;
+      var motiv = (s.status === 'respins' && s.motiv_respingere) ? '<div style="font-size:12px;color:#94a3b8;margin-top:2px;margin-left:20px;">Motiv: ' + s.motiv_respingere.replace(/</g,'&lt;') + '</div>' : '';
+      return '<div style="font-size:14px;color:' + culoareMap[s.status] + ';margin-bottom:4px;">' + linie + '</div>' + motiv;
     }).join('');
 }
 
@@ -3069,13 +3069,13 @@ function refreshLegendList() {
   var list = document.getElementById('legend-list');
   if (!list) return;
   list.innerHTML = ST.map(function(s) {
-    var recText = s.r.kg ? '<span style="font-weight:800;color:#f59e0b;font-size:14px;white-space:nowrap;margin-left:auto;">🏆 ' + s.r.kg + ' kg</span>' : '';
-    var recSub  = s.r.pe ? '<div style="font-size:12px;color:#f59e0b;margin-top:3px;">👤 ' + s.r.pe + (s.r.da ? ' · ' + s.r.da : '') + '</div>' : '';
+    var recText = s.r.kg ? '<span style="font-weight:800;color:#f59e0b;font-size:16px;white-space:nowrap;margin-left:auto;">🏆 ' + s.r.kg + ' kg</span>' : '';
+    var recSub  = s.r.pe ? '<div style="font-size:13px;color:#f59e0b;margin-top:3px;">👤 ' + s.r.pe + (s.r.da ? ' · ' + s.r.da : '') + '</div>' : '';
     return '<div class="li sortable" draggable="true" data-id="'+s.id+'" onclick="liClick(event,'+s.id+')">'
       +'<span class="li-drag-handle" title="Trage pentru a reordona">⠿</span>'
       +'<div class="lnr">'+s.nr+'</div>'
       +'<div style="flex:1;min-width:0;">'
-      +'<div style="font-size:14px;font-weight:700;color:#f1f5f9;">'+s.z+'</div>'
+      +'<div style="font-size:16px;font-weight:700;color:#f1f5f9;">'+s.z+'</div>'
       + recSub
       +'</div>'
       + recText
@@ -3345,9 +3345,9 @@ function startDrag(e, id) {
 <style>
 #cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:#111827;border-top:1px solid #1e293b;padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
 #cookie-notice.show{display:flex;}
-#cookie-notice-text{font-size:12px;color:#94a3b8;line-height:1.6;max-width:640px;}
+#cookie-notice-text{font-size:13px;color:#94a3b8;line-height:1.6;max-width:640px;}
 #cookie-notice-text a{color:#38bdf8;}
-#cookie-notice-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:12px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+#cookie-notice-btn{background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:9px 20px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 </style>
 <div id="cookie-notice">
   <div id="cookie-notice-text">
@@ -3384,23 +3384,23 @@ function startDrag(e, id) {
 #promo-bar-inner{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;}
 #promo-img{width:80px;height:45px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#0a0f1a;}
 .promo-bar-text{min-width:0;flex:1;text-align:center;}
-.promo-bar-tag{font-size:8px;font-weight:700;color:#64748b;letter-spacing:.05em;display:block;text-transform:uppercase;}
-.promo-title{font-size:12px;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.promo-sub{font-size:10px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-bar-tag{font-size:9px;font-weight:700;color:#64748b;letter-spacing:.05em;display:block;text-transform:uppercase;}
+.promo-title{font-size:13px;font-weight:800;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.promo-sub{font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #promo-dots{display:flex;gap:4px;justify-content:center;margin-top:6px;}
 .promo-dot{width:5px;height:5px;border-radius:50%;background:#334155;cursor:pointer;transition:background .2s,transform .2s;flex-shrink:0;}
 .promo-dot.active{background:#38bdf8;transform:scale(1.2);}
-#promo-bar-close{background:transparent;border:none;color:#4b5563;font-size:18px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
+#promo-bar-close{background:transparent;border:none;color:#4b5563;font-size:20px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
 #promo-bar-close:hover{color:#94a3b8;}
 #guest-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4050;background:#111827;border:1px solid #0c3a4d;border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
 #guest-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
-.gt-icon{font-size:22px;flex-shrink:0;}
+.gt-icon{font-size:25px;flex-shrink:0;}
 .gt-text{flex:1;min-width:0;}
-.gt-title{font-size:13px;font-weight:800;color:#f1f5f9;margin-bottom:2px;}
-.gt-sub{font-size:11px;color:#64748b;line-height:1.4;}
-.gt-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s;}
+.gt-title{font-size:15px;font-weight:800;color:#f1f5f9;margin-bottom:2px;}
+.gt-sub{font-size:12px;color:#64748b;line-height:1.4;}
+.gt-btn{background:#0c3a4d;border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background .2s;}
 .gt-btn:hover{background:#0891b2;}
-.gt-close{background:transparent;border:none;color:#334155;font-size:18px;cursor:pointer;line-height:1;padding:0 0 0 4px;flex-shrink:0;transition:color .2s;}
+.gt-close{background:transparent;border:none;color:#334155;font-size:20px;cursor:pointer;line-height:1;padding:0 0 0 4px;flex-shrink:0;transition:color .2s;}
 .gt-close:hover{color:#94a3b8;}
 </style>
 <div id="guest-toast">
