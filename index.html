@@ -2156,7 +2156,7 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();mergiLaPinBaltaAproape(${x.b.id});">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
