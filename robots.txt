@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /cont.html
+Disallow: /pescar.html
+Disallow: /ambasador-galerie.html
+
+Sitemap: https://zoda.ro/sitemap.xml
