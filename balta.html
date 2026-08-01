@@ -387,7 +387,14 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .info-overlay-body{padding:18px;overflow-y:auto;font-size:17.4px;color:var(--zc-text-strong);line-height:1.8;white-space:pre-wrap;}
 .ib-name-tagline-wrap{display:flex;flex-direction:column;}
 
+/* Distribuie — pe mobil doar varianta din info-bar, langa Urmărește;
+   pe desktop doar varianta floating, sus-dreapta. */
+#share-balta-wrap{display:none;}
+#btn-share-balta-mobile{display:flex;}
+
 @media(min-width:769px){
+  #share-balta-wrap{display:flex;}
+  #btn-share-balta-mobile{display:none;}
   /* HEADER */
   #hdr-in{padding:0 20px;height:52px;gap:12px;flex-wrap:nowrap;}
   #hdr-balta-info{order:0;flex-basis:auto;width:auto;}
@@ -589,8 +596,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
 <div class="lc">
 
-  <!-- Distribuie balta -->
-  <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+  <!-- Distribuie balta (poziție floating, doar desktop — pe mobil apare lângă Urmărește) -->
+  <div id="share-balta-wrap" style="justify-content:flex-end;margin-bottom:8px;">
     <button id="btn-share-balta" onclick="shareBalta()" title="Distribuie balta" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:var(--zc-text-primary);font-size:14px;font-weight:600;cursor:pointer;">🔗 Distribuie</button>
     <div id="share-balta-toast" style="display:none;align-items:center;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:14px;font-weight:600;">✓ Link copiat!</div>
   </div>
@@ -626,6 +633,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       Google Maps
     </button>
     <button id="btn-urmareste" onclick="toggleUrmarireBalta()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">☆ Urmărește</button>
+    <button id="btn-share-balta-mobile" onclick="shareBalta()" title="Distribuie balta" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:var(--zc-text-primary);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">🔗 Distribuie</button>
   </div>
 
   <!-- Edit bar (only for admins) -->
