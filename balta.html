@@ -191,10 +191,24 @@ html[data-theme="light"] .logo-img-light{display:block;}
   padding:70px 12px 40px;}
 .lc,.rc{display:flex;flex-direction:column;gap:12px;min-width:0;}
 
-/* INFO BAR */
-.info-bar{display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;flex-wrap:wrap;
+/* HERO GLOW — element decorativ deasupra cardului info-bar; look "depth":
+   glow radial cyan/teal pe fundal navy închis, colțurile de sus rotunjite.
+   Cardul info-bar se suprapune peste el (margin-bottom negativ), dând
+   senzația de card plutitor peste un fundal cu profunzime. */
+.balta-hero-glow{
+  position:relative;overflow:hidden;border-radius:20px 20px 0 0;
+  background:
+    radial-gradient(120% 100% at 50% 135%, rgba(56,189,248,.32), transparent 62%),
+    radial-gradient(85% 70% at 22% -15%, rgba(14,116,144,.5), transparent 72%),
+    linear-gradient(160deg, #0c222f, #081118);
   /* mobil */
-  padding:8px 10px;}
+  height:120px;margin-bottom:-42px;}
+
+/* INFO BAR — acum card plutitor: colțuri mari, umbră, se suprapune peste
+   hero-glow de mai sus (vezi margin-bottom negativ pe .balta-hero-glow) */
+.info-bar{position:relative;z-index:1;display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;box-shadow:0 22px 46px -14px rgba(0,0,0,.6);flex-wrap:wrap;
+  /* mobil */
+  padding:16px 14px 14px;}
 .ebtn{border-radius:8px;font-weight:700;cursor:pointer;border:none;
   /* mobil */
   font-size:13px;padding:6px 12px;}
@@ -422,18 +436,25 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .ls{font-size:10px;color:var(--zc-text-muted);margin-top:1px;}
 .lrec{font-weight:700;color:#f59e0b;font-size:12px;white-space:nowrap;margin-left:auto;}
 
-/* INFO BAR — mobil mic: numele e deja în header, ascundem aici; 2 rânduri de butoane */
-@media(max-width:480px){
-  .logo-img{height:20px;}
-  .info-bar{gap:6px;}
-  .info-bar > div:first-child{display:none!important;} /* numele băltii — deja vizibil în header */
-  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{flex:1 1 calc(33% - 6px);justify-content:center;padding:7px 4px;font-size:12px;gap:3px;}
-  #btn-fb,#btn-wa{flex:0 0 auto;padding:7px 10px;}
-  .ebtn{flex:1;text-align:center;}
-}
+/* INFO BAR — nume mare + tagline tip pill + grid de „dale" (icon sus, text
+   jos) pentru toate butoanele de contact/acțiune, 3 pe rând pe mobil —
+   înlocuiește vechiul rând de pastile mici cu icon+text inline. */
+#ib-name{font-size:21px!important;}
+#ib-tagline{display:inline-flex!important;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid currentColor;font-style:normal!important;font-size:12.5px!important;font-weight:700!important;padding:4px 11px;border-radius:20px;width:fit-content;margin-top:4px;}
+#ib-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:14px;}
+#ib-actions-grid > a,#ib-actions-grid > button{
+  display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  width:100%;box-sizing:border-box;text-align:center;border-radius:14px!important;
+  padding:13px 6px!important;font-size:12px!important;line-height:1.25;}
+#ib-actions-grid .ib-ic{font-size:20px;line-height:1;}
+#ib-actions-grid svg{width:20px!important;height:20px!important;}
+/* WhatsApp rămâne dala „hero" — verde plin, ca în machetă */
+#btn-wa{background:#25d366!important;color:#fff!important;}
+#btn-wa svg{fill:#fff!important;}
+
 @media(max-width:360px){
-  #btn-tel,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{font-size:11px;padding:6px 2px;gap:2px;}
-  #btn-fb,#btn-wa{padding:6px 8px;}
+  #ib-actions-grid{gap:6px;}
+  #ib-actions-grid > a,#ib-actions-grid > button{padding:10px 3px!important;font-size:11px!important;}
 }
 
 /* LOADING & ERROR */
@@ -453,16 +474,17 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #share-balta-wrap{display:none;}
 #btn-share-balta-mobile{display:flex;}
 
-/* Grid de 2 coloane pe mobil: Tarife/Waze/Urmărește vs Regulament/Maps/Distribuie,
-   toate butoanele la fel de late. Pe desktop redevine un rând normal. */
-#ib-actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
-#ib-actions-grid > *{justify-content:center;width:100%;height:42px;box-sizing:border-box;}
-
 @media(min-width:769px){
   #share-balta-wrap{display:flex;}
   #btn-share-balta-mobile{display:none;}
-  #ib-actions-grid{display:contents;}
-  #ib-actions-grid > *{width:auto;height:auto;justify-content:flex-start;}
+  /* pe desktop revine la rând orizontal simplu, dale mai mici, icon+text
+     inline — grid-ul de dale mari e un pattern gândit pentru mobil */
+  .balta-hero-glow{height:64px;margin-bottom:-30px;}
+  #ib-actions-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:0;width:auto;}
+  #ib-actions-grid > a,#ib-actions-grid > button{
+    flex-direction:row!important;width:auto;padding:8px 14px!important;font-size:14px!important;
+    border-radius:10px!important;}
+  #ib-actions-grid .ib-ic{font-size:16px;}
   /* HEADER */
   #hdr-in{padding:0 20px;height:52px;gap:12px;flex-wrap:nowrap;}
   #hdr-balta-info{order:0;flex-basis:auto;width:auto;}
@@ -477,12 +499,12 @@ html[data-theme="light"] .logo-img-light{display:block;}
   #layout{max-width:1300px;padding:150px 20px 50px;}
 
   /* INFO BAR */
-  .info-bar{padding:10px 14px;gap:10px;}
-  #btn-tel,#btn-fb,#btn-wa,#btn-waze,#btn-gmaps,#btn-tarife,#btn-regulament{padding:7px 12px;font-size:15px;}
+  .info-bar{padding:18px 20px;gap:10px;}
 
   /* EDIT BAR */
   #edit-bar-top{padding:10px 14px;gap:10px;}
   .ebtn{font-size:15px;padding:8px 18px;}
+
 
   /* MAIN AREA — desktop: 3 rânduri stivuite (hartă / butoane+video / top10+HOF) */
   #main-area{flex-direction:column;}
@@ -666,6 +688,9 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="share-balta-toast" style="display:none;align-items:center;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:14px;font-weight:600;">✓ Link copiat!</div>
   </div>
 
+  <!-- Hero glow — decor "depth" deasupra cardului info-bar -->
+  <div class="balta-hero-glow"></div>
+
   <!-- Info bar -->
   <div class="info-bar">
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
@@ -679,26 +704,28 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       </div>
     </div>
     <div id="ib-ambasador-credit" style="font-size:11.8px;color:var(--zc-text-secondary);flex-basis:100%;display:none;"></div>
-    <a id="btn-tel" href="#" style="display:none;align-items:center;gap:7px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;text-decoration:none;color:var(--zc-text-primary);font-size:15px;font-weight:600;white-space:nowrap;">📞 <span id="tel-txt"></span></a>
+    <div id="ib-actions-grid">
+    <a id="btn-tel" href="#" style="display:none;align-items:center;gap:7px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;text-decoration:none;color:var(--zc-text-primary);font-size:15px;font-weight:600;white-space:nowrap;"><span class="ib-ic">📞</span><span id="tel-txt"></span></a>
     <a id="btn-fb" href="#" target="_blank" title="Pagina de Facebook" style="display:none;align-items:center;justify-content:center;background:#1877f2;border-radius:8px;padding:7px 12px;text-decoration:none;color:#fff;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      <span>Facebook</span>
     </a>
     <a id="btn-wa" href="#" target="_blank" title="WhatsApp" style="display:none;align-items:center;justify-content:center;background:#25d366;border-radius:8px;padding:7px 12px;text-decoration:none;color:#fff;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span>WhatsApp</span>
     </a>
-    <div id="ib-actions-grid">
-    <button id="btn-tarife" onclick="openTarifeOrWa()" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">💰 Tarife</button>
-    <button id="btn-regulament" onclick="openInfoOverlay('regulament')" style="display:none;align-items:center;gap:7px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:7px 12px;color:var(--zc-text-strong);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">📋 Regulament</button>
+    <button id="btn-tarife" onclick="openTarifeOrWa()" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">💰</span><span>Tarife</span></button>
+    <button id="btn-regulament" onclick="openInfoOverlay('regulament')" style="display:none;align-items:center;gap:7px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);border-radius:8px;padding:7px 12px;color:var(--zc-text-strong);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">📋</span><span>Regulament</span></button>
     <button id="btn-waze" onclick="" title="Deschide în Waze" style="display:none;align-items:center;gap:7px;background:rgba(5,200,246,.08);border:1px solid rgba(5,200,246,.3);border-radius:8px;padding:7px 12px;cursor:pointer;color:#05C8F6;font-size:15px;font-weight:600;">
       <svg width="18" height="18" viewBox="0 0 512 512" fill="#05C8F6"><path d="M502.17 201.67C516.69 287.53 471.23 369.59 389 409.8c13 34.1-12.4 70.2-48.32 70.2a51.68 51.68 0 0 1-51.57-49c-6.44.19-64.2 0-76.33-.64A51.69 51.69 0 0 1 159 479.92c-33.86-1.36-57.95-34.84-47-67.92-37.21-13.11-72.54-34.87-99.62-70.8-13-17.28-.48-41.8 20.84-41.8 46.31 0 32.22-54.17 43.15-110.26C94.8 95.2 193.12 32 288.09 32c102.48 0 197.15 70.67 214.08 169.67zM373.51 388.28c42-19.18 81.33-56.71 96.29-102.14 40.48-123.09-64.15-228-181.71-228-83.45 0-170.32 55.42-186.07 136-9.53 48.91 5 131.35-68.75 131.35C58.21 358.6 91.6 378.11 127 389.54c24.66-21.8 63.87-15.47 79.83 14.34 14.22 1 79.19 1.18 87.9.82a51.69 51.69 0 0 1 78.78-16.42zM205.12 187.13c0-34.74 50.84-34.75 50.84 0s-50.84 34.74-50.84 0zm116.57 0c0-34.74 50.86-34.75 50.86 0s-50.86 34.75-50.86 0zm-122.61 70.69c-3.44-16.94 22.18-22.18 25.62-5.21l.06.28c4.14 21.42 29.85 44 64.12 43.07 35.68-.94 59.25-22.21 64.11-42.77 4.46-16.05 28.6-10.36 25.47 6-5.23 22.18-31.21 62-91.46 62.9-42.55 0-80.88-27.84-87.9-64.25z"/></svg>
-      Waze
+      <span>Waze</span>
     </button>
     <button id="btn-gmaps" onclick="" title="Deschide în Google Maps" style="display:none;align-items:center;gap:7px;background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.3);border-radius:8px;padding:7px 12px;cursor:pointer;color:#4285F4;font-size:15px;font-weight:600;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="#4285F4"><path d="M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z"/></svg>
-      Maps
+      <span>Maps</span>
     </button>
-    <button id="btn-urmareste" onclick="toggleUrmarireBalta()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">☆ Urmărește</button>
-    <button id="btn-share-balta-mobile" onclick="shareBalta()" title="Distribuie balta" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:var(--zc-text-primary);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">🔗 Distribuie</button>
+    <button id="btn-urmareste" onclick="toggleUrmarireBalta()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">☆</span><span>Urmărește</span></button>
+    <button id="btn-share-balta-mobile" onclick="shareBalta()" title="Distribuie balta" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:7px 12px;color:var(--zc-text-primary);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">🔗</span><span>Distribuie</span></button>
     </div>
   </div>
 
