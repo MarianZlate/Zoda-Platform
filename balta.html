@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-<meta name="robots" content="noindex, nofollow">
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="manifest" href="/manifest.json"/>
@@ -9,7 +8,17 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
-<title>Zoda - Baltă</title>
+<title id="page-title">Zoda — Baltă de pescuit</title>
+<meta id="meta-desc" name="description" content="Detalii, tarife, standuri și recorduri pentru o baltă de pescuit din România, pe Zoda."/>
+<link id="canonical-link" rel="canonical" href="https://zoda.ro/balta.html"/>
+<meta id="og-title" property="og:type" content="website"/>
+<meta property="og:site_name" content="Zoda"/>
+<meta id="og-title-tag" property="og:title" content="Zoda — Baltă de pescuit"/>
+<meta id="og-desc" property="og:description" content="Detalii, tarife, standuri și recorduri pentru o baltă de pescuit din România."/>
+<meta id="og-image" property="og:image" content="https://zoda.ro/hero-bg.jpg"/>
+<meta id="og-url" property="og:url" content="https://zoda.ro/balta.html"/>
+<meta property="og:locale" content="ro_RO"/>
+<meta name="twitter:card" content="summary_large_image"/>
 <script>
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
@@ -1525,11 +1534,57 @@ async function refreshBaltaInBackground(id, cacheKey) {
 
 
 
+// Actualizează titlul, descrierea, canonical și Open Graph cu datele reale ale
+// bălții — pagina asta e un singur template pentru toate bălțile (?id=...),
+// deci Google trebuie să vadă conținut distinct per baltă, nu un titlu generic.
+function actualizeazaSEO(b) {
+  var titlu = 'Zoda — ' + b.nume + (b.judet ? ', ' + b.judet : '');
+  var loc = b.adresa || b.judet || 'România';
+  var descriere = 'Balta ' + b.nume + ' din ' + loc + ' — tarife, standuri, recorduri și clasamente. Vezi detalii complete pe Zoda.';
+  var url = 'https://zoda.ro/balta.html?id=' + b.id;
+  var poza = b.harta_url || 'https://zoda.ro/hero-bg.jpg';
+
+  document.title = titlu;
+  var descEl = document.getElementById('meta-desc');
+  if (descEl) descEl.setAttribute('content', descriere);
+  var canEl = document.getElementById('canonical-link');
+  if (canEl) canEl.setAttribute('href', url);
+  var ogTitleEl = document.getElementById('og-title-tag');
+  if (ogTitleEl) ogTitleEl.setAttribute('content', titlu);
+  var ogDescEl = document.getElementById('og-desc');
+  if (ogDescEl) ogDescEl.setAttribute('content', descriere);
+  var ogUrlEl = document.getElementById('og-url');
+  if (ogUrlEl) ogUrlEl.setAttribute('content', url);
+  var ogImgEl = document.getElementById('og-image');
+  if (ogImgEl) ogImgEl.setAttribute('content', poza);
+
+  // JSON-LD — ajută Google să înțeleagă exact ce e pagina (loc + business real)
+  var ld = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: b.nume,
+    description: descriere,
+    url: url,
+    image: poza,
+    address: { '@type': 'PostalAddress', addressLocality: b.judet || '', addressCountry: 'RO', streetAddress: b.adresa || '' },
+  };
+  if (b.telefon) ld.telephone = b.telefon;
+  if (b.lat && b.lng) ld.geo = { '@type': 'GeoCoordinates', latitude: b.lat, longitude: b.lng };
+  var ldScript = document.getElementById('balta-jsonld');
+  if (!ldScript) {
+    ldScript = document.createElement('script');
+    ldScript.type = 'application/ld+json';
+    ldScript.id = 'balta-jsonld';
+    document.head.appendChild(ldScript);
+  }
+  ldScript.textContent = JSON.stringify(ld);
+}
+
 function renderPage(hartaUrl) {
   var b = BALTA;
 
   // Header
-  document.title = 'Zoda - ' + b.nume;
+  actualizeazaSEO(b);
   document.getElementById('hdr-balta-name').textContent = b.nume;
   document.getElementById('hdr-balta-loc').textContent = b.adresa ? '📍 ' + b.adresa : (b.judet ? '📍 ' + b.judet : '');
   document.getElementById('ib-name').textContent = b.nume;
