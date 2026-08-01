@@ -800,7 +800,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <!-- Stats cards -->
       <div class="realizari-grid">
         <div class="rez-card">
-          <span class="rez-icon">🐟</span>
+          <span class="rez-icon">📋</span>
           <div class="rez-info">
             <div class="rez-label">CAPTURI ÎNREGISTRATE</div>
             <div class="rez-val" id="stat-capturi">0</div>
@@ -3030,7 +3030,7 @@ async function loadCapturi() {
       <div class="capture-row">
         ${c.foto_url
           ? `<img class="capture-foto" src="${c.foto_url}" alt="captură" onclick="deschideLightboxFoto('${c.foto_url}')" style="cursor:pointer;"/>`
-          : `<div class="capture-foto-empty">🐟</div>`}
+          : `<div class="capture-foto-empty">📷</div>`}
         <div class="capture-info">
           <div class="capture-balta">${c.balti?.nume || '—'}</div>
           <div class="capture-stand">📍 ${c.standuri?.nume || '—'} · ${c.balti?.judet || ''}</div>
