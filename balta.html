@@ -439,20 +439,18 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* INFO BAR — nume mare + tagline tip pill + grid de „dale" (icon sus, text
    jos) pentru toate butoanele de contact/acțiune, 3 pe rând pe mobil —
    înlocuiește vechiul rând de pastile mici cu icon+text inline. Dale mici,
-   toate IDENTICE ca stil (fond/bordură/font/culoare text) — nu mai contează
-   ce fond avea butonul inline (WhatsApp verde, Facebook albastru etc.), aici
-   se suprascrie cu !important ca totul să arate la fel. Doar iconul SVG își
-   păstrează culoarea originală (fill pe <path>, nu se poate uniformiza fără
-   să pierdem recunoașterea vizuală WhatsApp/Facebook/Waze/Maps). */
+   font/mărime text identice pe toate — dar fondul fiecăreia rămâne cel
+   propriu (albastru Facebook, verde WhatsApp, cyan Waze etc., definite
+   inline pe fiecare buton), fiindcă ajută la diferențiere/recunoaștere.
+   Doar textul (font-size/weight/culoare) e uniformizat aici, NU fondul. */
 #ib-name{font-size:19px!important;}
 #ib-tagline{display:inline-flex!important;align-items:center;gap:4px;background:rgba(255,255,255,.05);border:1px solid currentColor;font-style:normal!important;font-size:11.5px!important;font-weight:700!important;padding:3px 9px;border-radius:20px;width:fit-content;margin-top:3px;}
 #ib-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;margin-top:10px;}
 #ib-actions-grid > a,#ib-actions-grid > button{
   display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   width:100%;box-sizing:border-box;text-align:center;border-radius:9px!important;
-  padding:4px 3px!important;font-size:9.5px!important;line-height:1.15;
-  background:var(--zc-bg)!important;border:1px solid var(--zc-border)!important;
-  color:var(--zc-text-primary)!important;font-weight:600!important;}
+  padding:4px 3px!important;font-size:9.5px!important;line-height:1.15;font-weight:600!important;
+  color:var(--zc-text-primary)!important;}
 #ib-actions-grid .ib-ic{font-size:13px;line-height:1;}
 #ib-actions-grid svg{width:13px!important;height:13px!important;}
 
