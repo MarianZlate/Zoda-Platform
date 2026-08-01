@@ -728,7 +728,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
       <!-- Videoclip de prezentare a standului — direct în overlay, nu separat mai jos -->
       <div id="ov-yt-section" style="display:none;padding:10px;border-top:1px solid var(--zc-border);">
-        <div style="font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">🎬 VIDEOCLIP DE PREZENTARE A STANDULUI</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;"><svg width="14" height="14" viewBox="0 0 576 512" style="flex-shrink:0;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>VIDEOCLIP DE PREZENTARE A STANDULUI</div>
         <div id="ov-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playOverlayYT()">
           <img id="ov-yt-thumb" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">
@@ -788,7 +788,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="map-sidebar-left">
     <div id="pw" style="margin:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;">
-        <button id="pill-drum" onclick="showDrumAcces()" style="border:1.5px solid #38bdf8;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:13px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;">🎬 Videoclip drum de acces</button>
+        <button id="pill-drum" onclick="showDrumAcces()" style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid #38bdf8;border-radius:20px;padding:4px 14px;cursor:pointer;font-size:13px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;"><svg width="15" height="15" viewBox="0 0 576 512" style="flex-shrink:0;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>Videoclip drum de acces</button>
         <button id="pill-all" onclick="showAll()">🗺️ Toate standurile</button>
       </div>
       <div style="width:100%;font-size:13px;font-weight:700;color:#38bdf8;margin-top:6px;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
@@ -2948,7 +2948,7 @@ function showMapYT(s) {
     document.getElementById('map-yt-iframe-wrap').style.display = 'none';
     document.getElementById('map-yt-iframe').src = ''; // reset orice player anterior
     bar.style.display = 'block';
-    label.textContent = s ? '🎬 VIDEOCLIP DE PREZENTARE A STANDULUI' : '🎬 VIDEOCLIP DE PREZENTARE A DRUMULUI DE ACCES PÂNĂ LA BALTĂ';
+    label.innerHTML = '<svg width="14" height="14" viewBox="0 0 576 512" style="flex-shrink:0;vertical-align:-2px;margin-right:6px;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>' + (s ? 'VIDEOCLIP DE PREZENTARE A STANDULUI' : 'VIDEOCLIP DE PREZENTARE A DRUMULUI DE ACCES PÂNĂ LA BALTĂ');
   } else {
     _currentMapYtUrl = '';
     bar.style.display = 'none';
