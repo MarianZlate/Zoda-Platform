@@ -180,6 +180,12 @@ html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family
      8. --z-save-toast      confirmarea de salvare — mereu deasupra a
                             absolut orice altceva, inclusiv modale deschise
 
+   EXCEPȚIE: #bottom-nav (meniul de jos) primește un z-index propriu, PESTE
+   --z-modal (nu variabila --z-bottom-bar, care rămâne pentru cookie-notice/
+   promo-bar) — user-ul trebuie să poată naviga din meniul de jos chiar și cu
+   un modal Capturi/Clasament deschis peste el (modalurile alea ocupă acum tot
+   ecranul pe mobil, dar meniul plutește deasupra, rămânând activ).
+
    IMPORTANT: elementele-ancoră ale unui dropdown (ex. #search-wrap,
    .stat-chip-clickable) NU trebuie să aibă ele însele z-index — dacă au,
    creează un "context de stivuire" izolat propriu, iar dropdown-ul lor
@@ -370,12 +376,18 @@ nav{display:flex;align-items:center;gap:6px;}
 #hof-modal.open{display:flex;}
 #capturi-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
 #capturi-modal.open{display:flex;}
-.hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;max-height:80vh;border-radius:0 0 16px 16px;margin-bottom:auto;}
+.hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;
+  /* mobil: modalul ocupă tot ecranul, nu doar 80vh cu colțuri rotunjite jos —
+     meniul de jos rămâne vizibil/activ deasupra lui (vezi #bottom-nav) */
+  height:100dvh;max-height:100dvh;border-radius:0;}
 .hof-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);}
 .hof-modal-title{font-size:22px;font-weight:900;color:#f59e0b;}
 .hof-modal-sub{font-size:13px;color:var(--zc-text-muted);margin-top:3px;}
 .modal-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
-.hof-modal-list{overflow-y:auto;padding:8px 0;}
+.hof-modal-list{overflow-y:auto;
+  /* mobil: spațiu jos ca ultimele rânduri să nu fie ascunse sub #bottom-nav,
+     care plutește deasupra modalului full-page (vezi z-index-ul lui) */
+  padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
 .lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
 .lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
 .lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
@@ -553,7 +565,8 @@ nav{display:flex;align-items:center;gap:6px;}
   .balta-meta{font-size:11px;}
   #hof-modal{align-items:center;justify-content:center;}
   #capturi-modal{align-items:center;justify-content:center;}
-  .hof-modal-inner{max-width:560px;max-height:85vh;border-radius:20px;margin-top:0;}
+  .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
+  .hof-modal-list{padding-bottom:8px;}
   #auth-modal{align-items:center;justify-content:center;}
   .auth-inner{max-width:420px;border-radius:20px;padding:32px 28px;margin-top:0;}
   #edit-modal{align-items:flex-start;justify-content:center;padding:80px 20px 20px;}
@@ -1980,12 +1993,30 @@ async function goToAdmin(e) {
 // telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
 // userul din aplicație. La închidere din X, dăm history.back() ca să curățăm
 // intrarea adăugată; popstate-ul rezultat închide efectiv modalul.
-function openHof()  { document.getElementById('hof-modal').classList.add('open'); document.body.style.overflow = 'hidden'; history.pushState({ modal: 'hof' }, ''); }
+// Notă: modalurile ocupă tot ecranul pe mobil, dar meniul de jos rămâne activ
+// deasupra lor — deci userul poate sări direct din Capturi în Clasament din
+// meniu, fără să treacă prin X. Închidem orice alt modal din grup înainte să
+// deschidem unul nou, ca să nu rămână două suprapuse.
+function openHof()  {
+  var capEl = document.getElementById('capturi-modal');
+  var switching = capEl && capEl.classList.contains('open');
+  if (switching) capEl.classList.remove('open');
+  document.getElementById('hof-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
+}
 function closeHof() {
   document.getElementById('hof-modal').classList.remove('open'); document.body.style.overflow = '';
   if (history.state && history.state.modal === 'hof') history.back();
 }
-function openCapturiModal()  { document.getElementById('capturi-modal').classList.add('open'); document.body.style.overflow = 'hidden'; history.pushState({ modal: 'capturi' }, ''); }
+function openCapturiModal()  {
+  var hofEl = document.getElementById('hof-modal');
+  var switching = hofEl && hofEl.classList.contains('open');
+  if (switching) hofEl.classList.remove('open');
+  document.getElementById('capturi-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (switching) history.replaceState({ modal: 'capturi' }, ''); else history.pushState({ modal: 'capturi' }, '');
+}
 function closeCapturiModal() {
   document.getElementById('capturi-modal').classList.remove('open'); document.body.style.overflow = '';
   if (history.state && history.state.modal === 'capturi') history.back();
@@ -3886,12 +3917,20 @@ function openAuthModal()  { document.getElementById('auth-modal').classList.add(
 // derulează sus) și Contul meu (dacă e logat, merge direct; altfel deschide
 // autentificarea, la fel ca butonul din header) ─────────────────────────────
 function bnGoAcasa() {
-  document.getElementById('hof-modal')?.classList.remove('open');
-  document.getElementById('capturi-modal')?.classList.remove('open');
-  document.body.style.overflow = '';
+  // Foloseşte closeHof()/closeCapturiModal() (nu doar classList.remove) ca să
+  // se consume corect intrarea din istoric adăugată la deschidere — acum că
+  // meniul de jos rămâne activ cu modalul deschis, userul poate ajunge aici
+  // direct dintr-un modal deschis.
+  var hofEl = document.getElementById('hof-modal');
+  if (hofEl && hofEl.classList.contains('open')) closeHof();
+  var capEl = document.getElementById('capturi-modal');
+  if (capEl && capEl.classList.contains('open')) closeCapturiModal();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function bnGoCont() {
+  document.getElementById('hof-modal')?.classList.remove('open');
+  document.getElementById('capturi-modal')?.classList.remove('open');
+  document.body.style.overflow = '';
   if (typeof currentUser !== 'undefined' && currentUser) {
     saveIndexState();
     window.location.href = 'cont.html';
@@ -5187,7 +5226,7 @@ setTimeout(showIosToast, 3000);
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
 #cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-bottom-bar);background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
-#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-bottom-bar);display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
+#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:450;/* peste --z-modal(400) — vezi excepția documentată în scala de z-index */display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
 .bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
 .bn-btn.active{color:#38bdf8;}
 @media(min-width:769px){
