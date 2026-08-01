@@ -729,8 +729,26 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--zc-text-muted)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="search-input" type="text" placeholder="Caută baltă sau județ..." oninput="onSearch(this.value)" onfocus="onSearchFocus()" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" name="zoda-search-query" data-form-type="other" data-lpignore="true" data-1p-ignore="true"/>
       <button id="clear-btn" onclick="clearSearch()">✕</button>
+      <button id="index-filter-btn" onclick="toggleIndexFilterDropdown(event)" title="Filtrează după facilități" style="background:transparent;border:none;color:var(--zc-text-muted);cursor:pointer;display:flex;align-items:center;flex-shrink:0;padding:0;">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span id="index-filter-count" style="display:none;background:#38bdf8;color:var(--zc-bg);border-radius:10px;padding:0 6px;font-size:11px;margin-left:3px;font-weight:700;"></span>
+      </button>
     </div>
     <div id="dropdown"></div>
+    <div id="index-filter-dropdown" style="display:none;position:fixed;left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;padding:12px;min-width:220px;max-width:calc(100vw - 24px);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:1000;">
+      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin-bottom:6px;">FACILITĂȚI</div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="cazare" onchange="aplicaFiltruIndex()"/> Cazare</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="cabana" onchange="aplicaFiltruIndex()"/> Cabană</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="baie_toaleta" onchange="aplicaFiltruIndex()"/> Baie/Toalete</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="restaurant_terasa" onchange="aplicaFiltruIndex()"/> Restaurant/Terasă</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="loc_joaca" onchange="aplicaFiltruIndex()"/> Loc de joacă</label>
+      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin:10px 0 6px;border-top:1px solid var(--zc-border);padding-top:10px;">TIP STAND</div>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="foisor" onchange="aplicaFiltruIndex()"/> Foișor</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="ponton" onchange="aplicaFiltruIndex()"/> Ponton</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pamant" onchange="aplicaFiltruIndex()"/> Stand pământ</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pietruit" onchange="aplicaFiltruIndex()"/> Stand pietruit</label>
+      <button onclick="resetFiltruIndex()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--zc-border);border-radius:8px;padding:6px;color:var(--zc-text-muted);font-size:12.5px;font-weight:600;cursor:pointer;">Șterge filtrul</button>
+    </div>
   </div>
 
   <!-- HARTA -->
@@ -1441,6 +1459,109 @@ function fuzzyPrefixMatch(queryNorm, textNorm) {
   return false;
 }
 
+// ─── FILTRU FACILITĂȚI / TIP STAND (lângă bara de căutare) ──────────────────
+var _indexFiltreActive = [];
+var _baltaFacSet = null;      // balta_id -> Set(tip_facilitate), încărcat lazy
+var _baltaStandFlags = null;  // balta_id -> {foisor,ponton,stand_pamant,stand_pietruit,cabana}, lazy
+var _indexFiltreDataLoading = false;
+
+async function incarcaDateFiltruIndex() {
+  if (_baltaFacSet && _baltaStandFlags) return; // deja încărcate
+  if (_indexFiltreDataLoading) return;
+  _indexFiltreDataLoading = true;
+  try {
+    const [{ data: facRows }, { data: standRows }] = await Promise.all([
+      sb.from('balta_facilitati').select('balta_id, tip'),
+      sb.from('standuri').select('balta_id, cabana, foisor, ponton, stand_pamant, stand_pietruit'),
+    ]);
+    _baltaFacSet = {};
+    (facRows || []).forEach(function (f) {
+      if (!_baltaFacSet[f.balta_id]) _baltaFacSet[f.balta_id] = new Set();
+      _baltaFacSet[f.balta_id].add(f.tip);
+    });
+    _baltaStandFlags = {};
+    (standRows || []).forEach(function (s) {
+      var cur = _baltaStandFlags[s.balta_id] || { cabana: false, foisor: false, ponton: false, stand_pamant: false, stand_pietruit: false };
+      cur.cabana = cur.cabana || !!s.cabana;
+      cur.foisor = cur.foisor || !!s.foisor;
+      cur.ponton = cur.ponton || !!s.ponton;
+      cur.stand_pamant = cur.stand_pamant || !!s.stand_pamant;
+      cur.stand_pietruit = cur.stand_pietruit || !!s.stand_pietruit;
+      _baltaStandFlags[s.balta_id] = cur;
+    });
+  } catch (e) {
+    _baltaFacSet = _baltaFacSet || {};
+    _baltaStandFlags = _baltaStandFlags || {};
+  }
+  _indexFiltreDataLoading = false;
+}
+
+function baltaTreceFiltrulIndex(b) {
+  if (!_indexFiltreActive.length) return true;
+  var fac = (_baltaFacSet && _baltaFacSet[b.id]) || new Set();
+  var st = (_baltaStandFlags && _baltaStandFlags[b.id]) || {};
+  return _indexFiltreActive.some(function (key) {
+    if (key === 'cabana') return fac.has('cabana') || st.cabana;
+    if (key === 'foisor' || key === 'ponton' || key === 'stand_pamant' || key === 'stand_pietruit') return !!st[key];
+    return fac.has(key); // cazare, baie_toaleta, restaurant_terasa, loc_joaca
+  });
+}
+
+async function toggleIndexFilterDropdown(e) {
+  if (e) e.stopPropagation();
+  var dd = document.getElementById('index-filter-dropdown');
+  var willOpen = dd.style.display !== 'block';
+  dd.style.display = willOpen ? 'block' : 'none';
+  if (willOpen) {
+    await incarcaDateFiltruIndex();
+    var btn = document.getElementById('index-filter-btn');
+    pozitioneazaIndexFilterDropdown();
+    setTimeout(function () { btn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 0);
+    window.addEventListener('scroll', pozitioneazaIndexFilterDropdown, { passive: true });
+    window.addEventListener('resize', pozitioneazaIndexFilterDropdown);
+  } else {
+    window.removeEventListener('scroll', pozitioneazaIndexFilterDropdown);
+    window.removeEventListener('resize', pozitioneazaIndexFilterDropdown);
+  }
+}
+function pozitioneazaIndexFilterDropdown() {
+  var dd = document.getElementById('index-filter-dropdown');
+  var btn = document.getElementById('index-filter-btn');
+  if (!dd || !btn || dd.style.display !== 'block') return;
+  dd.style.top = (btn.getBoundingClientRect().bottom + 8) + 'px';
+}
+document.addEventListener('click', function (e) {
+  var dd = document.getElementById('index-filter-dropdown');
+  var btn = document.getElementById('index-filter-btn');
+  if (dd && dd.style.display === 'block' && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = 'none';
+    window.removeEventListener('scroll', pozitioneazaIndexFilterDropdown);
+    window.removeEventListener('resize', pozitioneazaIndexFilterDropdown);
+  }
+});
+
+function aplicaFiltruIndex() {
+  _indexFiltreActive = Array.from(document.querySelectorAll('.idx-filter-cb:checked')).map(function (cb) { return cb.value; });
+  var countEl = document.getElementById('index-filter-count');
+  if (_indexFiltreActive.length) {
+    countEl.style.display = 'inline-block';
+    countEl.textContent = _indexFiltreActive.length;
+  } else {
+    countEl.style.display = 'none';
+  }
+  // Reîmprospătează dropdown-ul de rezultate, dar doar dacă era deja deschis
+  var ddRes = document.getElementById('dropdown');
+  if (ddRes && ddRes.style.display === 'block') {
+    var searchVal = document.getElementById('search-input').value;
+    if (searchVal.trim()) onSearch(searchVal); else renderDropdownRasfoire();
+  }
+}
+
+function resetFiltruIndex() {
+  document.querySelectorAll('.idx-filter-cb').forEach(function (cb) { cb.checked = false; });
+  aplicaFiltruIndex();
+}
+
 function onSearchFocus() {
   const q = document.getElementById('search-input').value;
   if (!q.trim()) renderDropdownRasfoire();
@@ -1451,10 +1572,18 @@ function onSearchFocus() {
 function renderDropdownRasfoire() {
   const isAdmin = currentRole === 'zoda_admin';
   const dd = document.getElementById('dropdown');
-  const disponibile = BALTI.filter(b => isAdmin || b.vizibilitate === 'public' || b.vizibilitate === 'basic');
+  const disponibile = BALTI.filter(b => (isAdmin || b.vizibilitate === 'public' || b.vizibilitate === 'basic') && baltaTreceFiltrulIndex(b));
   const sortate = sorteazaBaltiPeNiveluri(disponibile.filter(b => b.vizibilitate === 'public'))
     .concat(disponibile.filter(b => b.vizibilitate !== 'public')); // basic/altele, la coadă, neschimbate
-  if (!sortate.length) { dd.style.display = 'none'; return; }
+  if (!sortate.length) {
+    if (_indexFiltreActive.length) {
+      dd.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">Nicio baltă nu se potrivește cu filtrul ales.</div>';
+      dd.style.display = 'block';
+    } else {
+      dd.style.display = 'none';
+    }
+    return;
+  }
   dd.innerHTML = sortate.slice(0, 20).map(b => `
     <div class="dd-item" onclick="flyToBalta(${b.id})">
       <div style="flex:1;">
@@ -1477,6 +1606,7 @@ function onSearch(q) {
   const scored = [];
   BALTI.forEach(b => {
     if (!(isAdmin || b.vizibilitate === 'public' || b.vizibilitate === 'basic')) return;
+    if (!baltaTreceFiltrulIndex(b)) return;
     const nameN = normStr(b.nume);
     const judetN = normStr(b.judet);
 
@@ -1499,7 +1629,8 @@ function onSearch(q) {
   const res = scored.slice(0, 20).map(s => s.b);
 
   if (!res.length) {
-    dd.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">Nicio baltă găsită</div>';
+    dd.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">' +
+      (_indexFiltreActive.length ? 'Nicio baltă găsită cu filtrul ales.' : 'Nicio baltă găsită') + '</div>';
     dd.style.display = 'block';
     return;
   }
