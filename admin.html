@@ -3531,7 +3531,7 @@ function buildStandEditCard(s) {
     <div class="rec-foto-preview" id="se-rec-preview-${s.id}">
       <img src="${escHtml(recFoto)}" loading="lazy"/>
       <button class="gal-thumb-del" style="top:6px;right:6px;width:22px;height:22px;font-size:17px;" onclick="removeRecFoto(${s.id})" title="Șterge poza record">✕</button>
-    </div>` : `<div class="rec-foto-preview rec-foto-empty" id="se-rec-preview-${s.id}"><span style="font-size:31px;">🐟</span><span style="font-size:11px;color:#334155;">Fără fotografie</span></div>`;
+    </div>` : `<div class="rec-foto-preview rec-foto-empty" id="se-rec-preview-${s.id}"><span style="font-size:31px;">📷</span><span style="font-size:11px;color:#334155;">Fără fotografie</span></div>`;
 
   return `<div class="se-card" id="se-card-${s.id}">
     <div class="se-card-hdr" onclick="if(!event.target.closest('.se-drag-handle'))toggleEditStand(${s.id})">
@@ -3777,7 +3777,7 @@ async function uploadRecFoto(file, standId) {
 function removeRecFoto(standId) {
   const preview = document.getElementById('se-rec-preview-' + standId);
   preview.className = 'rec-foto-preview rec-foto-empty';
-  preview.innerHTML = `<span style="font-size:31px;">🐟</span><span style="font-size:11px;color:#334155;">Fără fotografie</span>`;
+  preview.innerHTML = `<span style="font-size:31px;">📷</span><span style="font-size:11px;color:#334155;">Fără fotografie</span>`;
   document.getElementById('se-rec-url-' + standId).value = '';
   const status = document.getElementById('se-rec-status-' + standId);
   if(status) { status.textContent = ''; status.className = 'rec-upload-status'; }
