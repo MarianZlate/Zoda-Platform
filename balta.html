@@ -3316,6 +3316,28 @@ function _blocheazaPortret() {
   } catch (e) {}
 }
 
+// Video-urile YouTube din overlay-uri (stand, facilități, drum de acces, hartă)
+// nu deschid fullscreen prin codul nostru — userul apasă direct butonul de
+// fullscreen din playerul YouTube, iar acela pune IFRAME-ul însuși în
+// fullscreen, nu modalul nostru. Prindem momentul exact prin fullscreenchange
+// și rotim forțat pe landscape, la fel cum face aplicația YouTube nativă.
+document.addEventListener('fullscreenchange', function () {
+  var fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+  try {
+    if (!screen.orientation || !screen.orientation.lock) return;
+    if (fsEl && fsEl.tagName === 'IFRAME') {
+      var p = screen.orientation.lock('landscape');
+      if (p && p.catch) p.catch(function () {});
+    } else if (!fsEl) {
+      var p2 = screen.orientation.lock('portrait-primary');
+      if (p2 && p2.catch) p2.catch(function () {});
+    }
+  } catch (e) {}
+});
+['webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function (ev) {
+  document.addEventListener(ev, function () { document.dispatchEvent(new Event('fullscreenchange')); });
+});
+
 function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
 function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
 function openYT(url) { var emb = ytEmbed(url); if (!emb) return; document.getElementById('yt-iframe').src = emb.replace('?rel=0','?rel=0&autoplay=1'); document.getElementById('yt-modal').style.display = 'flex'; _permiteRotire('yt-modal'); }
