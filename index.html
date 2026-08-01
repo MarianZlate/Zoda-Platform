@@ -1287,6 +1287,8 @@ document.addEventListener('touchstart', function(e) {
 function initMap() {
   if (map) return; // deja inițializată — Leaflet aruncă eroare la re-inițializare pe același container
   map = L.map('map', { center: [45.5, 24.8], zoom: 7, preferCanvas: true });
+  // România întreagă, indiferent de dimensiunea reală a containerului hărții pe ecran
+  map.fitBounds([[43.55, 20.2], [48.3, 29.75]]);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
     maxZoom: 19
@@ -1321,14 +1323,14 @@ function initMap() {
 // Praguri de zoom per nivel — nivel 3 (auriu) apare primul, de la cel mai
 // mic zoom permis global; nivel 2 (albastru) puțin mai târziu; nivel 1
 // (verde) doar la zoom apropiat. Bălțile "basic" nu primesc niciodată pin.
-var ZOOM_PRAG_NIVEL = { 3: 7, 2: 10, 1: 13 };
+var ZOOM_PRAG_NIVEL = { 3: 6, 2: 10, 1: 13 };
 
-function makeMarker(active, nivel) {
+function makeMarker(active, nivel, nume) {
   nivel = nivel || 1;
   const STIL_NIVEL = {
-    1: { culoare: 'var(--zc-bg-tint)', dim: 30 },
-    2: { culoare: '#3b82f6', dim: 35 },
-    3: { culoare: '#eab308', dim: 39 },
+    1: { culoare: 'var(--zc-bg-tint)', dim: 24 },
+    2: { culoare: '#3b82f6', dim: 28 },
+    3: { culoare: '#eab308', dim: 31 },
   };
   const stil = STIL_NIVEL[nivel] || STIL_NIVEL[1];
   const w = stil.dim, h = Math.round(stil.dim * 40 / 30);
@@ -1336,14 +1338,23 @@ function makeMarker(active, nivel) {
   const glow = active
     ? 'drop-shadow(0 0 6px rgba(245,158,11,.6)) drop-shadow(0 3px 8px rgba(0,0,0,.8))'
     : (nivel === 3 ? 'drop-shadow(0 0 5px rgba(234,179,8,.5)) drop-shadow(0 3px 8px rgba(0,0,0,.8))' : 'drop-shadow(0 3px 8px rgba(0,0,0,.8))');
+  const labelH = 15; // înălțime fixă a etichetei, pt. calcul corect al ancorei
+  const label = nume
+    ? `<div style="background:rgba(10,15,26,.82);color:#fff;font-size:9.5px;font-weight:700;line-height:1;padding:2px 5px;border-radius:4px;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">${escH(nume)}</div>`
+    : '';
   return L.divIcon({
     className: '',
-    html: `<svg width="${w}" height="${h}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:${glow};display:block;">
-      <path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="${bg}"/>
-      <circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/>
-      <text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white"></text>
-    </svg>`,
-    iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h - 2],
+    html: `<div style="display:flex;flex-direction:column;align-items:center;">
+      ${label}
+      <svg width="${w}" height="${h}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:${glow};display:block;">
+        <path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="${bg}"/>
+        <circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/>
+        <text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white"></text>
+      </svg>
+    </div>`,
+    iconSize: [Math.max(w, 110), h + (nume ? labelH + 2 : 0)],
+    iconAnchor: [Math.max(w, 110) / 2, h + (nume ? labelH + 2 : 0)],
+    popupAnchor: [0, -h - 2 - (nume ? labelH + 2 : 0)],
   });
 }
 
@@ -1362,7 +1373,7 @@ function popHtml(b) {
 function flyToBalta(id) {
   const b = BALTI.find(x => x.id === id);
   if (!b) return;
-  BALTI.forEach(x => x._marker && x._marker.setIcon(makeMarker(x.id === id, x.vizibilitate === 'basic' ? 1 : (x.nivel_vizibilitate || 1))));
+  BALTI.forEach(x => x._marker && x._marker.setIcon(makeMarker(x.id === id, x.vizibilitate === 'basic' ? 1 : (x.nivel_vizibilitate || 1), x.nume)));
   map.flyTo([b.lat, b.lng], 13, { duration: 1.2 });
   // Închide dropdown-ul de căutare, ca pinul selectat să rămână vizibil pe hartă
   const dd = document.getElementById('dropdown');
@@ -1511,7 +1522,7 @@ function clearSearch() {
   document.getElementById('search-input').value = '';
   document.getElementById('clear-btn').style.display = 'none';
   document.getElementById('dropdown').style.display = 'none';
-  BALTI.forEach(b => b._marker && b._marker.setIcon(makeMarker(false, b.vizibilitate === 'basic' ? 1 : (b.nivel_vizibilitate || 1))));
+  BALTI.forEach(b => b._marker && b._marker.setIcon(makeMarker(false, b.vizibilitate === 'basic' ? 1 : (b.nivel_vizibilitate || 1), b.nume)));
   document.querySelectorAll('.balta-row').forEach(r => r.classList.remove('active-row'));
 }
 
@@ -1522,7 +1533,7 @@ function goHome(e) {
   try { sessionStorage.removeItem('zoda_index_state'); } catch(err) {}
   clearSearch();
   window.scrollTo({ top: 0, behavior: 'instant' });
-  if (typeof map !== 'undefined' && map) map.setView([45.5, 24.8], 7, { animate: true });
+  if (typeof map !== 'undefined' && map) map.fitBounds([[43.55, 20.2], [48.3, 29.75]], { animate: true });
   return false;
 }
 
@@ -1892,7 +1903,7 @@ function setVizibilitate(status) {
     st.style.color='var(--zc-accent-dark)'; st.style.background='var(--zc-bg-deep)';
     st.innerHTML='🌍 Balta este <strong>Publică</strong> — vizibilă pe hartă și în căutări.';
     // Actualizam marker-ul pe harta principala
-    if(lastBalta._marker) lastBalta._marker.setIcon(makeMarker(false, lastBalta.nivel_vizibilitate || 1));
+    if(lastBalta._marker) lastBalta._marker.setIcon(makeMarker(false, lastBalta.nivel_vizibilitate || 1, lastBalta.nume));
   }
   renderBalti();
 }
@@ -2015,7 +2026,7 @@ async function refreshBaltiInBackground() {
 
 // Adaugă/actualizează markerii pe hartă în funcție de rol.
 // Admini văd toate bălțile (unlisted semi-transparent); userii văd doar public.
-var MAP_MIN_ZOOM_PINS = 7; // sub acest zoom, nu randăm pini deloc (prea multi la nivel de tara)
+var MAP_MIN_ZOOM_PINS = 6; // sub acest zoom, nu randăm pini deloc (prea multi la nivel de tara)
 
 function renderMapMarkers() {
   const isAdmin = currentRole === 'zoda_admin';
@@ -2027,7 +2038,7 @@ function renderMapMarkers() {
     if (b.vizibilitate === 'basic' && !isAdmin) return;
     if (!b._marker) {
       const nivelIcon = b.vizibilitate === 'basic' ? 1 : (b.nivel_vizibilitate || 1);
-      const m = L.marker([b.lat, b.lng], { icon: makeMarker(false, nivelIcon), zIndexOffset: nivelIcon === 3 ? 300 : (nivelIcon === 2 ? 150 : 0) });
+      const m = L.marker([b.lat, b.lng], { icon: makeMarker(false, nivelIcon, b.nume), zIndexOffset: nivelIcon === 3 ? 300 : (nivelIcon === 2 ? 150 : 0) });
       // Popup generat "leneș" — abia când userul chiar îl deschide, nu la încărcare
       m.bindPopup(function() { return popHtml(b); }, { maxWidth: 240, minWidth: 220 });
       if (!skipTooltip) {
