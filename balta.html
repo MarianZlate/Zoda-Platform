@@ -188,7 +188,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* LAYOUT */
 #layout{max-width:1600px;margin:0 auto;display:block;position:relative;z-index:1;
   /* mobil */
-  padding:70px 12px 40px;}
+  padding:14px 12px 40px;}
 .lc,.rc{display:flex;flex-direction:column;gap:12px;min-width:0;}
 
 /* HERO GLOW — element decorativ deasupra cardului info-bar; look "depth":
@@ -201,8 +201,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
     radial-gradient(120% 100% at 50% 135%, rgba(56,189,248,.32), transparent 62%),
     radial-gradient(85% 70% at 22% -15%, rgba(14,116,144,.5), transparent 72%),
     linear-gradient(160deg, #0c222f, #081118);
-  /* mobil */
-  height:120px;margin-bottom:-42px;}
+  /* mobil — bandă subțire, doar accent, nu spațiu gol */
+  height:38px;margin-bottom:-20px;}
 
 /* INFO BAR — acum card plutitor: colțuri mari, umbră, se suprapune peste
    hero-glow de mai sus (vezi margin-bottom negativ pe .balta-hero-glow) */
@@ -438,23 +438,25 @@ html[data-theme="light"] .logo-img-light{display:block;}
 
 /* INFO BAR — nume mare + tagline tip pill + grid de „dale" (icon sus, text
    jos) pentru toate butoanele de contact/acțiune, 3 pe rând pe mobil —
-   înlocuiește vechiul rând de pastile mici cu icon+text inline. */
-#ib-name{font-size:21px!important;}
-#ib-tagline{display:inline-flex!important;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid currentColor;font-style:normal!important;font-size:12.5px!important;font-weight:700!important;padding:4px 11px;border-radius:20px;width:fit-content;margin-top:4px;}
-#ib-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:14px;}
+   înlocuiește vechiul rând de pastile mici cu icon+text inline. Dale mici
+   și compacte (nu tile-uri mari) — feedback direct după prima variantă. */
+#ib-name{font-size:19px!important;}
+#ib-tagline{display:inline-flex!important;align-items:center;gap:4px;background:rgba(255,255,255,.05);border:1px solid currentColor;font-style:normal!important;font-size:11.5px!important;font-weight:700!important;padding:3px 9px;border-radius:20px;width:fit-content;margin-top:3px;}
+#ib-actions-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;margin-top:10px;}
 #ib-actions-grid > a,#ib-actions-grid > button{
-  display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  width:100%;box-sizing:border-box;text-align:center;border-radius:14px!important;
-  padding:13px 6px!important;font-size:12px!important;line-height:1.25;}
-#ib-actions-grid .ib-ic{font-size:20px;line-height:1;}
-#ib-actions-grid svg{width:20px!important;height:20px!important;}
+  display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  width:100%;box-sizing:border-box;text-align:center;border-radius:11px!important;
+  padding:8px 4px!important;font-size:10.5px!important;line-height:1.2;}
+#ib-actions-grid .ib-ic{font-size:15px;line-height:1;}
+#ib-actions-grid svg{width:15px!important;height:15px!important;}
 /* WhatsApp rămâne dala „hero" — verde plin, ca în machetă */
 #btn-wa{background:#25d366!important;color:#fff!important;}
 #btn-wa svg{fill:#fff!important;}
 
 @media(max-width:360px){
-  #ib-actions-grid{gap:6px;}
-  #ib-actions-grid > a,#ib-actions-grid > button{padding:10px 3px!important;font-size:11px!important;}
+  #ib-actions-grid{gap:5px;}
+  #ib-actions-grid > a,#ib-actions-grid > button{padding:7px 3px!important;font-size:10px!important;}
+  #ib-actions-grid .ib-ic{font-size:14px;}
 }
 
 /* LOADING & ERROR */
