@@ -860,8 +860,22 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <button id="pill-facilitati" onclick="showFacilitati()" style="display:none;align-items:center;justify-content:center;text-align:center;line-height:1.25;border:1.5px solid #38bdf8;border-radius:14px;padding:6px 8px;cursor:pointer;font-size:12px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;white-space:normal;">🏕️ Facilități</button>
         <button id="pill-all" onclick="showAll()" style="display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25;border-radius:14px;padding:6px 8px;font-size:12px;white-space:normal;">🗺️ Toate standurile</button>
       </div>
-      <div style="width:100%;font-size:13px;font-weight:700;color:#38bdf8;margin-top:6px;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
+      <div style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;flex-wrap:wrap;">
+        <div style="font-size:13px;font-weight:700;color:#38bdf8;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
+        <div style="position:relative;flex-shrink:0;">
+          <button id="stand-filter-btn" onclick="toggleStandFilterDropdown(event)" style="display:flex;align-items:center;gap:5px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:6px 10px;color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;cursor:pointer;">🔎 Filtru<span id="stand-filter-count" style="display:none;background:#38bdf8;color:var(--zc-bg);border-radius:10px;padding:0 6px;font-size:11px;"></span></button>
+          <div id="stand-filter-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;padding:10px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:900;">
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="cabana" onchange="aplicaFiltruStanduri()"/> Cabană</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="foisor" onchange="aplicaFiltruStanduri()"/> Foișor</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="ponton" onchange="aplicaFiltruStanduri()"/> Ponton</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="stand_pamant" onchange="aplicaFiltruStanduri()"/> Stand pământ</label>
+            <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="stand_pietruit" onchange="aplicaFiltruStanduri()"/> Stand pietruit</label>
+            <button onclick="resetFiltruStanduri()" style="width:100%;margin-top:6px;background:none;border:1px solid var(--zc-border);border-radius:7px;padding:5px;color:var(--zc-text-muted);font-size:12px;font-weight:600;cursor:pointer;">Șterge filtrul</button>
+          </div>
+        </div>
+      </div>
       <div id="pills"></div>
+      <div id="pills-empty" style="display:none;padding:14px;text-align:center;color:var(--zc-text-muted);font-size:13px;">Niciun stand nu se potrivește cu filtrul ales.</div>
     </div><!-- /#pw -->
 
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
@@ -1642,9 +1656,7 @@ function renderPage(hartaUrl) {
 
   // Pills standuri
   if (ST.length > 0) {
-    document.getElementById('pills').innerHTML = ST.map(function(s){
-      return '<button class="pill" data-id="'+s.id+'" onclick="selStand('+s.id+')">'+escH(s.z)+'</button>';
-    }).join('');
+    renderPillsFiltrate();
     document.getElementById('spr-count').textContent = ST.length + ' standuri disponibile';
     document.getElementById('pill-drum').style.display = DRUM_ACCES_YT ? 'inline-block' : 'none';
     renderPins();
@@ -2049,10 +2061,59 @@ function pinSVG(label, active, editing) {
     +'</svg>';
 }
 
+// ─── FILTRU TIP STAND ────────────────────────────────────────────────────────
+var _standFiltreActive = [];
+
+function standTreceFiltrul(s) {
+  if (!_standFiltreActive.length) return true;
+  return _standFiltreActive.some(function(tip) { return !!s[tip]; });
+}
+
+function toggleStandFilterDropdown(e) {
+  if (e) e.stopPropagation();
+  var dd = document.getElementById('stand-filter-dropdown');
+  dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('stand-filter-dropdown');
+  var btn = document.getElementById('stand-filter-btn');
+  if (dd && dd.style.display === 'block' && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
+
+function aplicaFiltruStanduri() {
+  _standFiltreActive = Array.from(document.querySelectorAll('.stand-filter-cb:checked')).map(function(cb) { return cb.value; });
+  var countEl = document.getElementById('stand-filter-count');
+  if (_standFiltreActive.length) {
+    countEl.style.display = 'inline-block';
+    countEl.textContent = _standFiltreActive.length;
+  } else {
+    countEl.style.display = 'none';
+  }
+  renderPillsFiltrate();
+  renderPins();
+}
+
+function resetFiltruStanduri() {
+  document.querySelectorAll('.stand-filter-cb').forEach(function(cb) { cb.checked = false; });
+  aplicaFiltruStanduri();
+}
+
+function renderPillsFiltrate() {
+  var vizibile = ST.filter(standTreceFiltrul);
+  document.getElementById('pills').innerHTML = vizibile.map(function(s){
+    return '<button class="pill" data-id="'+s.id+'" onclick="selStand('+s.id+')">'+escH(s.z)+'</button>';
+  }).join('');
+  document.getElementById('pills').style.display = vizibile.length ? '' : 'none';
+  document.getElementById('pills-empty').style.display = vizibile.length ? 'none' : 'block';
+}
+
 function renderPins() {
   var layer = document.getElementById('pins-layer');
   layer.innerHTML = '';
   ST.forEach(function(s) {
+    if (!standTreceFiltrul(s)) return; // ascuns de filtrul activ — nici pe hartă
     var div = document.createElement('div');
     div.className = 'stand-pin';
     div.id = 'pin-' + s.id;
