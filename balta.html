@@ -389,8 +389,6 @@ html[data-theme="light"] .logo-img-light{display:block;}
    fiindcă modalul are deja propriul tab-toggle Hall of Fame / Top 10 Lunar. */
 #cl-body-hof .t10tabs{display:none;}
 #cl-body-hof .t10c,#cl-body-lunar .t10c{border:none;border-radius:0;}
-.cbm-stand-hdr{padding:10px 14px 4px;font-weight:800;font-size:12.5px;color:#38bdf8;border-top:1px solid var(--zc-border);}
-.cbm-stand-hdr:first-child{border-top:none;}
 .cbm-row{display:flex;align-items:center;border-bottom:1px solid var(--zc-border);gap:8px;padding:7px 14px;}
 @media(min-width:769px){
   #bottom-nav{display:none;}
@@ -1169,7 +1167,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
     <div class="hof-modal-hdr">
       <div>
         <div class="hof-modal-title">🐟 Capturi</div>
-        <div class="hof-modal-sub">Grupate pe standuri, la această baltă</div>
+        <div class="hof-modal-sub">Cea mai mare captură a fiecărui stand</div>
       </div>
       <button class="modal-close" onclick="closeCapturiModalBalta()">✕</button>
     </div>
@@ -2165,7 +2163,10 @@ function closeCapturiModalBalta() {
 
 // Modal nou — nu exista încă un grupaj "capturi pe stand" pe balta.html.
 // Se încarcă o singură dată (la prima deschidere), fetch direct din tabela
-// capturi (aceleași coloane ca loadHallOfFame), grupat vizual pe stand_id.
+// capturi (aceleași coloane ca loadHallOfFame). Un singur rând per stand —
+// captura curentă cea mai mare a acelui stand, nu toate capturile lui
+// (query-ul e deja sortat desc după kg, deci primul rând întâlnit per
+// stand_id e automat cel mai mare).
 var CAPTURI_MODAL_BALTA_LOADED = false;
 async function loadCapturiModalBalta(baltaId) {
   var wrap = document.getElementById('cbm-list');
@@ -2186,44 +2187,44 @@ async function loadCapturiModalBalta(baltaId) {
     return;
   }
 
-  // Grupare pe stand, apoi sortare grupuri alfabetic după numele standului
-  var groups = {}, order = [];
+  // Un singur record per stand — cel mai mare (primul întâlnit, fiindcă e
+  // deja sortat desc după kg) — apoi sortare alfabetică după numele standului
+  var perStand = [], seen = {};
   capturi.forEach(function(c) {
     var key = c.stand_id || 'fs';
-    if (!groups[key]) {
-      groups[key] = { nume: c.standuri ? c.standuri.nume : 'Fără stand', items: [] };
-      order.push(key);
-    }
-    groups[key].items.push(c);
+    if (seen[key]) return;
+    seen[key] = true;
+    perStand.push(c);
   });
-  order.sort(function(a, b) { return groups[a].nume.localeCompare(groups[b].nume, 'ro'); });
+  perStand.sort(function(a, b) {
+    var numeA = a.standuri ? a.standuri.nume : 'Fără stand';
+    var numeB = b.standuri ? b.standuri.nume : 'Fără stand';
+    return numeA.localeCompare(numeB, 'ro');
+  });
 
-  wrap.innerHTML = order.map(function(key) {
-    var g = groups[key];
-    var rows = g.items.map(function(c) {
-      var pescarNume = c.pescar_nume || '—';
-      var dataStr = c.data_captura ? c.data_captura : '';
-      var fotoHtml = c.foto_url
-        ? '<img src="' + c.foto_url + '" loading="lazy" id="cbm-img-' + c.id + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:zoom-in;display:block;"/>'
-        : '<div style="width:32px;height:32px;border-radius:4px;background:var(--zc-border);flex-shrink:0;"></div>';
-      var pescarLink = c.pescar_id
-        ? '<a href="pescar.html?id=' + c.pescar_id + '" onclick="saveBaltaState();event.stopPropagation()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;" onmouseover="this.style.color=\'#38bdf8\'" onmouseout="this.style.color=\'var(--zc-text-strong)\'">' + escH(pescarNume) + '</a>'
-        : escH(pescarNume);
-      var pescarStele = steleHtml(c.pescar_id);
-      return '<div class="cbm-row">'
-        + fotoHtml
-        + '<div style="flex:1;min-width:0;">'
-        + '<div style="font-size:12.5px;font-weight:700;color:var(--zc-text-strong);">' + pescarLink + pescarStele + '</div>'
-        + (dataStr ? '<div style="font-size:11px;color:var(--zc-text-muted);margin-top:1px;">' + dataStr + '</div>' : '')
-        + '</div>'
-        + '<div style="font-weight:900;color:#38bdf8;font-size:15px;flex-shrink:0;">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
-        + '</div>';
-    }).join('');
-    return '<div class="cbm-stand-hdr">📍 ' + escH(g.nume) + '</div>' + rows;
+  wrap.innerHTML = perStand.map(function(c) {
+    var standNume = c.standuri ? c.standuri.nume : 'Fără stand';
+    var pescarNume = c.pescar_nume || '—';
+    var dataStr = c.data_captura ? c.data_captura : '';
+    var fotoHtml = c.foto_url
+      ? '<img src="' + c.foto_url + '" loading="lazy" id="cbm-img-' + c.id + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:zoom-in;display:block;"/>'
+      : '<div style="width:32px;height:32px;border-radius:4px;background:var(--zc-border);flex-shrink:0;"></div>';
+    var pescarLink = c.pescar_id
+      ? '<a href="pescar.html?id=' + c.pescar_id + '" onclick="saveBaltaState();event.stopPropagation()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;" onmouseover="this.style.color=\'#38bdf8\'" onmouseout="this.style.color=\'var(--zc-text-strong)\'">' + escH(pescarNume) + '</a>'
+      : escH(pescarNume);
+    var pescarStele = steleHtml(c.pescar_id);
+    return '<div class="cbm-row">'
+      + fotoHtml
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:12.5px;font-weight:700;color:var(--zc-text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ' + escH(standNume) + '</div>'
+      + '<div style="font-size:11px;color:var(--zc-text-muted);margin-top:1px;">👤 ' + pescarLink + pescarStele + (dataStr ? ' · ' + dataStr : '') + '</div>'
+      + '</div>'
+      + '<div style="font-weight:900;color:#38bdf8;font-size:15px;flex-shrink:0;">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
+      + '</div>';
   }).join('');
 
   // Click pe poză — zoom fullscreen
-  capturi.forEach(function(c) {
+  perStand.forEach(function(c) {
     if (!c.foto_url) return;
     var img = document.getElementById('cbm-img-' + c.id);
     if (img) img.addEventListener('click', function(e) { e.stopPropagation(); openFS(c.foto_url); });
