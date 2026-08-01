@@ -360,19 +360,27 @@ html[data-theme="light"] .logo-img-light{display:block;}
    Convenții din REDESIGN-REFERINTA.md. Pagina asta nu are tokenii --z-bottom-bar/
    --z-modal (doar index.html îi are); folosim valori numerice consistente cu
    restul z-index-urilor de pe balta.html (stand-overlay/claim-modal sunt în jur
-   de 2000-2200, cookie-notice/promo-bar/guest-toast în jur de 4000-5000). */
-#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:2500;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
+   de 2000-2200, cookie-notice/promo-bar/guest-toast în jur de 4000-5000).
+   #bottom-nav e PESTE modaluri (3500 > 3000) — pe mobil, modalurile Capturi/
+   Clasament ocupă tot ecranul, dar meniul de jos rămâne vizibil și activ
+   deasupra lor, ca userul să poată naviga fără să închidă mai întâi modalul. */
+#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:3500;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
 .bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
 .bn-btn.active{color:#38bdf8;}
 
 #clasament-modal,#capturi-modal-balta{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
 #clasament-modal.open,#capturi-modal-balta.open{display:flex;}
-.hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;max-height:80vh;border-radius:0 0 16px 16px;margin-bottom:auto;}
+.hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;
+  /* mobil: modalul ocupă tot ecranul, nu doar 80vh cu colțuri rotunjite jos */
+  height:100dvh;max-height:100dvh;border-radius:0;}
 .hof-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);}
 .hof-modal-title{font-size:22px;font-weight:900;color:#f59e0b;}
 .hof-modal-sub{font-size:13px;color:var(--zc-text-muted);margin-top:3px;}
 .modal-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
-.hof-modal-list{overflow-y:auto;padding:8px 0;}
+.hof-modal-list{overflow-y:auto;
+  /* spațiu jos ca ultimele rânduri să nu fie ascunse sub #bottom-nav, care
+     plutește deasupra modalului full-page */
+  padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
 .lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
 .lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
 .lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
@@ -387,7 +395,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 @media(min-width:769px){
   #bottom-nav{display:none;}
   #clasament-modal,#capturi-modal-balta{align-items:center;justify-content:center;}
-  .hof-modal-inner{max-width:560px;max-height:85vh;border-radius:20px;margin-top:0;}
+  .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
+  .hof-modal-list{padding-bottom:8px;}
 }
 
 /* LEGENDĂ */
@@ -2106,10 +2115,18 @@ window.addEventListener('resize', function () {
 // telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
 // userul din aplicație. La închidere din X, dăm history.back() ca să curățăm
 // intrarea adăugată; popstate-ul rezultat închide efectiv modalul.
+// Notă: modalurile ocupă tot ecranul pe mobil, dar meniul de jos rămâne activ
+// deasupra lor — deci userul poate sări direct din Capturi în Clasament din
+// meniu. Când se întâmplă asta, facem swap cu history.replaceState (nu
+// back()+pushState, care ar intra în cursă unul cu altul) ca să nu rămână
+// două modaluri suprapuse și istoricul să aibă o singură intrare de modal.
 function openClasamentModal() {
+  var cbEl = document.getElementById('capturi-modal-balta');
+  var switching = cbEl && cbEl.classList.contains('open');
+  if (switching) cbEl.classList.remove('open');
   document.getElementById('clasament-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
-  history.pushState({ modal: 'clasament' }, '');
+  if (switching) history.replaceState({ modal: 'clasament' }, ''); else history.pushState({ modal: 'clasament' }, '');
 }
 function closeClasamentModal() {
   document.getElementById('clasament-modal').classList.remove('open');
@@ -2129,9 +2146,12 @@ function setBaltaClasamentTab(which) {
 }
 
 function openCapturiModalBalta() {
+  var clEl = document.getElementById('clasament-modal');
+  var switching = clEl && clEl.classList.contains('open');
+  if (switching) clEl.classList.remove('open');
   document.getElementById('capturi-modal-balta').classList.add('open');
   document.body.style.overflow = 'hidden';
-  history.pushState({ modal: 'capturibalta' }, '');
+  if (switching) history.replaceState({ modal: 'capturibalta' }, ''); else history.pushState({ modal: 'capturibalta' }, '');
   if (!CAPTURI_MODAL_BALTA_LOADED && BALTA) {
     CAPTURI_MODAL_BALTA_LOADED = true;
     loadCapturiModalBalta(BALTA.id);
@@ -2229,14 +2249,32 @@ window.addEventListener('popstate', function (e) {
 
 // Acasă — identic cu linkul "← Înapoi" deja existent pe pagină: salvează
 // starea bălții (poziție etc.) ca la revenire (buton fizic "înapoi") totul
-// să fie exact cum a fost lăsat.
+// să fie exact cum a fost lăsat. Dacă un modal era deschis (posibil acum că
+// meniul rămâne activ deasupra lui), curățăm intrarea lui din istoric FĂRĂ
+// să navigăm (history.replaceState), ca history.back() de mai jos să ducă
+// efectiv la pagina de dinainte de balta.html, nu doar să închidă modalul.
 function bnGoAcasaBalta() {
+  var clEl = document.getElementById('clasament-modal');
+  var cbEl = document.getElementById('capturi-modal-balta');
+  var modalOpen = (clEl && clEl.classList.contains('open')) || (cbEl && cbEl.classList.contains('open'));
+  if (clEl) clEl.classList.remove('open');
+  if (cbEl) cbEl.classList.remove('open');
+  document.body.style.overflow = '';
+  if (modalOpen && history.state && (history.state.modal === 'clasament' || history.state.modal === 'capturibalta')) {
+    history.replaceState(null, '');
+  }
   saveBaltaState();
   if (history.length > 1) { history.back(); } else { window.location.href = 'index.html'; }
 }
 // Contul meu — dacă e logat, direct pe cont.html; altfel, aceeași cale de
 // autentificare ca restul paginii (redirect spre index cu flag de register).
+// Navigarea e directă (location.href), deci nu mai trebuie curățat istoricul
+// modalului — doar închis vizual, ca tranziția să nu arate un modal deschis
+// pe pagina la care se întoarce userul dacă apasă vreodată "înainte".
 function bnGoContBalta() {
+  document.getElementById('clasament-modal')?.classList.remove('open');
+  document.getElementById('capturi-modal-balta')?.classList.remove('open');
+  document.body.style.overflow = '';
   if (BALTA_USER) {
     saveBaltaState();
     window.location.href = 'cont.html';
