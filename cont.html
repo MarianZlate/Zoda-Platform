@@ -760,7 +760,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
     <div class="section-body" id="evenimente-body" style="display:none;padding-top:6px;padding-bottom:14px;">
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="urm-tab-btn active" id="ev-tab-balta" onclick="switchEvenimenteTab('balta')">🎣 Bălți urmărite</button>
+        <button class="urm-tab-btn active" id="ev-tab-balta" onclick="switchEvenimenteTab('balta')">Bălți urmărite</button>
         <button class="urm-tab-btn" id="ev-tab-pescar" onclick="switchEvenimenteTab('pescar')">👤 Pescari urmăriți</button>
       </div>
       <div id="evenimente-list"><div class="notif-empty-msg">Se încarcă...</div></div>
@@ -779,7 +779,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
     <div class="section-body" id="urmariri-body" style="display:none;padding-top:6px;padding-bottom:14px;">
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="urm-tab-btn active" id="urm-tab-balta" onclick="switchUrmaririTab('balta')">🎣 Bălți (<span id="urm-count-balti">0</span>)</button>
+        <button class="urm-tab-btn active" id="urm-tab-balta" onclick="switchUrmaririTab('balta')">Bălți (<span id="urm-count-balti">0</span>)</button>
         <button class="urm-tab-btn" id="urm-tab-pescar" onclick="switchUrmaririTab('pescar')">👤 Pescari (<span id="urm-count-pescari">0</span>)</button>
       </div>
       <div id="urmariri-list"><div class="notif-empty-msg">Se încarcă...</div></div>
@@ -825,7 +825,6 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div class="list-eyebrow">CAPTURILE MELE</div>
       <div id="capturi-list">
         <div class="capture-empty">
-          <div class="capture-empty-icon">🎣</div>
           <div class="capture-empty-title">Nicio captură înregistrată</div>
           <div class="capture-empty-sub">
             Capturile tale aprobate vor apărea aici.
@@ -2886,7 +2885,7 @@ async function distribuieCard() {
       await navigator.share({
         files: [fisier],
         title: 'Captura mea pe Zoda',
-        text: 'Uite ce am prins! zoda.ro 🎣',
+        text: 'Uite ce am prins! zoda.ro ',
       });
     } catch(e) { /* userul a anulat share-ul — nu tratăm ca eroare */ }
   } else {
