@@ -1328,12 +1328,12 @@ var ZOOM_PRAG_NIVEL = { 3: 6, 2: 10, 1: 13 };
 function makeMarker(active, nivel, nume) {
   nivel = nivel || 1;
   const STIL_NIVEL = {
-    1: { culoare: 'var(--zc-bg-tint)', dim: 20 },
-    2: { culoare: '#3b82f6', dim: 23 },
-    3: { culoare: '#eab308', dim: 26 },
+    1: { culoare: 'var(--zc-bg-tint)', dim: 24 },
+    2: { culoare: '#3b82f6', dim: 27 },
+    3: { culoare: '#eab308', dim: 30 },
   };
   const stil = STIL_NIVEL[nivel] || STIL_NIVEL[1];
-  const w = stil.dim, h = Math.round(stil.dim * 40 / 30);
+  const w = stil.dim, h = stil.dim;
   const bg = active ? '#f59e0b' : stil.culoare;
   const glow = active
     ? 'drop-shadow(0 0 6px rgba(245,158,11,.6)) drop-shadow(0 3px 8px rgba(0,0,0,.8))'
@@ -1346,12 +1346,7 @@ function makeMarker(active, nivel, nume) {
     className: '',
     html: `<div style="display:flex;flex-direction:column;align-items:center;">
       ${label}
-      <svg width="${w}" height="${h}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:${glow};display:block;">
-        <g transform="translate(15,0) scale(0.6,1) translate(-15,0)">
-          <path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="${bg}"/>
-          <circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/>
-        </g>
-      </svg>
+      <div style="font-size:${w}px;line-height:1;filter:${glow};">📍</div>
     </div>`,
     iconSize: [Math.max(w, 110), h + (nume ? labelH + 2 : 0)],
     iconAnchor: [Math.max(w, 110) / 2, h + (nume ? labelH + 2 : 0)],
