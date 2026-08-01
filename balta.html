@@ -356,6 +356,40 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .unlock-btn{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:9px 20px;border-radius:9px;cursor:pointer;margin-top:4px;transition:background .2s;}
 .unlock-btn:hover{background:#0891b2;}
 
+/* ═══ MENIU DE JOS (mobil) + MODALURI CAPTURI/CLASAMENT ═══════════════════
+   Convenții din REDESIGN-REFERINTA.md. Pagina asta nu are tokenii --z-bottom-bar/
+   --z-modal (doar index.html îi are); folosim valori numerice consistente cu
+   restul z-index-urilor de pe balta.html (stand-overlay/claim-modal sunt în jur
+   de 2000-2200, cookie-notice/promo-bar/guest-toast în jur de 4000-5000). */
+#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:2500;display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
+.bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
+.bn-btn.active{color:#38bdf8;}
+
+#clasament-modal,#capturi-modal-balta{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#clasament-modal.open,#capturi-modal-balta.open{display:flex;}
+.hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;max-height:80vh;border-radius:0 0 16px 16px;margin-bottom:auto;}
+.hof-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);}
+.hof-modal-title{font-size:22px;font-weight:900;color:#f59e0b;}
+.hof-modal-sub{font-size:13px;color:var(--zc-text-muted);margin-top:3px;}
+.modal-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
+.hof-modal-list{overflow-y:auto;padding:8px 0;}
+.lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
+.lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
+.lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
+/* Cardurile #top10-card/#top10-lunar-card mutate în modal (JS) își aduc propriul
+   header — ascundem tab-ul intern redundant al #top10-card când e în modal,
+   fiindcă modalul are deja propriul tab-toggle Hall of Fame / Top 10 Lunar. */
+#cl-body-hof .t10tabs{display:none;}
+#cl-body-hof .t10c,#cl-body-lunar .t10c{border:none;border-radius:0;}
+.cbm-stand-hdr{padding:10px 14px 4px;font-weight:800;font-size:12.5px;color:#38bdf8;border-top:1px solid var(--zc-border);}
+.cbm-stand-hdr:first-child{border-top:none;}
+.cbm-row{display:flex;align-items:center;border-bottom:1px solid var(--zc-border);gap:8px;padding:7px 14px;}
+@media(min-width:769px){
+  #bottom-nav{display:none;}
+  #clasament-modal,#capturi-modal-balta{align-items:center;justify-content:center;}
+  .hof-modal-inner{max-width:560px;max-height:85vh;border-radius:20px;margin-top:0;}
+}
+
 /* LEGENDĂ */
 .lgd{display:flex;flex-direction:column;gap:5px;}
 .li{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;border:1px solid var(--zc-border);cursor:pointer;transition:all .15s;background:var(--zc-bg-panel);}
@@ -1098,6 +1132,42 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   </div>
 </div>
 
+<!-- MODAL CLASAMENT — Hall of Fame / Top 10 Lunar ale acestei bălți.
+     #cl-body-hof/#cl-body-lunar sunt containere goale; pe mobil, JS mută
+     #top10-card și #top10-lunar-card (deja existente în #rc-top10) aici, ca
+     să nu se dubleze conținutul — pe desktop rămân în #rc-top10 ca înainte. -->
+<div id="clasament-modal">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">🏆 Clasament</div>
+        <div class="hof-modal-sub">Clasamentul acestei bălți</div>
+      </div>
+      <button class="modal-close" onclick="closeClasamentModal()">✕</button>
+    </div>
+    <div class="lb-tab-toggle">
+      <button class="lb-tab-btn active" id="cl-tab-hof" onclick="setBaltaClasamentTab('hof')">🏆 Hall of Fame</button>
+      <button class="lb-tab-btn" id="cl-tab-lunar" onclick="setBaltaClasamentTab('lunar')">📅 Top 10 Lunar</button>
+    </div>
+    <div class="hof-modal-list" id="cl-body-hof"></div>
+    <div class="hof-modal-list" id="cl-body-lunar" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- MODAL CAPTURI — capturile acestei bălți, grupate pe standuri -->
+<div id="capturi-modal-balta">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">🐟 Capturi</div>
+        <div class="hof-modal-sub">Grupate pe standuri, la această baltă</div>
+      </div>
+      <button class="modal-close" onclick="closeCapturiModalBalta()">✕</button>
+    </div>
+    <div class="hof-modal-list" id="cbm-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
@@ -1733,6 +1803,9 @@ function renderPage(hartaUrl) {
   loadTop10Lunar(BALTA.id);
   // Facilități
   loadFacilitati(BALTA.id);
+  // Meniu de jos (mobil) — plasează #top10-card/#top10-lunar-card în #rc-top10
+  // sau în modalul Clasament, în funcție de lățimea ecranului curent.
+  reparentTop10ForBreakpoint();
 
   // Afișează pagina
   document.getElementById('loading-screen').style.display = 'none';
@@ -1995,6 +2068,181 @@ function openAuthFromBalta() {
   // Trimite userul la index cu un flag să deschidă modalul de register
   sessionStorage.setItem('zoda_open_auth', 'register');
   window.location.href = 'index.html';
+}
+
+// ═══ MENIU DE JOS + MODALURI CLASAMENT/CAPTURI ═════════════════════════════
+
+// Mută #top10-card/#top10-lunar-card (deja existente, cu funcțiile lor
+// loadHallOfFame()/loadTop10Lunar() neschimbate) fie în #rc-top10 (desktop —
+// vizibile mereu, ca înainte), fie în modalul Clasament (mobil — vizibile
+// doar la deschiderea modalului, ca să nu se dubleze conținutul pe pagină).
+// Element mutat, nu recreat — vezi regula #2 din REDESIGN-REFERINTA.md.
+var TOP10_IN_MODAL = null; // null = neinițializat, true = în modal, false = în #rc-top10
+function reparentTop10ForBreakpoint() {
+  var card = document.getElementById('top10-card');
+  var lunarCard = document.getElementById('top10-lunar-card');
+  var rc = document.getElementById('rc-top10');
+  var clHof = document.getElementById('cl-body-hof');
+  var clLunar = document.getElementById('cl-body-lunar');
+  if (!card || !lunarCard || !rc || !clHof || !clLunar) return;
+  var mobil = window.innerWidth <= 768;
+  if (mobil && TOP10_IN_MODAL !== true) {
+    clHof.appendChild(card);
+    clLunar.appendChild(lunarCard);
+    TOP10_IN_MODAL = true;
+  } else if (!mobil && TOP10_IN_MODAL !== false) {
+    rc.appendChild(card);
+    rc.appendChild(lunarCard);
+    TOP10_IN_MODAL = false;
+  }
+}
+var _top10ResizeTimer = null;
+window.addEventListener('resize', function () {
+  clearTimeout(_top10ResizeTimer);
+  _top10ResizeTimer = setTimeout(reparentTop10ForBreakpoint, 200);
+});
+
+// La deschidere, adăugăm o intrare în istoric — astfel butonul "înapoi" al
+// telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
+// userul din aplicație. La închidere din X, dăm history.back() ca să curățăm
+// intrarea adăugată; popstate-ul rezultat închide efectiv modalul.
+function openClasamentModal() {
+  document.getElementById('clasament-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'clasament' }, '');
+}
+function closeClasamentModal() {
+  document.getElementById('clasament-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (history.state && history.state.modal === 'clasament') history.back();
+}
+function setBaltaClasamentTab(which) {
+  var hBtn = document.getElementById('cl-tab-hof'), lBtn = document.getElementById('cl-tab-lunar');
+  var hBody = document.getElementById('cl-body-hof'), lBody = document.getElementById('cl-body-lunar');
+  if (which === 'lunar') {
+    hBtn.classList.remove('active'); lBtn.classList.add('active');
+    hBody.style.display = 'none'; lBody.style.display = '';
+  } else {
+    lBtn.classList.remove('active'); hBtn.classList.add('active');
+    lBody.style.display = 'none'; hBody.style.display = '';
+  }
+}
+
+function openCapturiModalBalta() {
+  document.getElementById('capturi-modal-balta').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'capturibalta' }, '');
+  if (!CAPTURI_MODAL_BALTA_LOADED && BALTA) {
+    CAPTURI_MODAL_BALTA_LOADED = true;
+    loadCapturiModalBalta(BALTA.id);
+  }
+}
+function closeCapturiModalBalta() {
+  document.getElementById('capturi-modal-balta').classList.remove('open');
+  document.body.style.overflow = '';
+  if (history.state && history.state.modal === 'capturibalta') history.back();
+}
+
+// Modal nou — nu exista încă un grupaj "capturi pe stand" pe balta.html.
+// Se încarcă o singură dată (la prima deschidere), fetch direct din tabela
+// capturi (aceleași coloane ca loadHallOfFame), grupat vizual pe stand_id.
+var CAPTURI_MODAL_BALTA_LOADED = false;
+async function loadCapturiModalBalta(baltaId) {
+  var wrap = document.getElementById('cbm-list');
+  if (!wrap) return;
+  if (BALTA && BALTA.vizibilitate === 'basic') {
+    wrap.innerHTML = '<div style="padding:24px 16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Date indisponibile pentru această baltă.</div>';
+    return;
+  }
+
+  var { data: capturi, error } = await sb.from('capturi')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .eq('balta_id', baltaId)
+    .eq('status', 'approved')
+    .order('kg', { ascending: false });
+
+  if (error || !capturi || !capturi.length) {
+    wrap.innerHTML = '<div style="padding:24px 16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Nicio captură înregistrată încă la această baltă.</div>';
+    return;
+  }
+
+  // Grupare pe stand, apoi sortare grupuri alfabetic după numele standului
+  var groups = {}, order = [];
+  capturi.forEach(function(c) {
+    var key = c.stand_id || 'fs';
+    if (!groups[key]) {
+      groups[key] = { nume: c.standuri ? c.standuri.nume : 'Fără stand', items: [] };
+      order.push(key);
+    }
+    groups[key].items.push(c);
+  });
+  order.sort(function(a, b) { return groups[a].nume.localeCompare(groups[b].nume, 'ro'); });
+
+  wrap.innerHTML = order.map(function(key) {
+    var g = groups[key];
+    var rows = g.items.map(function(c) {
+      var pescarNume = c.pescar_nume || '—';
+      var dataStr = c.data_captura ? c.data_captura : '';
+      var fotoHtml = c.foto_url
+        ? '<img src="' + c.foto_url + '" loading="lazy" id="cbm-img-' + c.id + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:zoom-in;display:block;"/>'
+        : '<div style="width:32px;height:32px;border-radius:4px;background:var(--zc-border);flex-shrink:0;"></div>';
+      var pescarLink = c.pescar_id
+        ? '<a href="pescar.html?id=' + c.pescar_id + '" onclick="saveBaltaState();event.stopPropagation()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;" onmouseover="this.style.color=\'#38bdf8\'" onmouseout="this.style.color=\'var(--zc-text-strong)\'">' + escH(pescarNume) + '</a>'
+        : escH(pescarNume);
+      var pescarStele = steleHtml(c.pescar_id);
+      return '<div class="cbm-row">'
+        + fotoHtml
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:12.5px;font-weight:700;color:var(--zc-text-strong);">' + pescarLink + pescarStele + '</div>'
+        + (dataStr ? '<div style="font-size:11px;color:var(--zc-text-muted);margin-top:1px;">' + dataStr + '</div>' : '')
+        + '</div>'
+        + '<div style="font-weight:900;color:#38bdf8;font-size:15px;flex-shrink:0;">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
+        + '</div>';
+    }).join('');
+    return '<div class="cbm-stand-hdr">📍 ' + escH(g.nume) + '</div>' + rows;
+  }).join('');
+
+  // Click pe poză — zoom fullscreen
+  capturi.forEach(function(c) {
+    if (!c.foto_url) return;
+    var img = document.getElementById('cbm-img-' + c.id);
+    if (img) img.addEventListener('click', function(e) { e.stopPropagation(); openFS(c.foto_url); });
+  });
+}
+
+window.addEventListener('popstate', function (e) {
+  if (!(e.state && e.state.modal === 'clasament')) {
+    var clEl = document.getElementById('clasament-modal');
+    if (clEl && clEl.classList.contains('open')) {
+      clEl.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+  if (!(e.state && e.state.modal === 'capturibalta')) {
+    var cbEl = document.getElementById('capturi-modal-balta');
+    if (cbEl && cbEl.classList.contains('open')) {
+      cbEl.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+});
+
+// Acasă — identic cu linkul "← Înapoi" deja existent pe pagină: salvează
+// starea bălții (poziție etc.) ca la revenire (buton fizic "înapoi") totul
+// să fie exact cum a fost lăsat.
+function bnGoAcasaBalta() {
+  saveBaltaState();
+  if (history.length > 1) { history.back(); } else { window.location.href = 'index.html'; }
+}
+// Contul meu — dacă e logat, direct pe cont.html; altfel, aceeași cale de
+// autentificare ca restul paginii (redirect spre index cu flag de register).
+function bnGoContBalta() {
+  if (BALTA_USER) {
+    saveBaltaState();
+    window.location.href = 'cont.html';
+  } else {
+    openAuthFromBalta();
+  }
 }
 
 function toggleIstoric() {
@@ -4056,5 +4304,25 @@ function startDrag(e, id) {
 </script>
 
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
+<!-- ═══ MENIU DE JOS ═══ -->
+<nav id="bottom-nav">
+  <button class="bn-btn" id="bn-acasa" onclick="bnGoAcasaBalta()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+    <span>Acasă</span>
+  </button>
+  <button class="bn-btn" id="bn-capturi" onclick="openCapturiModalBalta()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6Z"/><circle cx="12" cy="16" r="1.4"/></svg>
+    <span>Capturi</span>
+  </button>
+  <button class="bn-btn" id="bn-clasament" onclick="openClasamentModal()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a1 1 0 0 0-1 1c0 3 2 4 4 4M17 6h3a1 1 0 0 1 1 1c0 3-2 4-4 4"/></svg>
+    <span>Clasament</span>
+  </button>
+  <button class="bn-btn" id="bn-cont" onclick="bnGoContBalta()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+    <span>Contul meu</span>
+  </button>
+</nav>
+
 </body>
 </html>
