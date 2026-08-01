@@ -749,7 +749,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
     <div id="map-wrap">
     <div id="map"></div>
-    <div id="map-legend">🎣 Click pe marker pentru detalii</div>
+    <div id="map-legend">Click pe marker pentru detalii</div>
     <div id="map-zoom-hint">🔍 Dă zoom pe o zonă sau caută o baltă</div>
     <div id="map-touch-overlay" onclick="activateMap()">
       <div class="mto-inner"><span class="mto-icon">👆</span> Apasă pentru a interacționa cu harta</div>
@@ -903,7 +903,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- Header -->
     <div class="ab-hdr">
       <div>
-        <div class="ab-title">🎣 Adaugă baltă nouă</div>
+        <div class="ab-title">Adaugă baltă nouă</div>
       </div>
       <button class="ab-close" onclick="closeAddBalta()">✕</button>
     </div>
@@ -1334,7 +1334,7 @@ function makeMarker(active, nivel) {
     html: `<svg width="${w}" height="${h}" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:${glow};display:block;">
       <path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="${bg}"/>
       <circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/>
-      <text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white">🎣</text>
+      <text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white"></text>
     </svg>`,
     iconSize: [w, h], iconAnchor: [w / 2, h], popupAnchor: [0, -h - 2],
   });
@@ -1345,7 +1345,7 @@ function popHtml(b) {
     <div class="pop-name">${escH(b.nume)}</div>
     <div class="pop-meta">📍 ${escH(b.judet)}</div>
     <div class="pop-row">
-      <span class="pop-tag">🎣 ${b.standuri} standuri</span>
+      <span class="pop-tag">${b.standuri} standuri</span>
       <span class="pop-tag">🏆 ${escH(b.rec)}</span>
     </div>
     <div class="pop-meta" style="margin-bottom:10px;">📞 ${escH(b.telefon)}</div>
@@ -1833,7 +1833,7 @@ async function renderBalti() {
   document.getElementById('balti-list').innerHTML = istoric.slice(0, 5).map((b, idx) => {
     return `<div class="balta-row" data-id="${b.id}" onclick="__goToBalta(${b.id})" style="cursor:pointer;">
       <div style="width:28px;height:28px;border-radius:7px;background:var(--zc-border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">
-        🎣
+        
       </div>
       <div style="flex:1;min-width:0;">
         <div class="balta-name">${escH(b.nume)}</div>
@@ -2161,7 +2161,7 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">🎣 ${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
@@ -2186,7 +2186,7 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">🎣 ${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
   }
   dd.style.display = willOpen ? 'block' : 'none';
@@ -2514,7 +2514,7 @@ function buildEditBody(b, ext) {
   <!-- SECTIUNE: Standuri -->
   <div class="edit-section">
     <div class="edit-section-title">
-      <span>🎣 STANDURI (${ext.standuri.length})</span>
+      <span>STANDURI (${ext.standuri.length})</span>
       <button onclick="addEditStand()" style="background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Adaugă stand</button>
     </div>
     <div id="edit-stands-wrap">
@@ -3582,7 +3582,6 @@ function getStanduriData() {
 <div id="auth-modal">
   <div class="auth-inner">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
-    <div class="auth-logo">🎣</div>
     <div class="auth-title">Zoda</div>
     <div class="auth-sub">Intră în cont sau creează unul nou</div>
 
@@ -4721,7 +4720,6 @@ sb.auth.onAuthStateChange(async (event, session) => {
 <!-- PESCAR GUEST MODAL -->
 <div id="pescar-guest-modal">
   <div class="pgm-box">
-    <div class="pgm-icon">🎣</div>
     <div class="pgm-title">Creează un cont gratuit</div>
     <div class="pgm-sub">Înregistrează-te pentru a vedea profilurile pescarilor, realizările lor și clasamentele complete.</div>
     <button class="pgm-btn" onclick="closePescarGuestModal(); openAuthModal(); authSwitchTab('register');">Creează cont gratuit</button>
@@ -4736,7 +4734,6 @@ function closePescarGuestModal() { document.getElementById('pescar-guest-modal')
 
 <!-- GUEST TOAST -->
 <div id="guest-toast">
-  <div class="gt-icon">🎣</div>
   <div class="gt-text">
     <div class="gt-title">Ești pescar?</div>
     <div class="gt-sub">Înregistrează-te gratuit și deblochezi<br/>toate funcționalitățile platformei.</div>
