@@ -4034,6 +4034,16 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
+// Backup — pe unele telefoane click-ul „în afară" nu se propagă cum trebuie
+// până la document; blur-ul de pe input prinde sigur ieșirea din câmp. Delay
+// scurt ca să apuce să înregistreze click-ul pe un rezultat din listă înainte
+// să se închidă dropdown-ul.
+document.getElementById('cauta-pescari-input')?.addEventListener('blur', function() {
+  setTimeout(function() {
+    const dd = document.getElementById('cauta-pescari-dropdown');
+    if (dd) dd.style.display = 'none';
+  }, 200);
+});
 
 
 async function verificaEvenimenteUrmariri(userId) {
