@@ -460,7 +460,7 @@ th,td{padding:8px 6px;}
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('balti')">🎣 Bălți</button>
+    <button class="tab active" onclick="switchTab('balti')">Bălți</button>
     <button class="tab" onclick="switchTab('users')">👥 Utilizatori</button>
     <button class="tab" onclick="switchTab('mesaje')" style="position:relative;">✉️ Mesaje<span id="mesaje-pending-badge" class="tab-badge" style="display:none;"></span></button>
     <button class="tab" onclick="switchTab('aprobari')" style="position:relative;">🚀 Aprobări<span id="aprobari-pending-badge" class="tab-badge" style="display:none;"></span></button>
@@ -475,7 +475,7 @@ th,td{padding:8px 6px;}
   <!-- BALTI PANEL -->
   <div id="panel-balti">
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <span>🎣 Toate bălțile înregistrate</span>
+      <span>Toate bălțile înregistrate</span>
       <button onclick="openAddBalta()" style="display:flex;align-items:center;gap:8px;background:#0c3a4d;border:none;color:#38bdf8;font-size:15px;font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer;">
         ＋ Adaugă baltă nouă
       </button>
@@ -787,7 +787,7 @@ th,td{padding:8px 6px;}
       <div class="fg">
         <label>TIP RECLAMĂ</label>
         <select id="rc-tip" onchange="rcTipChanged()" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:16px;outline:none;cursor:pointer;">
-          <option value="balta">🎣 Promovare baltă</option>
+          <option value="balta">Promovare baltă</option>
           <option value="concurs">🏆 Concurs</option>
           <option value="magazin">🛒 Ofertă magazin</option>
           <option value="altele">📌 Altele</option>
@@ -808,13 +808,13 @@ th,td{padding:8px 6px;}
             <input type="checkbox" class="rc-pagina-check" value="index"/> 🏠 Index
           </label>
           <label style="display:flex;align-items:center;gap:7px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:9px 10px;cursor:pointer;font-size:15px;color:#e2e8f0;">
-            <input type="checkbox" class="rc-pagina-check" value="balta"/> 🎣 Baltă
+            <input type="checkbox" class="rc-pagina-check" value="balta"/> Baltă
           </label>
           <label style="display:flex;align-items:center;gap:7px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:9px 10px;cursor:pointer;font-size:15px;color:#e2e8f0;">
             <input type="checkbox" class="rc-pagina-check" value="cont"/> 👤 Cont
           </label>
           <label style="display:flex;align-items:center;gap:7px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:9px 10px;cursor:pointer;font-size:15px;color:#e2e8f0;">
-            <input type="checkbox" class="rc-pagina-check" value="pescar"/> 🎣 Profil pescar
+            <input type="checkbox" class="rc-pagina-check" value="pescar"/> Profil pescar
           </label>
           <label style="display:flex;align-items:center;gap:7px;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:9px 10px;cursor:pointer;font-size:15px;color:#e2e8f0;">
             <input type="checkbox" class="rc-pagina-check" value="ambasador-galerie"/> 🎥 Galerie ambasador
@@ -883,7 +883,7 @@ th,td{padding:8px 6px;}
 <div id="ab-modal">
   <div class="ab-inner">
     <div class="ab-hdr">
-      <div class="ab-title">🎣 Adaugă baltă nouă</div>
+      <div class="ab-title">Adaugă baltă nouă</div>
       <button class="ab-close" onclick="closeAddBalta()">✕</button>
     </div>
     <div class="ab-steps">
@@ -1802,7 +1802,7 @@ async function loadAprobari() {
         <span>📞 ${b.telefon ? escH(b.telefon) : '—'}</span>
         <span>💰 ${b.tarife ? '✓ completate' : '—'}</span>
         <span>📋 ${b.regulament ? '✓ completat' : '—'}</span>
-        <span>🎣 ${standuriCount[b.id] || 0} standuri</span>
+        <span>${standuriCount[b.id] || 0} standuri</span>
         <span>📸 ${pozeCount[b.id] || 0} poze generale</span>
       </div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
@@ -2508,7 +2508,7 @@ let rcEditId = null;
 let rcImgFile = null;
 let rcImgUrl = '';
 
-const RC_TIP_LABEL = { balta: '🎣 Baltă', concurs: '🏆 Concurs', magazin: '🛒 Magazin', altele: '📌 Altele' };
+const RC_TIP_LABEL = { balta: 'Baltă', concurs: '🏆 Concurs', magazin: '🛒 Magazin', altele: '📌 Altele' };
 
 async function loadReclame() {
   const wrap = document.getElementById('reclame-list');
@@ -2781,7 +2781,7 @@ function exportReclamaRaport(id) {
   <div class="sheet">
     <div class="hdr">
       <div>
-        <h1>🎣 Zoda — Raport reclamă</h1>
+        <h1>Zoda — Raport reclamă</h1>
         <div class="sub">Document generat automat, needitabil</div>
       </div>
       <div class="meta">Generat: ${escH(generatLa)}</div>
@@ -2993,7 +2993,7 @@ function renderBaltiTable() {
         <div class="zodaid-mobile-inline" style="font-family:monospace;font-size:11.8px;margin-top:2px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? '👤 ' + escH(b.admin_zoda_id) : '👤 fără admin'}</div>
       </td>
       <td class="col-judet" style="color:#64748b;">📍 ${b.judet || '—'}</td>
-      <td class="col-standuri" style="color:#64748b;">🎣 ${standuriCount[b.id] || 0}</td>
+      <td class="col-standuri" style="color:#64748b;">${standuriCount[b.id] || 0}</td>
       <td class="col-harta" style="${hasHarta.has(b.id) ? 'color:#38bdf8;font-weight:700;' : 'color:#ef4444;'}">${hasHarta.has(b.id) ? 'Da' : 'Nu'}</td>
       <td class="col-zodaid" style="font-family:monospace;font-size:12px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? escH(b.admin_zoda_id) : '—'}</td>
       <td class="col-status">
@@ -3498,7 +3498,7 @@ function buildEditBody(b, ext) {
   <!-- STANDURI -->
   <div class="edit-section">
     <div class="edit-section-title">
-      <span>🎣 STANDURI (${ext.standuri.length})</span>
+      <span>STANDURI (${ext.standuri.length})</span>
       <button onclick="addEditStand()" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">+ Adaugă stand</button>
     </div>
     <div class="se-sort-bar">
