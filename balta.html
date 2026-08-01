@@ -864,7 +864,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <div style="font-size:13px;font-weight:700;color:#38bdf8;white-space:nowrap;overflow-x:auto;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;">Apasă pe un stand ca să-i vezi poza și detaliile: <span style="display:inline-block;transform:rotate(180deg);">👆</span></div>
         <div style="position:relative;flex-shrink:0;">
           <button id="stand-filter-btn" onclick="toggleStandFilterDropdown(event)" style="display:flex;align-items:center;gap:5px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:6px 10px;color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;cursor:pointer;">🔎 Filtru<span id="stand-filter-count" style="display:none;background:#38bdf8;color:var(--zc-bg);border-radius:10px;padding:0 6px;font-size:11px;"></span></button>
-          <div id="stand-filter-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;padding:10px;min-width:190px;max-width:calc(100vw - 24px);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:900;">
+          <div id="stand-filter-dropdown" style="display:none;position:fixed;left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;padding:10px;min-width:190px;max-width:calc(100vw - 24px);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:900;">
             <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="cabana" onchange="aplicaFiltruStanduri()"/> Cabană</label>
             <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="foisor" onchange="aplicaFiltruStanduri()"/> Foișor</label>
             <label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="stand-filter-cb" value="ponton" onchange="aplicaFiltruStanduri()"/> Ponton</label>
@@ -2076,16 +2076,30 @@ function toggleStandFilterDropdown(e) {
   dd.style.display = willOpen ? 'block' : 'none';
   if (willOpen) {
     var btn = document.getElementById('stand-filter-btn');
+    pozitioneazaStandFilterDropdown();
     setTimeout(function () {
       btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 0);
+    window.addEventListener('scroll', pozitioneazaStandFilterDropdown, { passive: true });
+    window.addEventListener('resize', pozitioneazaStandFilterDropdown);
+  } else {
+    window.removeEventListener('scroll', pozitioneazaStandFilterDropdown);
+    window.removeEventListener('resize', pozitioneazaStandFilterDropdown);
   }
+}
+function pozitioneazaStandFilterDropdown() {
+  var dd = document.getElementById('stand-filter-dropdown');
+  var btn = document.getElementById('stand-filter-btn');
+  if (!dd || !btn || dd.style.display !== 'block') return;
+  dd.style.top = (btn.getBoundingClientRect().bottom + 8) + 'px';
 }
 document.addEventListener('click', function(e) {
   var dd = document.getElementById('stand-filter-dropdown');
   var btn = document.getElementById('stand-filter-btn');
   if (dd && dd.style.display === 'block' && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
     dd.style.display = 'none';
+    window.removeEventListener('scroll', pozitioneazaStandFilterDropdown);
+    window.removeEventListener('resize', pozitioneazaStandFilterDropdown);
   }
 });
 
