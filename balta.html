@@ -709,7 +709,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         <div style="padding:10px;border-right:1px solid var(--zc-border);">
           <div class="sec-lbl">📸 CEA MAI MARE CAPTURĂ</div>
-          <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">🐟</span><span>Fără fotografie</span></div>
+          <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">📷</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
             <div class="stat-row"><span class="stat-lbl">🏆</span><strong id="ov-kg" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
             <div class="stat-row"><span class="stat-lbl">👤</span><strong id="ov-pe" style="color:var(--zc-text-strong);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">-</strong></div>
@@ -2108,7 +2108,7 @@ function openOverlay(id) {
     recFoto.addEventListener('click', function() { openFS(s.r.foto); });
   } else {
     recFoto.className = 'foto-empty';
-    recFoto.innerHTML = '<span style="font-size:27px;">🐟</span><span>Fără fotografie</span>';
+    recFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
   }
 
   var oldSt = document.getElementById('ov-stand-foto');
