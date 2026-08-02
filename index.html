@@ -581,14 +581,12 @@ nav{display:flex;align-items:center;gap:6px;}
   #search-input{font-size:17px;}
   #stats-bar{padding:0;}
   .stat-chip{padding:5px 20px;font-size:16px;}
-  #main{padding:0 24px 60px;grid-template-columns:1fr 400px;grid-template-rows:auto auto auto 1fr auto;grid-template-areas:"search sidebar" "statsbar sidebar" "cautaPescari sidebar" "mapwrap sidebar" "saptamanal saptamanal";gap:14px 24px;}
+  #main{padding:0 24px 60px;max-width:900px;grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"search" "statsbar" "cautaPescari" "mapwrap" "saptamanal";gap:14px;}
   #cauta-pescari-card{grid-area:cautaPescari;max-width:100%;margin:0 0 10px;}
   #saptamanal-wrap{grid-area:saptamanal;grid-template-columns:1fr 1fr;margin:0;}
   #stats-bar{grid-area:statsbar;}
   #cr-wrap{grid-area:mapwrap;margin:0;}
-  #sidebar{grid-area:sidebar;}
   #search-wrap{grid-area:search;max-width:100%;margin:0 0 10px;}
-  #sidebar{display:flex;flex-direction:column;gap:16px;align-items:stretch;}
   .hof-card,.balti-card{min-width:unset;}
   .hof-header{padding:14px 16px;}
   .hof-title{font-size:19px;}
