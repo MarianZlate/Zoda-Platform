@@ -3928,9 +3928,18 @@ async function saveEditBalta() {
     const { data: profil } = await sb.from('user_profiles')
       .select('id, username').eq('zoda_id', newAdminZodaId).single();
     if (profil?.id) {
-      await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
-      // Notăm în toast că asocierea s-a făcut (util și când e același ZODA-ID)
-      showToast(`✅ ${profil.username || newAdminZodaId} asociat ca administrator al băltii.`);
+      // Nu retrogradăm niciodată un zoda_admin existent (inclusiv admin suprem)
+      // la balta_admin — upsert-ul de mai jos suprascrie coloana "rol" fără
+      // discriminare; fără verificarea asta, asocierea unui zoda_admin ca
+      // administrator de baltă îi anula silențios accesul la panoul de admin.
+      const { data: rolActual } = await sb.from('user_roles').select('rol').eq('id', profil.id).single();
+      if (rolActual?.rol === 'zoda_admin') {
+        showToast(`ℹ️ ${profil.username || newAdminZodaId} e deja Zoda Admin — rolul nu a fost schimbat (are oricum acces complet).`);
+      } else {
+        await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+        // Notăm în toast că asocierea s-a făcut (util și când e același ZODA-ID)
+        showToast(`✅ ${profil.username || newAdminZodaId} asociat ca administrator al băltii.`);
+      }
     } else {
       showToast(`⚠️ ZODA-ID "${newAdminZodaId}" nu a fost găsit în platformă — rolul nu a fost acordat.`, true);
       // Blocăm salvarea dacă ZODA-ID-ul e invalid
@@ -4350,11 +4359,19 @@ async function abSubmit() {
   if(baltaErr){showToast('⚠️ Eroare: '+baltaErr.message,true);submitBtn.disabled=false;submitBtn.textContent='✓ Salvează balta';return;}
   const baltaId=baltaSaved.id;
 
-  // Acordăm rol balta_admin dacă s-a specificat
+  // Acordăm rol balta_admin dacă s-a specificat — nu retrogradăm un zoda_admin
+  // existent (vezi și fix-ul identic din fluxul de editare balta, mai sus).
   const adminZodaId = document.getElementById('ab-admin-zoda-id')?.value.trim();
   if (adminZodaId) {
-    const { data: profil } = await sb.from('user_profiles').select('id').eq('zoda_id', adminZodaId).single();
-    if (profil?.id) await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+    const { data: profil } = await sb.from('user_profiles').select('id, username').eq('zoda_id', adminZodaId).single();
+    if (profil?.id) {
+      const { data: rolActual } = await sb.from('user_roles').select('rol').eq('id', profil.id).single();
+      if (rolActual?.rol === 'zoda_admin') {
+        showToast(`ℹ️ ${profil.username || adminZodaId} e deja Zoda Admin — rolul nu a fost schimbat.`);
+      } else {
+        await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+      }
+    }
   }
   if(standuriData.length>0) {
     const { error: standInsErr } = await sb.from('standuri').insert(standuriData.map(s=>({balta_id:baltaId,nume:s.nume,cabana:s.cabana||false,foisor:s.foisor||false,ponton:s.ponton||false,stand_pamant:s.stand_pamant||false,stand_pietruit:s.stand_pietruit||false,distanta:s.distanta||null,latime:s.latime||null,yt:s.yt||'',rec_foto:s.foto||null})));
