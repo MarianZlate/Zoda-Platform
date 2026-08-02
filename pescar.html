@@ -158,7 +158,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* HERO CARD */
 .hero-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:28px 24px;margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(56,189,248,.04) 0%,transparent 60%);pointer-events:none;}
-.hero-avatar{width:80px;height:80px;border-radius:50%;background:var(--zc-bg-tint);border:3px solid #38bdf8;box-shadow:0 0 20px rgba(56,189,248,.55);display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
+.hero-avatar{width:110px;height:110px;border-radius:50%;background:var(--zc-bg-tint);border:3px solid #38bdf8;box-shadow:0 0 20px rgba(56,189,248,.55);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
 .hero-avatar img{width:100%;height:100%;object-fit:cover;}
 .hero-info{flex:1;min-width:0;}
 .hero-member{font-size:12px;color:var(--zc-text-muted);margin:-6px 0 10px;}
@@ -204,11 +204,6 @@ html[data-theme="light"] .logo-img-light{display:block;}
 }
 .hero-name{font-size:25px;font-weight:900;color:var(--zc-text-primary);margin-bottom:4px;}
 .hero-zoda{font-size:13px;color:var(--zc-text-muted);font-family:monospace;margin-bottom:10px;}
-.hero-stele{display:flex;align-items:center;gap:8px;}
-.stele-badge{background:#1c1500;border:1px solid #92400e;border-radius:8px;padding:6px 14px;display:flex;align-items:center;gap:6px;}
-.stele-num{font-size:25px;font-weight:900;color:#f59e0b;}
-.stele-lbl{font-size:12px;color:#92400e;font-weight:700;letter-spacing:.04em;}
-.stele-breakdown{font-size:11px;color:var(--zc-text-muted);line-height:1.8;}
 
 /* TABS */
 .tabs{display:flex;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;padding:4px;margin-bottom:16px;gap:4px;}
@@ -264,18 +259,14 @@ html[data-theme="light"] .logo-img-light{display:block;}
   .logo-img{height:20px;}
   #page{padding:16px 10px 50px;}
   .hero-card{padding:18px 14px;gap:14px;}
-  .hero-avatar{width:60px;height:60px;font-size:25px;}
+  .hero-avatar{width:88px;height:88px;font-size:32px;}
   .hero-name{font-size:20px;}
   .hero-zoda{font-size:11px;margin-bottom:6px;}
-  .stele-badge{padding:5px 10px;gap:4px;}
-  .stele-num{font-size:20px;}
-  .stele-lbl{font-size:11px;}
   .rez-row{padding:11px 12px;gap:9px;}
   .rez-icon-wrap{width:32px;height:32px;font-size:17px;}
 }
 @media(max-width:360px){
   .hero-card{flex-wrap:wrap;}
-  .hero-stele{width:100%;margin-top:6px;}
   .rez-title{font-size:13px;}
   .rez-meta{font-size:11px;}
 }
@@ -287,7 +278,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
   .logo{font-size:20px;}
   #page{padding:32px 24px 80px;}
   .hero-card{padding:32px 28px;gap:24px;}
-  .hero-avatar{width:96px;height:96px;font-size:38px;}
+  .hero-avatar{width:150px;height:150px;font-size:52px;}
   .hero-name{font-size:29px;}
   .tabs{max-width:360px;}
 }
@@ -383,13 +374,6 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div class="hero-name" id="hero-name">—</div>
       <div class="hero-zoda" id="hero-zoda">—</div>
       <div class="hero-member" id="hero-member"></div>
-      <div class="hero-stele">
-        <div class="stele-badge">
-          <span class="stele-num" id="hero-stele-num">0</span>
-          <span class="stele-lbl">STELE</span>
-        </div>
-        <div class="stele-breakdown" id="hero-stele-breakdown"></div>
-      </div>
     </div>
     <div class="hero-stats-row">
       <div class="hero-stat-item">
@@ -849,19 +833,8 @@ function renderHero(profile, steleData) {
   }
 
   const total = steleData?.total_stele || 0;
-  document.getElementById('hero-stele-num').textContent = total;
   const heroStatStele = document.getElementById('hero-stat-stele');
   if (heroStatStele) heroStatStele.textContent = total;
-
-  const rs  = steleData?.stele_record_stand  || 0;
-  const t10 = steleData?.stele_top10_lunar   || 0;
-  const hof = steleData?.stele_hall_of_fame  || 0;
-  const parts = [];
-  if (rs)  parts.push(`🏅 ${rs} record${rs !== 1 ? 'uri' : ''} stand`);
-  if (t10) parts.push(`📅 ${t10} top 10 lunar`);
-  if (hof) parts.push(`🏆 ${hof} Hall of Fame`);
-  document.getElementById('hero-stele-breakdown').innerHTML = parts.join('<br/>') ||
-    '<span style="color:var(--zc-border);">Nicio stea câștigată încă</span>';
 }
 
 // Capturi / Bălți (distincte, din capturile aprobate — nu istoric_vizite,
