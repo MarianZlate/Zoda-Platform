@@ -4380,10 +4380,6 @@ async function updateNavForUser(user) {
       <div class="nav-bell" onclick="toggleNotifPanel()" title="Notificări" id="nav-bell-btn">
         🔔${bellBadge}
       </div>
-      <a href="cont.html" onclick="saveIndexState()" style="display:flex;align-items:center;gap:7px;text-decoration:none;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:5px 10px;transition:border-color .2s;" title="Contul meu" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">
-        ${avatarHtml}
-        <span class="nav-user-name">${username}</span>
-      </a>
     </div>`;
   // Re-renderăm markerii după ce știm rolul
   if (BALTI.length) { renderMapMarkers(); renderBalti(); }
