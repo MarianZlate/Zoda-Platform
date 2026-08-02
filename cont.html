@@ -3043,7 +3043,7 @@ function randeazaRecordurilePersonale(capturi) {
         : `<div class="capture-foto-empty">🏆</div>`}
       <div class="capture-info">
         <div class="capture-balta">${c.balti?.nume || '—'}</div>
-        <div class="capture-stand">${c.specie ? c.specie + ' · ' : ''}📍 ${c.standuri?.nume || '—'}</div>
+        <div class="capture-stand">${c.specie ? c.specie + ' · ' : ''}📍 ${c.standuri?.nume ? 'Stand ' + c.standuri.nume : '—'}</div>
         <div class="capture-data">${c.data_captura || ''}</div>
       </div>
       <div class="capture-kg" style="color:#f59e0b;">🏆 ${c.kg} kg</div>
@@ -3110,7 +3110,7 @@ async function loadCapturi() {
           : `<div class="capture-foto-empty">🏅</div>`}
         <div class="capture-info">
           <div class="capture-balta">${c.balti?.nume || '—'}</div>
-          <div class="capture-stand">📍 ${c.nume} · ${c.balti?.judet || ''}</div>
+          <div class="capture-stand">📍 Stand ${c.nume} · ${c.balti?.judet || ''}</div>
           <div class="capture-data">${c.rec_data || ''}</div>
         </div>
         <div class="capture-kg">${c.rec_kg ? c.rec_kg + ' kg' : '—'}</div>
@@ -3134,7 +3134,7 @@ async function loadCapturi() {
           : `<div class="capture-foto-empty">📷</div>`}
         <div class="capture-info">
           <div class="capture-balta">${c.balti?.nume || '—'}</div>
-          <div class="capture-stand">📍 ${c.standuri?.nume || '—'} · ${c.balti?.judet || ''}</div>
+          <div class="capture-stand">📍 ${c.standuri?.nume ? 'Stand ' + c.standuri.nume : '—'} · ${c.balti?.judet || ''}</div>
           <div class="capture-data">${c.data_captura || ''}</div>
         </div>
         <div class="capture-kg">${c.kg ? c.kg + ' kg' : '—'}</div>
