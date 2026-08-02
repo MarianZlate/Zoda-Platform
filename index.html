@@ -1670,7 +1670,21 @@ function resetFiltruIndex() {
   aplicaFiltruIndex();
 }
 
+// Când o bară de căutare primește focus, o urcăm sub header — pe mobil,
+// tastatura ocupă jumătate de ecran, iar fără asta bara (și dropdown-ul ei)
+// rămân ascunse dedesubt.
+function scrollSearchUnderHeader(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  const hdr = document.getElementById('hdr');
+  if (!wrap) return;
+  const headerH = hdr ? hdr.offsetHeight : 0;
+  const rect = wrap.getBoundingClientRect();
+  const targetY = window.scrollY + rect.top - headerH - 8;
+  window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+}
+
 function onSearchFocus() {
+  scrollSearchUnderHeader('search-wrap');
   const q = document.getElementById('search-input').value;
   if (!q.trim()) renderDropdownRasfoire();
 }
@@ -2615,21 +2629,34 @@ function togglePublicBaltiDropdown(e) {
   const dd = document.getElementById('public-balti-dropdown');
   const willOpen = dd.style.display !== 'block';
   if (willOpen) {
-    const chip = document.getElementById('stat-publice-chip');
-    dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
+    pozitioneazaPublicBaltiDropdown();
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
       ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
+    window.addEventListener('resize', pozitioneazaPublicBaltiDropdown);
+  } else {
+    window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
   }
   dd.style.display = willOpen ? 'block' : 'none';
+}
+// Ancorează dropdown-ul vertical de bara "Bălți Verificate Zoda" (top = sub
+// bară); orizontal rămâne centrat pe mijlocul ecranului (CSS: left:50% +
+// translateX(-50%), pe #public-balti-dropdown). Recalculat la resize/rotire
+// cât timp e deschis, ca să rămână corect ancorat.
+function pozitioneazaPublicBaltiDropdown() {
+  const dd = document.getElementById('public-balti-dropdown');
+  const chip = document.getElementById('stat-publice-chip');
+  if (!dd || !chip || dd.style.display !== 'block') return;
+  dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
 }
 document.addEventListener('click', function(e) {
   const chip = document.getElementById('stat-publice-chip');
   const dd = document.getElementById('public-balti-dropdown');
   if (dd && dd.style.display === 'block' && chip && !chip.contains(e.target)) {
     dd.style.display = 'none';
+    window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
   }
   const chipAproape = document.getElementById('stat-aproape-chip');
   const ddAproape = document.getElementById('balti-aproape-dropdown');
@@ -4472,6 +4499,7 @@ async function pregatesteUrmaririMele() {
 // pescari după numărul de urmăritori, la fel cum bălțile arată "răsfoirea"
 // pe niveluri la focus, înainte de căutare.
 async function onFocusCautaPescari() {
+  scrollSearchUnderHeader('cauta-pescari-card');
   const inputEl = document.getElementById('cauta-pescari-input');
   if (inputEl.value.trim()) return; // deja are text -> lasă căutarea normală să preia
   const dd = pozitioneazaDropdownPescari();
