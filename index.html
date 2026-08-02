@@ -271,7 +271,10 @@ nav{display:flex;align-items:center;gap:6px;}
 #search-input{flex:1;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:16px;}
 #search-input::placeholder{color:var(--zc-text-muted);}
 #clear-btn{background:transparent;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:20px;line-height:1;display:none;}
-#dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;z-index:var(--z-dropdown);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;}
+#dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow-y:auto;max-height:min(60vh,420px);z-index:var(--z-dropdown);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;}
+.dd-close-bar{position:sticky;top:0;z-index:2;display:flex;justify-content:flex-end;padding:6px 10px;background:var(--zc-bg-panel);border-bottom:1px solid var(--zc-border);}
+.dd-close-btn{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.dd-close-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 /* Caută pescari — aceeași formă/stil ca #search-box (căutare bălți), doar cu alt id */
 #cauta-pescari-box{display:flex;align-items:center;gap:8px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-border);border-radius:14px;padding:7px 16px;transition:border-color .2s,box-shadow .2s;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 #cauta-pescari-box:focus-within{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 4px rgba(56,189,248,.14);}
@@ -813,7 +816,10 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <span id="index-filter-count" style="display:none;background:#38bdf8;color:var(--zc-bg);border-radius:10px;padding:0 6px;font-size:11px;margin-left:3px;font-weight:700;"></span>
       </button>
     </div>
-    <div id="dropdown"></div>
+    <div id="dropdown">
+      <div class="dd-close-bar"><button class="dd-close-btn" onclick="closeSearchDropdown()">✕</button></div>
+      <div id="dropdown-body"></div>
+    </div>
     <div id="index-filter-dropdown" style="display:none;position:fixed;left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;padding:12px;min-width:220px;max-width:calc(100vw - 24px);box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:1000;">
       <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin-bottom:6px;">FACILITĂȚI</div>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="cazare" /> Cazare</label>
@@ -858,7 +864,10 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--zc-text-muted)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="cauta-pescari-input" oninput="cautaPescariUrmarire(this.value)" onfocus="onFocusCautaPescari()" placeholder="Caută și urmărește pescari..."/>
     </div>
-    <div id="cauta-pescari-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:14px;right:14px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;max-height:255px;overflow-y:auto;z-index:var(--z-dropdown);box-shadow:0 8px 24px rgba(0,0,0,.5);"></div>
+    <div id="cauta-pescari-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:14px;right:14px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;max-height:min(60vh,420px);overflow-y:auto;z-index:var(--z-dropdown);box-shadow:0 8px 24px rgba(0,0,0,.5);">
+      <div class="dd-close-bar"><button class="dd-close-btn" onclick="closeCautaPescariDropdown()">✕</button></div>
+      <div id="cauta-pescari-dropdown-body"></div>
+    </div>
   </div>
 
     <!-- CAPTURI RECENTE — înlocuiește harta; ultimele 20 capturi aprobate de pe
@@ -1696,19 +1705,20 @@ function onSearchFocus() {
 function renderDropdownRasfoire() {
   const isAdmin = currentRole === 'zoda_admin';
   const dd = document.getElementById('dropdown');
+  const ddBody = document.getElementById('dropdown-body');
   const disponibile = BALTI.filter(b => (isAdmin || b.vizibilitate === 'public' || b.vizibilitate === 'basic') && baltaTreceFiltrulIndex(b));
   const sortate = sorteazaBaltiPeNiveluri(disponibile.filter(b => b.vizibilitate === 'public'))
     .concat(disponibile.filter(b => b.vizibilitate !== 'public')); // basic/altele, la coadă, neschimbate
   if (!sortate.length) {
     if (_indexFiltreActive.length) {
-      dd.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">Nicio baltă nu se potrivește cu filtrul ales.</div>';
+      ddBody.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">Nicio baltă nu se potrivește cu filtrul ales.</div>';
       dd.style.display = 'block';
     } else {
       dd.style.display = 'none';
     }
     return;
   }
-  dd.innerHTML = sortate.slice(0, 20).map(b => `
+  ddBody.innerHTML = sortate.slice(0, 20).map(b => `
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
@@ -1720,9 +1730,14 @@ function renderDropdownRasfoire() {
   dd.style.display = 'block';
 }
 
+function closeSearchDropdown() {
+  document.getElementById('dropdown').style.display = 'none';
+}
+
 function onSearch(q) {
   document.getElementById('clear-btn').style.display = q ? 'block' : 'none';
   const dd = document.getElementById('dropdown');
+  const ddBody = document.getElementById('dropdown-body');
   if (!q.trim()) { renderDropdownRasfoire(); return; }
   const isAdmin = currentRole === 'zoda_admin';
   const qn = normStr(q);
@@ -1753,12 +1768,12 @@ function onSearch(q) {
   const res = scored.slice(0, 20).map(s => s.b);
 
   if (!res.length) {
-    dd.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">' +
+    ddBody.innerHTML = '<div style="padding:14px 16px;color:var(--zc-text-muted);font-size:15px;">' +
       (_indexFiltreActive.length ? 'Nicio baltă găsită cu filtrul ales.' : 'Nicio baltă găsită') + '</div>';
     dd.style.display = 'block';
     return;
   }
-  dd.innerHTML = res.map(b => `
+  ddBody.innerHTML = res.map(b => `
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
@@ -4486,7 +4501,11 @@ function ascundeCautarePescari() {
 }
 
 function pozitioneazaDropdownPescari() {
-  return document.getElementById('cauta-pescari-dropdown');
+  return document.getElementById('cauta-pescari-dropdown-body');
+}
+
+function closeCautaPescariDropdown() {
+  document.getElementById('cauta-pescari-dropdown').style.display = 'none';
 }
 
 // Sortează un set de rezultate pescari după cei mai urmăriți primii, restul
@@ -4549,9 +4568,10 @@ async function onFocusCautaPescari() {
   scrollSearchUnderHeader('cauta-pescari-card');
   const inputEl = document.getElementById('cauta-pescari-input');
   if (inputEl.value.trim()) return; // deja are text -> lasă căutarea normală să preia
+  const wrap = document.getElementById('cauta-pescari-dropdown');
   const dd = pozitioneazaDropdownPescari();
   dd.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:var(--zc-text-muted);">Se încarcă...</div>';
-  dd.style.display = 'block';
+  wrap.style.display = 'block';
 
   await pregatesteUrmaririMele();
 
@@ -4566,14 +4586,14 @@ async function onFocusCautaPescari() {
 
 async function cautaPescariUrmarire(q) {
   clearTimeout(_cautaPescariTimeout);
-  const dd = document.getElementById('cauta-pescari-dropdown');
   const query = q.trim();
   if (!query) { onFocusCautaPescari(); return; }
 
   _cautaPescariTimeout = setTimeout(async () => {
+    const wrap = document.getElementById('cauta-pescari-dropdown');
     const dd = pozitioneazaDropdownPescari();
     dd.innerHTML = '<div style="padding:10px 12px;font-size:13px;color:var(--zc-text-muted);">Se caută...</div>';
-    dd.style.display = 'block';
+    wrap.style.display = 'block';
 
     await pregatesteUrmaririMele();
 
