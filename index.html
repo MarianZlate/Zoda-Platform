@@ -315,13 +315,15 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
 .cr-info{padding:10px 12px 12px;}
-.cr-kg{font-size:19px;font-weight:900;color:#38bdf8;font-family:inherit;}
-.cr-stand{font-size:12.5px;color:#38bdf8;font-weight:600;margin-top:1px;}
-.cr-loc{font-size:12.5px;color:#38bdf8;font-weight:600;margin-top:8px;}
+.cr-row1{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;}
+.cr-kg{font-size:16px;font-weight:900;color:#38bdf8;font-family:inherit;white-space:nowrap;}
+.cr-stand{font-size:11.5px;color:#38bdf8;font-weight:600;white-space:nowrap;}
+.cr-loc{font-size:12.5px;color:#38bdf8;font-weight:600;margin-top:6px;}
 .cr-pescar{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--zc-border);}
 .cr-avatar{width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--zc-border);}
-.cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
-.cr-time{font-size:11px;color:var(--zc-text-dim);flex-shrink:0;}
+.cr-pescar-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+.cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.cr-time{font-size:11px;color:var(--zc-text-dim);}
 @media(min-width:600px){ .cr-card{flex:0 0 calc(33.333% - 7px);} }
 .cr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
 .cr-grid .cr-card{flex:none;}
@@ -2178,14 +2180,17 @@ function capturaRecentaCardHtml(c) {
     + '<div class="cr-card">'
     + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
     + '<div class="cr-info">'
-    + '<div class="cr-kg">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
-    + (standTxt ? '<div class="cr-stand">' + standTxt + '</div>' : '')
+    + '<div class="cr-row1">'
+    + '<span class="cr-kg">' + parseFloat(c.kg).toFixed(1) + ' kg</span>'
+    + (standTxt ? '<span class="cr-stand">Stand ' + standTxt + '</span>' : '')
+    + '</div>'
     + (baltaTxt ? '<div class="cr-loc"' + (baltaClick ? ' onclick="' + baltaClick + '" style="cursor:pointer;"' : '') + '>📍 ' + baltaTxt + '</div>' : '')
     + '<div class="cr-pescar">'
     + avatarHtml
-    + '<span class="cr-pescar-name" onclick="' + pescarClick + '">' + pescarNumeTxt + '</span>'
-    + '<span class="cr-time">' + timpText + '</span>'
-    + '</div></div></div>';
+    + '<div class="cr-pescar-text">'
+    + '<div class="cr-pescar-name" onclick="' + pescarClick + '">' + pescarNumeTxt + '</div>'
+    + '<div class="cr-time">' + timpText + '</div>'
+    + '</div></div></div></div>';
 }
 
 function renderCapturiRecenteCarousel() {
