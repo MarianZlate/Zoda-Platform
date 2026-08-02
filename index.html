@@ -2560,8 +2560,20 @@ function toggleBaltiAproapeDropdown(e) {
   const dd = document.getElementById('balti-aproape-dropdown');
   const willOpen = dd.style.display !== 'block';
   if (willOpen) {
+    // Închide celălalt dropdown (Verificate Zoda), dacă era deschis
+    const ddPublice = document.getElementById('public-balti-dropdown');
+    if (ddPublice && ddPublice.style.display === 'block') {
+      ddPublice.style.display = 'none';
+      window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
+    }
     const chip = document.getElementById('stat-aproape-chip');
-    dd.style.top = (chip.getBoundingClientRect().bottom + 8) + 'px';
+    // scrollSearchUnderHeader() urcă bara sub header printr-un scroll smooth
+    // (animat) — dacă am citi getBoundingClientRect() imediat după, am prinde
+    // poziția VECHE, dinainte de animație. Calculăm analitic unde va ajunge
+    // (headerH + 8 e exact ținta scroll-ului), fără să depindem de timing.
+    const headerH = document.getElementById('hdr')?.offsetHeight || 0;
+    dd.style.top = (headerH + 8 + chip.offsetHeight + 8) + 'px';
+    scrollSearchUnderHeader('stat-aproape-chip');
   }
   dd.style.display = willOpen ? 'block' : 'none';
   document.body.style.overflow = willOpen ? 'hidden' : '';
@@ -2629,6 +2641,12 @@ function togglePublicBaltiDropdown(e) {
   const dd = document.getElementById('public-balti-dropdown');
   const willOpen = dd.style.display !== 'block';
   if (willOpen) {
+    // Închide celălalt dropdown (Bălți în jurul meu), dacă era deschis
+    const ddAproape = document.getElementById('balti-aproape-dropdown');
+    if (ddAproape && ddAproape.style.display === 'block') {
+      ddAproape.style.display = 'none';
+      document.body.style.overflow = '';
+    }
     pozitioneazaPublicBaltiDropdown();
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
