@@ -313,13 +313,13 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .hero-stat-val{font-size:21px;font-weight:800;color:var(--text);font-family:var(--font-display);}
 .hero-stat-lbl{font-size:11px;color:var(--text-faint);}
 .record-personal-title{font-family:var(--font-display);font-weight:800;font-size:17px;color:var(--text);margin:22px 0 10px;}
-.record-personal-card{position:relative;border-radius:16px;overflow:hidden;min-height:150px;background-size:cover;background-position:center;background-color:var(--panel-raised);cursor:pointer;display:flex;align-items:flex-end;}
-.record-personal-card::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg, rgba(4,7,12,.92) 40%, rgba(4,7,12,.1) 78%);}
-.record-personal-body{position:relative;z-index:1;padding:16px 18px;}
-.record-personal-kg{font-size:26px;font-weight:900;color:#fff;font-family:var(--font-display);}
-.record-personal-stand{font-size:13px;color:#e2e8f0;margin-top:2px;}
-.record-personal-loc{font-size:12.5px;color:var(--lime);margin-top:6px;font-weight:600;}
-.record-personal-data{font-size:12px;color:#cbd5e1;margin-top:2px;}
+.record-personal-card{border-radius:16px;overflow:hidden;background:var(--panel);border:1px solid var(--border);display:flex;flex-direction:column;}
+.record-personal-photo{width:100%;aspect-ratio:16/10;background-size:cover;background-position:center;background-color:var(--panel-raised);}
+.record-personal-body{padding:16px 18px;}
+.record-personal-kg{font-size:24px;font-weight:900;color:var(--lime);font-family:var(--font-display);}
+.record-personal-stand{font-size:13px;color:var(--text-dim);margin-top:4px;font-weight:600;}
+.record-personal-loc{font-size:12.5px;color:var(--lime);margin-top:8px;font-weight:600;}
+.record-personal-data{font-size:12px;color:var(--text-faint);margin-top:4px;}
 .zoda-id-row{display:flex;align-items:center;gap:6px;margin-top:8px;}
 .zoda-id-chip{font-family:monospace;font-size:12.9px;color:var(--lime);letter-spacing:.04em;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--r-xs);padding:4px 9px;}
 .icon-btn-sm{padding:5px 8px;font-size:12px;}
@@ -3106,10 +3106,9 @@ function randeazaRecordurilePersonale(capturi) {
   // Cea mai mare captură dintre toate — indiferent de baltă — pentru cardul
   // "Record personal" din hero (recorduri e deja sortat desc, deci [0]).
   const rec = recorduri[0];
-  rpCard.style.backgroundImage = rec.foto_url ? `url('${rec.foto_url}')` : 'none';
-  rpCard.onclick = rec.foto_url ? () => deschideLightboxFoto(rec.foto_url) : null;
-  rpCard.style.cursor = rec.foto_url ? 'zoom-in' : 'default';
+  const fotoEsc = rec.foto_url ? escH(rec.foto_url).replace(/'/g, "\\'") : '';
   rpCard.innerHTML = `
+    <div class="record-personal-photo"${rec.foto_url ? ` style="background-image:url('${escH(rec.foto_url)}');cursor:zoom-in;" onclick="deschideLightboxFoto('${fotoEsc}')"` : ''}></div>
     <div class="record-personal-body">
       <div class="record-personal-kg">${rec.kg} kg</div>
       <div class="record-personal-stand">${rec.standuri?.nume ? 'Stand ' + rec.standuri.nume : ''}</div>
