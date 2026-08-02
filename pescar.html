@@ -893,7 +893,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
       iconWrapClass: 'gold',
       icon: '🏆',
       photoUrl: s.rec_foto || null,
-      title: `Record Stand — ${s.nume}`,
+      title: `Record — Stand ${s.nume}`,
       metaHtml: `${escH(baltaNume)}${judet}${kgEsc ? ' · <strong style="color:#38bdf8;">' + kgEsc + ' kg</strong>' : ''}`,
       star: true,
       date: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
@@ -948,7 +948,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
     .forEach(l => {
       const baltaNume  = l.balti?.nume || '—';
       const standNume  = standuriTrecuteMap[parseInt(l.referinta)] || '';
-      const titleStr   = standNume ? `Record Stand — ${standNume}` : 'Record Stand — deținut anterior';
+      const titleStr   = standNume ? `Record — Stand ${standNume}` : 'Record — deținut anterior';
       const kgStr      = l.kg ? ` · <strong style="color:#38bdf8;">${parseFloat(l.kg).toFixed(1)} kg</strong>` : '';
       trecuteHtml += realizareRow({
         iconWrapClass: 'gray',
@@ -978,7 +978,7 @@ function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecut
       trecuteHtml += realizareRow({
         iconWrapClass: 'gray',
         icon: '🏆',
-        title: standNume ? `Record Stand — ${standNume}` : 'Record Stand',
+        title: standNume ? `Record — Stand ${standNume}` : 'Record',
         metaHtml: escH(baltaNume) + kgStr,
         star: false,
         date: 'Câștigat la ' + fmtDate(l.created_at),
