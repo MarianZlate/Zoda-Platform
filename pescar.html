@@ -283,6 +283,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-pescar-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:0;}
 .cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
+.cr-meta-line{font-size:13px;color:var(--zc-text-muted);font-weight:600;margin-top:4px;line-height:1.4;}
+.cr-time-lg{font-size:12.5px;color:var(--zc-text-dim);margin-top:6px;line-height:1.4;}
 .trecut-card{opacity:.55;}
 
 /* EMPTY */
@@ -1008,8 +1010,11 @@ function renderRecordPersonal(recorduriActive) {
 // pentru rândurile din modalurile Recorduri și Realizări. Fără rândul de
 // pescar (avatar+nume), fiindcă suntem deja pe profilul lui.
 function crCardHtml(opts) {
-  const { photoUrl, kg, standText, metaText, dateText, link, trecut } = opts;
+  const { photoUrl, kg, standText, metaLines, dateText, link, trecut } = opts;
   const fotoClick = photoUrl ? `event.stopPropagation();openFS('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
+  const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
+    return `<div class="cr-meta-line">${line}</div>`;
+  }).join('');
   const inner = `
     <div class="cr-photo"${fotoClick ? ` onclick="${fotoClick}" style="cursor:zoom-in;background-image:url('${escH(photoUrl)}')"` : ''}></div>
     <div class="cr-info">
@@ -1017,8 +1022,8 @@ function crCardHtml(opts) {
         ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
         ${standText ? `<span class="cr-stand">${escH(standText)}</span>` : ''}
       </div>
-      ${metaText ? `<div class="cr-stand" style="margin-top:4px;">${metaText}</div>` : ''}
-      ${dateText ? `<div class="cr-time" style="margin-top:6px;">📅 ${escH(dateText)}</div>` : ''}
+      ${metaHtml}
+      ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
   if (link) return `<a href="${link}" onclick="savePescarState()" class="${cls}" style="text-decoration:none;display:flex;flex-direction:column;color:inherit;">${inner}</a>`;
@@ -1040,7 +1045,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
       photoUrl: s.rec_foto || null,
       kg: s.rec_kg,
       standText: `Stand ${s.nume}`,
-      metaText: `📍 ${escH(s.balti?.nume || '—')}`,
+      metaLines: [`📍 ${escH(s.balti?.nume || '—')}`],
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
       link: `balta.html?id=${s.balta_id}&stand=${s.id}`,
     });
@@ -1058,7 +1063,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: standNume ? `Stand ${standNume}` : 'Record anterior',
-        metaText: `📍 ${escH(l.balti?.nume || '—')}`,
+        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
         link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
@@ -1079,7 +1084,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: stand?.nume ? `Stand ${stand.nume}` : 'Record',
-        metaText: `📍 ${escH(l.balti?.nume || '—')}`,
+        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
         link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
@@ -1116,7 +1121,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: capt.foto_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaText: `📅 Top 10 lunar · ${escH(baltaNume)} · ${lunaFmt}`,
+        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
         dateText: capt.data_captura || '',
         link: `balta.html?id=${t.balta_id}`,
       });
@@ -1133,7 +1138,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: p.foto_url || null,
         kg: p.kg,
         standText: `Locul ${p.pozitie}`,
-        metaText: `🥇 Hall of Fame · ${escH(baltaNume)}${p.standNume ? ' · Stand ' + escH(p.standNume) : ''}`,
+        metaLines: [`🥇 Hall of Fame`, escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : '')],
         dateText: p.data_captura || '',
         link: `balta.html?id=${baltaId}`,
       });
@@ -1152,7 +1157,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: capt.foto_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaText: `📅 Top 10 lunar · ${escH(baltaNume)} · ${lunaFmt}`,
+        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
         dateText: capt.data_captura || '',
         link: null,
         trecut: true,
@@ -1174,7 +1179,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: null,
         kg: l.kg,
         standText: 'Poziție pierdută',
-        metaText: `🥇 Hall of Fame · ${escH(baltaNume)}`,
+        metaLines: [`🥇 Hall of Fame`, escH(baltaNume)],
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
         link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
         trecut: true,
