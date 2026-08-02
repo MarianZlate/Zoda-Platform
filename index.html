@@ -311,7 +311,7 @@ nav{display:flex;align-items:center;gap:6px;}
 #cr-vezi-tot{background:none;border:none;color:#38bdf8;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 6px;}
 #cr-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
 #cr-track{display:flex;gap:10px;}
-.cr-card{flex:0 0 82%;scroll-snap-align:start;border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);cursor:pointer;display:flex;flex-direction:column;min-width:0;}
+.cr-card{flex:0 0 82%;scroll-snap-align:start;border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
 .cr-info{padding:10px 12px 12px;}
@@ -323,9 +323,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);flex-shrink:0;}
 @media(min-width:600px){ .cr-card{flex:0 0 calc(33.333% - 7px);} }
-#cr-modal-body{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
-#cr-modal-body .cr-card{flex:none;}
-@media(max-width:480px){ #cr-modal-body{grid-template-columns:repeat(2,1fr);gap:8px;} }
+.cr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+.cr-grid .cr-card{flex:none;}
+@media(max-width:480px){ .cr-grid{grid-template-columns:repeat(2,1fr);gap:8px;} }
 
 .balta-tooltip::before{border-top-color:var(--zc-border)!important;}
 
@@ -379,14 +379,14 @@ nav{display:flex;align-items:center;gap:6px;}
 /* PODIUM — top 3 din Hall of Fame (în modalul Clasament, tab All-time), în
    locul celor 3 rânduri simple .hof-row. Restul clasamentului (loc 4+)
    continuă mai jos cu .hof-row, neschimbat. */
-.hof-podium{display:flex;align-items:flex-end;gap:8px;padding:38px 12px 4px;}
+.hof-podium{display:flex;align-items:flex-end;gap:8px;padding:74px 12px 4px;}
 .hof-pod-item{flex:1;min-width:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:0 6px 14px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;}
 .hof-pod-1{border-color:#38bdf8;box-shadow:0 0 26px rgba(56,189,248,.28);z-index:1;}
 .hof-pod-avatar-wrap{width:60px;height:60px;border-radius:50%;margin-top:-26px;overflow:hidden;border:2px solid var(--zc-border);background:var(--zc-bg);flex-shrink:0;}
 .hof-pod-1 .hof-pod-avatar-wrap{width:84px;height:84px;margin-top:-42px;border:3px solid #38bdf8;box-shadow:0 0 20px rgba(56,189,248,.65);}
 .hof-pod-avatar{width:100%;height:100%;object-fit:cover;display:block;}
 .hof-pod-avatar-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--zc-text-dim);background:var(--zc-bg);}
-.hof-pod-crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:24px;filter:drop-shadow(0 0 7px rgba(56,189,248,.75));}
+.hof-pod-crown{position:absolute;top:-64px;left:50%;transform:translateX(-50%);font-size:24px;filter:drop-shadow(0 0 7px rgba(56,189,248,.75));}
 .hof-pod-rank{width:24px;height:24px;border-radius:50%;background:var(--zc-bg);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-secondary);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:-12px;z-index:2;}
 .hof-pod-1 .hof-pod-rank{border-color:#38bdf8;color:#38bdf8;}
 .hof-pod-name{font-size:13px;font-weight:800;color:var(--zc-text-primary);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
@@ -1005,7 +1005,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       </div>
       <button class="modal-close" onclick="closeCapturiModal()">✕</button>
     </div>
-    <div class="hof-modal-list" id="saptamanal-capturi-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
+    <div class="hof-modal-list cr-grid" id="saptamanal-capturi-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Se încarcă...</div></div>
   </div>
 </div>
 
@@ -1019,7 +1019,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       </div>
       <button class="modal-close" onclick="closeCapturiRecenteModal()">✕</button>
     </div>
-    <div class="hof-modal-list" id="cr-modal-body"></div>
+    <div class="hof-modal-list cr-grid" id="cr-modal-body"></div>
   </div>
 </div>
 
@@ -1932,11 +1932,13 @@ async function loadTopSaptamanal() {
   if (el1) el1.textContent = intervalText;
   if (el2) el2.textContent = intervalText;
 
-  // ── Top 10 capturi ale săptămânii (toate bălțile) ──
+  // ── Top 10 capturi ale săptămânii (toate bălțile) — același format de
+  // card ca modalul "Capturi recente" (capturaRecentaCardHtml), cu aceleași
+  // reguli de click (poză → fullscreen, nume pescar → profil, baltă → pagina ei) ──
   var capturiListEl = document.getElementById('saptamanal-capturi-list');
   try {
     var { data: capturi } = await withTimeout(sb.from('capturi')
-      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, balti(nume)')
+      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, data_captura, standuri(nume), balti(nume)')
       .eq('status', 'approved')
       .gte('data_captura', luniDataLocala)
       .lt('data_captura', luniUrmatoareDataLocala)
@@ -1944,30 +1946,26 @@ async function loadTopSaptamanal() {
       .limit(10), 10000, 'top capturi');
 
     if (!capturi || !capturi.length) {
-      capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Nicio captură aprobată încă săptămâna asta.</div>';
+      capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Nicio captură aprobată încă săptămâna asta.</div>';
     } else {
-      capturiListEl.innerHTML = capturi.map(function(c, i) {
-        var nameHtml = c.pescar_id
-          ? (currentUser
-              ? '<a href="pescar.html?id=' + c.pescar_id + '" onclick="saveIndexState()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;">' + escH(c.pescar_nume) + '</a>'
-              : '<span onclick="openPescarGuestModal()" style="color:var(--zc-text-strong);font-weight:700;cursor:pointer;">' + escH(c.pescar_nume) + '</span>')
-          : '<span style="color:var(--zc-text-strong);font-weight:700;">' + escH(c.pescar_nume || 'Anonim') + '</span>';
-        return '<div class="hof-row">' +
-          '<div class="hof-loc">' + (i + 1) + '</div>' +
-          (c.foto_url ? '<img class="hof-avatar" src="' + escH(c.foto_url) + '" alt="" loading="lazy" style="cursor:pointer;" onclick="event.stopPropagation();openFS(\'' + escH(c.foto_url).replace(/'/g, "\\'") + '\')"/>' : '<div class="hof-avatar-empty"></div>') +
-          '<div style="flex:1;min-width:0;">' +
-            '<div class="hof-name">' + nameHtml + '</div>' +
-            '<div class="hof-detail">' + escH(c.balti?.nume || '—') + (c.specie ? ' · ' + escH(c.specie) : '') + '</div>' +
-          '</div>' +
-          '<div style="color:#60a5fa;font-weight:800;font-size:13px;flex-shrink:0;">' + c.kg + ' kg</div>' +
-        '</div>';
-      }).join('');
+      var zodaIdsSapt = [...new Set(capturi.map(function (c) { return c.pescar_id; }).filter(Boolean))];
+      var avatarMapSapt = {};
+      if (zodaIdsSapt.length) {
+        var prSapt = await sb.from('user_profiles_public').select('zoda_id, avatar_url').in('zoda_id', zodaIdsSapt);
+        (prSapt.data || []).forEach(function (p) { avatarMapSapt[p.zoda_id] = p.avatar_url; });
+      }
+      capturiListEl.innerHTML = capturi
+        .map(function (c) { return Object.assign({}, c, { _avatar: avatarMapSapt[c.pescar_id] || '' }); })
+        .map(capturaRecentaCardHtml)
+        .join('');
     }
   } catch(e) {
-    capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Eroare la încărcare.</div>';
+    capturiListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Eroare la încărcare.</div>';
   }
 
-  // ── Top 10 pescari după stele câștigate săptămâna asta ──
+  // ── Top 10 pescari după stele câștigate săptămâna asta — același design
+  // ca Hall of Fame (podium loc 1-3 + listă), reutilizând hofPodiumHtml()/
+  // hofRowHtml() pentru consistență vizuală și comportamentală completă. ──
   var steleListEl = document.getElementById('saptamanal-stele-list');
   try {
     var { data: steleRaw } = await withTimeout(sb.from('stele_log')
@@ -1986,22 +1984,21 @@ async function loadTopSaptamanal() {
       var profMap = {};
       (profiluri || []).forEach(function(p) { profMap[p.zoda_id] = p; });
 
-      steleListEl.innerHTML = topZodaIds.map(function(zodaId, i) {
+      var weeklyItems = topZodaIds.map(function(zodaId, i) {
         var p = profMap[zodaId] || {};
-        var username = p.username || zodaId;
-        var nameHtml = currentUser
-          ? '<a href="pescar.html?id=' + zodaId + '" onclick="saveIndexState()" style="color:var(--zc-text-strong);text-decoration:none;font-weight:700;">' + escH(username) + '</a>'
-          : '<span onclick="openPescarGuestModal()" style="color:var(--zc-text-strong);font-weight:700;cursor:pointer;">' + escH(username) + '</span>';
-        return '<div class="hof-row">' +
-          '<div class="hof-loc">' + (i + 1) + '</div>' +
-          (p.avatar_url ? '<img class="hof-avatar" src="' + escH(p.avatar_url) + '" alt="" loading="lazy"/>' : '<div class="hof-avatar-empty"></div>') +
-          '<div style="flex:1;min-width:0;">' +
-            '<div class="hof-name">' + nameHtml + '</div>' +
-            '<div class="hof-detail">' + escH(zodaId) + '</div>' +
-          '</div>' +
-          '<div class="hof-stars"><span style="color:#f59e0b;font-size:12px;font-weight:800;">⭐' + contor[zodaId] + '</span></div>' +
-        '</div>';
-      }).join('');
+        return { loc: i + 1, pe: p.username || zodaId, zodaId: zodaId, stele: contor[zodaId], avatar: p.avatar_url || '', detaliu: '' };
+      });
+
+      // Capturi — doar pentru locurile 1-3, pentru podium (ca la Hall of Fame)
+      var top3IdsSapt = weeklyItems.slice(0, 3).map(function(h) { return h.zodaId; }).filter(Boolean);
+      if (top3IdsSapt.length) {
+        var { data: capturiTop3Sapt } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3IdsSapt);
+        var countsSapt = {};
+        (capturiTop3Sapt || []).forEach(function(c) { countsSapt[c.pescar_id] = (countsSapt[c.pescar_id] || 0) + 1; });
+        weeklyItems.slice(0, 3).forEach(function(h) { h.capturi = countsSapt[h.zodaId] || 0; });
+      }
+
+      steleListEl.innerHTML = hofPodiumHtml(weeklyItems.slice(0, 3)) + weeklyItems.slice(3).map(function(h) { return hofRowHtml(h, false); }).join('');
     }
   } catch(e) {
     steleListEl.innerHTML = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Eroare la încărcare.</div>';
@@ -2175,13 +2172,15 @@ function capturaRecentaCardHtml(c) {
   var baltaTxt = c.balti && c.balti.nume ? escH(c.balti.nume) : '';
   var pescarNumeTxt = escH(c.pescar_nume || '—');
   var pescarClick = c.pescar_id ? "event.stopPropagation();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
+  var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+  var baltaClick = c.balta_id ? "event.stopPropagation();__goToBalta(" + c.balta_id + ")" : '';
   return ''
-    + '<div class="cr-card" onclick="__goToBalta(' + c.balta_id + ')">'
-    + '<div class="cr-photo" style="background-image:url(\'' + escH(c.foto_url || '') + '\')"></div>'
+    + '<div class="cr-card">'
+    + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
     + '<div class="cr-info">'
     + '<div class="cr-kg">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
     + (standTxt ? '<div class="cr-stand">' + standTxt + '</div>' : '')
-    + (baltaTxt ? '<div class="cr-loc">📍 ' + baltaTxt + '</div>' : '')
+    + (baltaTxt ? '<div class="cr-loc"' + (baltaClick ? ' onclick="' + baltaClick + '" style="cursor:pointer;"' : '') + '>📍 ' + baltaTxt + '</div>' : '')
     + '<div class="cr-pescar">'
     + avatarHtml
     + '<span class="cr-pescar-name" onclick="' + pescarClick + '">' + pescarNumeTxt + '</span>'
