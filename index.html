@@ -33,10 +33,13 @@
   "sameAs": []
 }
 </script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<!-- Leaflet — harta principală a fost scoasă de pe index.html, dar biblioteca
+     rămâne necesară pentru mini-harta de localizare din wizard-ul "Adaugă
+     baltă" (abMap, în modalul #ab-modal, pas 2). -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
@@ -166,7 +169,9 @@ html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family
    repetate de "X apare peste Y" din trecut.
 
    Ordinea, de la fundal la prim-plan:
-     1. --z-map            harta Leaflet (izolată complet — vezi #map-wrap)
+     1. --z-map            [nefolosit — harta Leaflet a fost scoasă de pe
+                            index.html; variabila a rămas definită, dar nimic
+                            n-o mai citește]
      2. --z-dropdown       orice listă/sugestie care apare peste conținutul
                             paginii (căutare bălți, căutare pescari, bălți
                             verificate, dropdown de județ etc.)
@@ -288,29 +293,35 @@ nav{display:flex;align-items:center;gap:6px;}
 .pbd-panel a:last-child{border-bottom:none;}
 .pbd-panel a:hover{background:var(--zc-border);color:#38bdf8;}
 #main{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr;align-items:start;padding:0 8px 40px;gap:10px;}
-#map-wrap{position:relative;border:1px solid var(--zc-border);overflow:hidden;border-radius:20px;margin:0 10px;z-index:var(--z-map);box-shadow:0 20px 50px -18px rgba(0,0,0,.55);}
-#map{width:100%;height:300px;}
+/* Generice pentru orice hartă Leaflet de pe pagină — folosite acum doar de
+   abMap (mini-harta din wizard-ul "Adaugă baltă"), harta principală a fost
+   scoasă complet. */
 .leaflet-control{z-index:400!important;}
 .leaflet-top,.leaflet-bottom{z-index:400!important;}
-#map-wrap .leaflet-top.leaflet-left{margin-top:38px;}
-.leaflet-popup-content-wrapper{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.6);}
-.leaflet-popup-content{color:var(--zc-text-primary);margin:12px 14px;}
-.leaflet-popup-tip{background:var(--zc-bg-panel);}
-.leaflet-popup-close-button{color:var(--zc-text-muted)!important;font-size:20px!important;top:6px!important;right:8px!important;}
-.pop-name{font-size:17px;font-weight:800;color:#38bdf8;margin-bottom:3px;}
-.pop-meta{font-size:12px;color:var(--zc-text-secondary);margin-bottom:10px;}
-.pop-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-.pop-tag{background:var(--zc-bg);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--zc-text-secondary-2);}
-.pop-btn{width:100%;background:var(--zc-accent-dark);border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:8px;border-radius:7px;cursor:pointer;}
-.pop-btn:hover{background:var(--zc-accent-dark);}
-#map-legend{position:absolute;bottom:14px;left:14px;background:rgba(10,15,26,.85);border:1px solid var(--zc-border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--zc-text-secondary);z-index:10;pointer-events:none;}
-#map-zoom-hint{display:none;position:absolute;top:0;left:0;right:0;background:rgba(10,15,26,.92);border-bottom:1px solid var(--zc-text-dim);padding:8px 14px;font-size:13px;font-weight:600;color:var(--zc-text-strong);z-index:850;pointer-events:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* Overlay scroll-block pe mobil */
-#map-touch-overlay{display:none;position:absolute;inset:0;z-index:20;cursor:pointer;background:rgba(10,15,26,.45);align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:opacity .2s;touch-action:pan-y;}
-#map-touch-overlay.active{display:flex;}
-.mto-inner{background:rgba(10,15,26,.85);border:1px solid var(--zc-border);border-radius:12px;padding:10px 18px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--zc-text-primary);box-shadow:0 4px 20px rgba(0,0,0,.5);}
-.mto-icon{font-size:22px;}
-.balta-tooltip{background:var(--zc-bg-panel)!important;border:1px solid var(--zc-border)!important;border-radius:7px!important;color:var(--zc-text-primary)!important;font-size:13px!important;font-weight:700!important;padding:5px 10px!important;box-shadow:0 4px 14px rgba(0,0,0,.6)!important;white-space:nowrap;}
+
+/* CAPTURI RECENTE — înlocuiește harta Leaflet */
+#cr-wrap{margin:0 10px;}
+#cr-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;}
+#cr-title{font-size:19px;font-weight:900;color:var(--zc-text-primary);}
+#cr-vezi-tot{background:none;border:none;color:#38bdf8;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 6px;}
+#cr-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+#cr-track{display:flex;gap:10px;}
+.cr-card{flex:0 0 82%;scroll-snap-align:start;border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);cursor:pointer;display:flex;flex-direction:column;min-width:0;}
+.cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
+.cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
+.cr-info{padding:10px 12px 12px;}
+.cr-kg{font-size:19px;font-weight:900;color:#38bdf8;font-family:inherit;}
+.cr-stand{font-size:12.5px;color:#38bdf8;font-weight:600;margin-top:1px;}
+.cr-loc{font-size:12.5px;color:#38bdf8;font-weight:600;margin-top:8px;}
+.cr-pescar{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--zc-border);}
+.cr-avatar{width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--zc-border);}
+.cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.cr-time{font-size:11px;color:var(--zc-text-dim);flex-shrink:0;}
+@media(min-width:600px){ .cr-card{flex:0 0 calc(33.333% - 7px);} }
+#cr-modal-body{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+#cr-modal-body .cr-card{flex:none;}
+@media(max-width:480px){ #cr-modal-body{grid-template-columns:repeat(2,1fr);gap:8px;} }
+
 .balta-tooltip::before{border-top-color:var(--zc-border)!important;}
 
 /* GUEST TOAST */
@@ -359,6 +370,23 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-star-legend{display:flex;flex-direction:column;align-items:center;gap:2px;flex-shrink:0;}
 .hof-star-legend-label{font-size:10px;color:var(--zc-text-muted);font-weight:600;letter-spacing:.04em;white-space:nowrap;}
 .see-all:hover{color:#38bdf8;}
+
+/* PODIUM — top 3 din Hall of Fame (în modalul Clasament, tab All-time), în
+   locul celor 3 rânduri simple .hof-row. Restul clasamentului (loc 4+)
+   continuă mai jos cu .hof-row, neschimbat. */
+.hof-podium{display:flex;align-items:flex-end;gap:8px;padding:38px 12px 4px;}
+.hof-pod-item{flex:1;min-width:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:0 6px 14px;text-align:center;position:relative;display:flex;flex-direction:column;align-items:center;}
+.hof-pod-1{border-color:#38bdf8;box-shadow:0 0 26px rgba(56,189,248,.28);z-index:1;}
+.hof-pod-avatar-wrap{width:60px;height:60px;border-radius:50%;margin-top:-26px;overflow:hidden;border:2px solid var(--zc-border);background:var(--zc-bg);flex-shrink:0;}
+.hof-pod-1 .hof-pod-avatar-wrap{width:84px;height:84px;margin-top:-42px;border:3px solid #38bdf8;box-shadow:0 0 20px rgba(56,189,248,.65);}
+.hof-pod-avatar{width:100%;height:100%;object-fit:cover;display:block;}
+.hof-pod-avatar-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--zc-text-dim);background:var(--zc-bg);}
+.hof-pod-crown{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:24px;filter:drop-shadow(0 0 7px rgba(56,189,248,.75));}
+.hof-pod-rank{width:24px;height:24px;border-radius:50%;background:var(--zc-bg);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-secondary);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:-12px;z-index:2;}
+.hof-pod-1 .hof-pod-rank{border-color:#38bdf8;color:#38bdf8;}
+.hof-pod-name{font-size:13px;font-weight:800;color:var(--zc-text-primary);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.hof-pod-stat{font-size:11px;color:var(--zc-text-secondary);margin-top:2px;}
+
 .balti-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;}
 #saptamanal-wrap{display:grid;grid-template-columns:1fr;gap:10px;margin:0 10px;}
 .balti-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--zc-border);padding:10px 12px;}
@@ -376,6 +404,8 @@ nav{display:flex;align-items:center;gap:6px;}
 #hof-modal.open{display:flex;}
 #capturi-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
 #capturi-modal.open{display:flex;}
+#capturi-recente-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#capturi-recente-modal.open{display:flex;}
 .hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;
   /* mobil: modalul ocupă tot ecranul, nu doar 80vh cu colțuri rotunjite jos —
      meniul de jos rămâne vizibil/activ deasupra lui (vezi #bottom-nav) */
@@ -545,10 +575,9 @@ nav{display:flex;align-items:center;gap:6px;}
   #cauta-pescari-card{grid-area:cautaPescari;}
   #saptamanal-wrap{grid-area:saptamanal;grid-template-columns:1fr 1fr;margin:0;}
   #stats-bar{grid-area:statsbar;}
-  #map-wrap{grid-area:mapwrap;border-radius:16px;margin:0;}
+  #cr-wrap{grid-area:mapwrap;margin:0;}
   #sidebar{grid-area:sidebar;}
   #search-wrap{grid-area:search;max-width:100%;margin:0 0 10px;}
-  #map{height:480px;}
   #sidebar{display:flex;flex-direction:column;gap:16px;align-items:stretch;}
   .hof-card,.balti-card{min-width:unset;}
   .hof-header{padding:14px 16px;}
@@ -565,6 +594,7 @@ nav{display:flex;align-items:center;gap:6px;}
   .balta-meta{font-size:11px;}
   #hof-modal{align-items:center;justify-content:center;}
   #capturi-modal{align-items:center;justify-content:center;}
+  #capturi-recente-modal{align-items:center;justify-content:center;}
   .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
   .hof-modal-list{padding-bottom:8px;}
   #auth-modal{align-items:center;justify-content:center;}
@@ -815,16 +845,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       </div>
     </div>
 
-    <div id="map-wrap">
-    <div id="map"></div>
-    <div id="map-legend">Click pe marker pentru detalii</div>
-    <div id="map-zoom-hint">🔍 Dă zoom pe o zonă sau caută o baltă</div>
-    <div id="map-touch-overlay" onclick="activateMap()">
-      <div class="mto-inner"><span class="mto-icon">👆</span> Apasă pentru a interacționa cu harta</div>
-    </div>
-  </div>
-
-  <!-- CĂUTĂ PESCARI DE URMĂRIT — bloc independent, nu mai e legat de sidebar -->
+  <!-- CĂUTĂ PESCARI DE URMĂRIT — sub stats-bar, înaintea Capturi recente -->
   <div class="hof-card" id="cauta-pescari-card" style="display:none;overflow:visible;">
     <div class="hof-header">
       <div class="hof-header-text">
@@ -838,6 +859,18 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div id="cauta-pescari-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:10px;max-height:255px;overflow-y:auto;z-index:var(--z-dropdown);box-shadow:0 8px 24px rgba(0,0,0,.5);"></div>
     </div>
   </div>
+
+    <!-- CAPTURI RECENTE — înlocuiește harta; ultimele 20 capturi aprobate de pe
+         toată platforma, 3 vizibile odată, scroll orizontal pentru restul -->
+    <div id="cr-wrap">
+      <div id="cr-hdr">
+        <div id="cr-title">Capturi recente</div>
+        <button id="cr-vezi-tot" onclick="openCapturiRecenteModal()">Vezi tot →</button>
+      </div>
+      <div id="cr-carousel">
+        <div id="cr-track"><div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
+      </div>
+    </div>
 
   
 
@@ -974,6 +1007,20 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <button class="modal-close" onclick="closeCapturiModal()">✕</button>
     </div>
     <div class="hof-modal-list" id="saptamanal-capturi-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
+  </div>
+</div>
+
+<!-- MODAL CAPTURI RECENTE — toate cele 20, 3 pe rând, scroll vertical -->
+<div id="capturi-recente-modal">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">🐟 Capturi recente</div>
+        <div class="hof-modal-sub">Ultimele 20 de pe toată platforma</div>
+      </div>
+      <button class="modal-close" onclick="closeCapturiRecenteModal()">✕</button>
+    </div>
+    <div class="hof-modal-list" id="cr-modal-body"></div>
   </div>
 </div>
 
@@ -1283,6 +1330,15 @@ const MEDAL_I = ['🥇','🥈','🥉'];
 // ── MAP ───────────────────────────────────────────────────────────────────────
 let map, highlightId = null;
 
+// Navigare directă spre pagina bălții — extras din initMap() ca să rămână
+// disponibilă indiferent dacă harta există sau nu (harta a fost scoasă de
+// pe index.html; acest helper e folosit acum de căutare, "Bălți în jurul
+// meu" și "Bălți Verificate Zoda").
+window.__goToBalta = id => {
+  saveIndexState();
+  window.location.href = 'balta.html?id=' + id;
+};
+
 function isTouchDevice() {
   return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
 }
@@ -1383,11 +1439,6 @@ function initMap() {
     document.getElementById('map-touch-overlay').classList.add('active');
   }
 
-
-  window.__goToBalta = id => {
-    saveIndexState();
-    window.location.href = 'balta.html?id=' + id;
-  };
 
   setTimeout(() => map.invalidateSize(), 200);
   if (typeof ResizeObserver !== 'undefined')
@@ -1643,7 +1694,7 @@ function renderDropdownRasfoire() {
     return;
   }
   dd.innerHTML = sortate.slice(0, 20).map(b => `
-    <div class="dd-item" onclick="flyToBalta(${b.id})">
+    <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
@@ -1693,7 +1744,7 @@ function onSearch(q) {
     return;
   }
   dd.innerHTML = res.map(b => `
-    <div class="dd-item" onclick="flyToBalta(${b.id})">
+    <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
@@ -1749,6 +1800,36 @@ function hofRowHtml(h, extended) {
     </div>
     <div class="hof-stars">${steleIcon}</div>
   </div>`;
+}
+
+// Podium pentru locurile 1-3 din Hall of Fame — #1 la mijloc, mai mare, cu
+// coroană și inel cyan glow; #2/#3 mai mici pe laterale. Restul clasamentului
+// (loc 4+) continuă mai jos cu hofRowHtml(), neschimbat.
+function hofPodClick(zodaId) {
+  if (!zodaId) return;
+  if (currentUser) { saveIndexState(); window.location.href = 'pescar.html?id=' + zodaId; }
+  else openPescarGuestModal();
+}
+function hofPodItemHtml(h) {
+  if (!h) return '<div class="hof-pod-item" style="visibility:hidden;"></div>';
+  const avatarHtml = h.avatar
+    ? `<img class="hof-pod-avatar" src="${h.avatar}" alt="" loading="lazy"/>`
+    : `<div class="hof-pod-avatar-empty">👤</div>`;
+  const crownHtml = h.loc === 1 ? '<div class="hof-pod-crown">👑</div>' : '';
+  const capturiTxt = (h.capturi || 0) + (h.capturi === 1 ? ' captură' : ' capturi');
+  const steleTxt = (h.stele || 0).toLocaleString('ro-RO') + ' stele';
+  return `<div class="hof-pod-item hof-pod-${h.loc}" onclick="hofPodClick('${h.zodaId || ''}')" style="cursor:${h.zodaId ? 'pointer' : 'default'};">
+    ${crownHtml}
+    <div class="hof-pod-avatar-wrap">${avatarHtml}</div>
+    <div class="hof-pod-rank">${h.loc}</div>
+    <div class="hof-pod-name">${escH(h.pe)}</div>
+    <div class="hof-pod-stat">${capturiTxt}</div>
+    <div class="hof-pod-stat">${steleTxt}</div>
+  </div>`;
+}
+function hofPodiumHtml(top3) {
+  // Ordine vizuală 2-1-3 (locul 1 la mijloc, mai proeminent)
+  return `<div class="hof-podium">${hofPodItemHtml(top3[1])}${hofPodItemHtml(top3[0])}${hofPodItemHtml(top3[2])}</div>`;
 }
 
 // Luni 00:00 a săptămânii curente (locale, ora browserului) — reset automat
@@ -1918,11 +1999,13 @@ async function loadHof() {
   // Cache 60 minute — HoF se schimbă doar la aprobare capturi
   const cached = CACHE.get('hof_global');
   if (cached) {
-    // Invalidăm cache-ul dacă are intrări cu ZODA-ID ca nume (bug vechi)
-    // sau dacă nu are câmpul avatar (structură veche)
+    // Invalidăm cache-ul dacă are intrări cu ZODA-ID ca nume (bug vechi),
+    // dacă nu are câmpul avatar (structură veche), sau dacă locul 1-3 nu are
+    // câmpul "capturi" (adăugat pentru podium — structură și mai veche)
     const hasIdAsName = cached.some(h => h.pe && h.pe.startsWith('ZODA-'));
     const missingAvatar = cached.some(h => !('avatar' in h));
-    if (!hasIdAsName && !missingAvatar) {
+    const missingCapturi = cached.slice(0, 3).some(h => !('capturi' in h));
+    if (!hasIdAsName && !missingAvatar && !missingCapturi) {
       HOF.length = 0;
       cached.forEach(h => HOF.push(h));
       renderHof();
@@ -1972,6 +2055,16 @@ async function loadHof() {
     });
   });
 
+  // Numărul de capturi aprobate — doar pentru locurile 1-3, pentru podium
+  // (restul clasamentului nu-l afișează, nu merită interogarea pentru toți 20)
+  const top3Ids = HOF.slice(0, 3).map(h => h.zodaId).filter(Boolean);
+  if (top3Ids.length) {
+    const { data: capturiTop3 } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3Ids);
+    const counts = {};
+    (capturiTop3 || []).forEach(c => { counts[c.pescar_id] = (counts[c.pescar_id] || 0) + 1; });
+    HOF.slice(0, 3).forEach(h => { h.capturi = counts[h.zodaId] || 0; });
+  }
+
   // Salvează în cache 60 minute
   CACHE.set('hof_global', HOF.slice(), 60);
   renderHof();
@@ -1980,7 +2073,9 @@ async function loadHof() {
 function renderHof() {
   const empty = '<div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Niciun pescar cu stele încă</div>';
   document.getElementById('hof-preview').innerHTML = HOF.slice(0, 5).map(h => hofRowHtml(h, false)).join('') || empty;
-  document.getElementById('hof-full').innerHTML    = HOF.map(h => hofRowHtml(h, true)).join('') || empty;
+  document.getElementById('hof-full').innerHTML    = HOF.length
+    ? hofPodiumHtml(HOF.slice(0, 3)) + HOF.slice(3).map(h => hofRowHtml(h, true)).join('')
+    : empty;
 }
 
 async function goToAdmin(e) {
@@ -2021,6 +2116,92 @@ function closeCapturiModal() {
   document.getElementById('capturi-modal').classList.remove('open'); document.body.style.overflow = '';
   if (history.state && history.state.modal === 'capturi') history.back();
 }
+
+// ═══ CAPTURI RECENTE — înlocuiește harta; ultimele 20 aprobate, platformă-wide ══
+var _capturiRecenteCache = [];
+
+async function loadCapturiRecente() {
+  var track = document.getElementById('cr-track');
+  try {
+    var res = await sb.from('capturi')
+      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, balta_id, standuri(nume), balti(nume)')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    var capturi = res.data || [];
+    if (res.error || !capturi.length) {
+      if (track) track.innerHTML = '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;">Nicio captură înregistrată încă.</div>';
+      return;
+    }
+    // Avatare — o singură interogare pentru toți pescarii distincți din listă
+    var zodaIds = [...new Set(capturi.map(function (c) { return c.pescar_id; }).filter(Boolean))];
+    var avatarMap = {};
+    if (zodaIds.length) {
+      var pr = await sb.from('user_profiles_public').select('zoda_id, avatar_url').in('zoda_id', zodaIds);
+      (pr.data || []).forEach(function (p) { avatarMap[p.zoda_id] = p.avatar_url; });
+    }
+    _capturiRecenteCache = capturi.map(function (c) { return Object.assign({}, c, { _avatar: avatarMap[c.pescar_id] || '' }); });
+    renderCapturiRecenteCarousel();
+  } catch (e) {
+    console.error('[zoda] loadCapturiRecente a eșuat:', e);
+    if (track) track.innerHTML = '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;">Nu am putut încărca capturile recente.</div>';
+  }
+}
+
+function capturaRecentaCardHtml(c) {
+  var zileDif = null;
+  if (c.data_captura) {
+    var ms = Date.now() - new Date(c.data_captura).getTime();
+    zileDif = Math.max(0, Math.floor(ms / 86400000));
+  }
+  var timpText = zileDif === null ? '' : (zileDif === 0 ? 'azi' : zileDif === 1 ? 'acum 1 zi' : ('acum ' + zileDif + ' zile'));
+  var avatarHtml = c._avatar
+    ? '<img class="cr-avatar" src="' + escH(c._avatar) + '" alt=""/>'
+    : '<div class="cr-avatar"></div>';
+  var standTxt = c.standuri && c.standuri.nume ? escH(c.standuri.nume) : '';
+  var baltaTxt = c.balti && c.balti.nume ? escH(c.balti.nume) : '';
+  var pescarNumeTxt = escH(c.pescar_nume || '—');
+  var pescarClick = c.pescar_id ? "event.stopPropagation();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
+  return ''
+    + '<div class="cr-card" onclick="__goToBalta(' + c.balta_id + ')">'
+    + '<div class="cr-photo" style="background-image:url(\'' + escH(c.foto_url || '') + '\')"></div>'
+    + '<div class="cr-info">'
+    + '<div class="cr-kg">' + parseFloat(c.kg).toFixed(1) + ' kg</div>'
+    + (standTxt ? '<div class="cr-stand">' + standTxt + '</div>' : '')
+    + (baltaTxt ? '<div class="cr-loc">📍 ' + baltaTxt + '</div>' : '')
+    + '<div class="cr-pescar">'
+    + avatarHtml
+    + '<span class="cr-pescar-name" onclick="' + pescarClick + '">' + pescarNumeTxt + '</span>'
+    + '<span class="cr-time">' + timpText + '</span>'
+    + '</div></div></div>';
+}
+
+function renderCapturiRecenteCarousel() {
+  var track = document.getElementById('cr-track');
+  if (!track) return;
+  track.innerHTML = _capturiRecenteCache.length
+    ? _capturiRecenteCache.map(capturaRecentaCardHtml).join('')
+    : '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;">Nicio captură înregistrată încă.</div>';
+}
+
+function openCapturiRecenteModal() {
+  var hofEl = document.getElementById('hof-modal');
+  if (hofEl && hofEl.classList.contains('open')) closeHof();
+  var capEl = document.getElementById('capturi-modal');
+  if (capEl && capEl.classList.contains('open')) closeCapturiModal();
+  var body = document.getElementById('cr-modal-body');
+  body.innerHTML = _capturiRecenteCache.length
+    ? _capturiRecenteCache.map(capturaRecentaCardHtml).join('')
+    : '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Nicio captură înregistrată încă.</div>';
+  document.getElementById('capturi-recente-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'capturi-recente' }, '');
+}
+function closeCapturiRecenteModal() {
+  document.getElementById('capturi-recente-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (history.state && history.state.modal === 'capturi-recente') history.back();
+}
 function setClasamentTab(which) {
   var wBtn = document.getElementById('lb-tab-weekly'), aBtn = document.getElementById('lb-tab-alltime');
   var wBody = document.getElementById('lb-body-weekly'), aBody = document.getElementById('lb-body-alltime');
@@ -2047,6 +2228,13 @@ window.addEventListener('popstate', function (e) {
     var capEl = document.getElementById('capturi-modal');
     if (capEl && capEl.classList.contains('open')) {
       capEl.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }
+  if (!(e.state && e.state.modal === 'capturi-recente')) {
+    var crEl = document.getElementById('capturi-recente-modal');
+    if (crEl && crEl.classList.contains('open')) {
+      crEl.classList.remove('open');
       document.body.style.overflow = '';
     }
   }
@@ -2258,6 +2446,11 @@ async function refreshBaltiInBackground() {
 var MAP_MIN_ZOOM_PINS = 6; // sub acest zoom, nu randăm pini deloc (prea multi la nivel de tara)
 
 function renderMapMarkers() {
+  // Harta a fost scoasă de pe index.html — Leaflet (L) nu se mai încarcă deloc.
+  // Funcția asta e apelată din 6 locuri (încărcare bălți, login, flux admin
+  // etc.); fără guard-ul ăsta, fiecare apel arunca ReferenceError (L is not
+  // defined) și oprea execuția codului de după el în aceeași funcție.
+  if (typeof L === 'undefined') return;
   const isAdmin = currentRole === 'zoda_admin';
   const skipTooltip = isTouchDevice(); // fără hover real pe touch, tooltip-ul e cost degeaba
   BALTI.forEach(b => {
@@ -2412,15 +2605,10 @@ function renderBaltiAproape(coords) {
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
-// Click pe un rezultat din "Bălți în jurul meu" — închide dropdown-ul, restaurează
-// scroll-ul și zboară harta spre pinul bălții (nu deschide pagina baltii direct).
+// Click pe un rezultat din "Bălți în jurul meu" — merge direct pe pagina bălții
+// (înainte zbura harta spre pin; harta a fost scoasă de pe index.html).
 function mergiLaPinBaltaAproape(id) {
-  const dd = document.getElementById('balti-aproape-dropdown');
-  dd.style.display = 'none';
-  document.body.style.overflow = '';
-  flyToBalta(id);
-  const mapWrap = document.getElementById('map-wrap');
-  if (mapWrap) mapWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  __goToBalta(id);
 }
 
 function togglePublicBaltiDropdown(e) {
@@ -2454,8 +2642,8 @@ document.addEventListener('click', function(e) {
 
 
 window.addEventListener('load', () => {
-  initMap();
   loadBaltiFromSupabase();
+  loadCapturiRecente();
   // Deschide modalul cerut din footer-ul altei pagini (balta/cont/pescar.html?contact=1 / ?inregistreaza=1)
   try {
     var qp = new URLSearchParams(location.search);
@@ -2468,12 +2656,11 @@ window.addEventListener('load', () => {
     }
   } catch (e) {}
 
-  // WATCHDOG — dacă, dintr-un motiv oarecare (eroare intermediară, cursă la
-  // încărcare), harta sau lista de bălți tot n-au apărut la 3 secunde după
-  // load, mai încercăm o dată automat, în loc să rămână pagina "înghețată"
-  // pentru vizitator fără nicio recuperare.
+  // WATCHDOG — dacă lista de bălți tot n-a apărut la 3 secunde după load,
+  // mai încercăm o dată automat, în loc să rămână pagina "înghețată" pentru
+  // vizitator fără nicio recuperare. (Harta a fost scoasă — nu mai are sens
+  // acest watchdog pentru ea.)
   setTimeout(() => {
-    if (!map) { console.warn('[zoda] harta nu s-a inițializat, reîncerc'); try { initMap(); } catch (e) { console.error('[zoda] initMap a eșuat din nou:', e); } }
     if (!BALTI.length) { console.warn('[zoda] lista de bălți e goală, reîncerc'); loadBaltiFromSupabase(); }
   }, 3000);
 });
@@ -2485,7 +2672,6 @@ window.addEventListener('load', () => {
 // înainte să plece userul de pe ea, verificăm și reparăm la revenire.
 window.addEventListener('pageshow', (event) => {
   if (event.persisted) {
-    if (!map) { try { initMap(); } catch (e) { console.error('[zoda] initMap la pageshow a eșuat:', e); } }
     if (!BALTI.length) loadBaltiFromSupabase();
   }
 });
