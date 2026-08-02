@@ -2108,6 +2108,8 @@ function openHof()  {
   var capEl = document.getElementById('capturi-modal');
   var switching = capEl && capEl.classList.contains('open');
   if (switching) capEl.classList.remove('open');
+  var authEl = document.getElementById('auth-modal');
+  if (authEl && authEl.classList.contains('open')) closeAuthModal();
   document.getElementById('hof-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
@@ -2120,6 +2122,8 @@ function openCapturiModal()  {
   var hofEl = document.getElementById('hof-modal');
   var switching = hofEl && hofEl.classList.contains('open');
   if (switching) hofEl.classList.remove('open');
+  var authEl = document.getElementById('auth-modal');
+  if (authEl && authEl.classList.contains('open')) closeAuthModal();
   document.getElementById('capturi-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   if (switching) history.replaceState({ modal: 'capturi' }, ''); else history.pushState({ modal: 'capturi' }, '');
@@ -2206,6 +2210,8 @@ function openCapturiRecenteModal() {
   if (hofEl && hofEl.classList.contains('open')) closeHof();
   var capEl = document.getElementById('capturi-modal');
   if (capEl && capEl.classList.contains('open')) closeCapturiModal();
+  var authEl = document.getElementById('auth-modal');
+  if (authEl && authEl.classList.contains('open')) closeAuthModal();
   var body = document.getElementById('cr-modal-body');
   body.innerHTML = _capturiRecenteCache.length
     ? _capturiRecenteCache.map(capturaRecentaCardHtml).join('')
@@ -4198,7 +4204,15 @@ let currentUser = null;
 let currentRole = 'user';
 let _roleCache  = null; // cache: { userId, rol } — evită query repetate
 
-function openAuthModal()  { document.getElementById('auth-modal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function openAuthModal()  {
+  var hofEl = document.getElementById('hof-modal');
+  if (hofEl && hofEl.classList.contains('open')) closeHof();
+  var capEl = document.getElementById('capturi-modal');
+  if (capEl && capEl.classList.contains('open')) closeCapturiModal();
+  var crEl = document.getElementById('capturi-recente-modal');
+  if (crEl && crEl.classList.contains('open')) closeCapturiRecenteModal();
+  document.getElementById('auth-modal').classList.add('open'); document.body.style.overflow = 'hidden';
+}
 
 // ── MENIU DE JOS — Acasă (deja pe index: doar închide modaluri deschise și
 // derulează sus) și Contul meu (dacă e logat, merge direct; altfel deschide
@@ -4212,11 +4226,15 @@ function bnGoAcasa() {
   if (hofEl && hofEl.classList.contains('open')) closeHof();
   var capEl = document.getElementById('capturi-modal');
   if (capEl && capEl.classList.contains('open')) closeCapturiModal();
+  var crEl = document.getElementById('capturi-recente-modal');
+  if (crEl && crEl.classList.contains('open')) closeCapturiRecenteModal();
+  closeAuthModal();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function bnGoCont() {
   document.getElementById('hof-modal')?.classList.remove('open');
   document.getElementById('capturi-modal')?.classList.remove('open');
+  document.getElementById('capturi-recente-modal')?.classList.remove('open');
   document.body.style.overflow = '';
   if (typeof currentUser !== 'undefined' && currentUser) {
     saveIndexState();
@@ -4225,7 +4243,7 @@ function bnGoCont() {
     openAuthModal();
   }
 }
-function closeAuthModal() { document.getElementById('auth-modal').classList.remove('open'); authClearMsg(); document.body.style.overflow = ''; }
+function closeAuthModal() { document.getElementById('auth-modal')?.classList.remove('open'); authClearMsg(); document.body.style.overflow = ''; }
 
 function authSwitchTab(tab) {
   document.getElementById('pane-login').style.display    = tab === 'login'    ? 'block' : 'none';
