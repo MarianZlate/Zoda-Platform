@@ -2641,10 +2641,15 @@ document.addEventListener('click', function(e) {
 
 
 // Lățimea barei de căutare (baltă + pescari) urmărește lățimea reală a
-// rândului de pastile "Bălți în jurul meu"/"Bălți Verificate Zoda" — nu un
+// celor 2 pastile "Bălți în jurul meu"/"Bălți Verificate Zoda" — nu un
 // max-width fix, fiindcă pastilele sunt content-sized (variază cu numărul
 // afișat). Doar pe mobil — pe desktop bara ocupă toată coloana (grid), nu
 // are sens să fie limitată la lățimea pastilelor.
+// Notă: NU măsurăm .stats-inner — e un flex container block-level, se
+// întinde automat la 100% din părinte (de-asta bara ieșea mai lată decât
+// pastilele efectiv vizibile). Măsurăm direct cele 2 pastile, de la marginea
+// stângă a celei mai din stânga până la marginea dreaptă a celei mai din
+// dreapta.
 function syncSearchWidths() {
   var searchWrap  = document.getElementById('search-wrap');
   var pescariWrap = document.getElementById('cauta-pescari-card');
@@ -2653,18 +2658,26 @@ function syncSearchWidths() {
     if (pescariWrap) pescariWrap.style.maxWidth = '';
     return;
   }
-  var statsInner = document.querySelector('.stats-inner');
-  if (!statsInner) return;
-  var w = statsInner.getBoundingClientRect().width;
-  if (w < 40) return; // nu s-a randat încă real (conținut gol)
-  if (searchWrap)  searchWrap.style.maxWidth  = w + 'px';
-  if (pescariWrap) pescariWrap.style.maxWidth = w + 'px';
+  var chipAproape = document.getElementById('stat-aproape-chip');
+  var chipPublice = document.getElementById('stat-publice-chip');
+  if (!chipAproape || !chipPublice) return;
+  var rA = chipAproape.getBoundingClientRect();
+  var rP = chipPublice.getBoundingClientRect();
+  if (!rA.width || !rP.width) return; // nu s-au randat încă real
+  var w = Math.max(rA.right, rP.right) - Math.min(rA.left, rP.left);
+  if (w < 40) return;
+  // search-wrap/cauta-pescari-card au padding:0 14px — adăugăm cei 28px
+  // înapoi, ca bara vizibilă din interior (nu wrapper-ul cu padding) să
+  // aibă exact lățimea celor 2 pastile, nu wrapper-ul + inset suplimentar.
+  var wrapperW = w + 28;
+  if (searchWrap)  searchWrap.style.maxWidth  = wrapperW + 'px';
+  if (pescariWrap) pescariWrap.style.maxWidth = wrapperW + 'px';
 }
 window.addEventListener('resize', syncSearchWidths);
 window.addEventListener('load', function () {
   syncSearchWidths();
   var statsInner = document.querySelector('.stats-inner');
-  // Re-sincronizează quando textul pastilelor se schimbă (ex: "— Bălți Verificate
+  // Re-sincronizează când textul pastilelor se schimbă (ex: "— Bălți Verificate
   // Zoda" -> "142 Bălți Verificate Zoda", odată ce numărul real se încarcă)
   if (statsInner && typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(syncSearchWidths).observe(statsInner);
