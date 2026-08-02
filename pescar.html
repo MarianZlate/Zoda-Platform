@@ -285,6 +285,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
 .cr-meta-line{font-size:13px;color:var(--zc-text-muted);font-weight:600;margin-top:4px;line-height:1.4;}
 .cr-time-lg{font-size:12.5px;color:var(--zc-text-dim);margin-top:6px;line-height:1.4;}
+.cr-balta-link{color:#38bdf8;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s;}
+.cr-balta-link:hover{text-decoration-color:#38bdf8;}
 .trecut-card{opacity:.55;}
 
 /* EMPTY */
@@ -1018,25 +1020,32 @@ function renderRecordPersonal(recorduriActive) {
 // Card foto — același model ca .cr-card de la "Capturi recente", folosit
 // pentru rândurile din modalurile Recorduri și Realizări. Fără rândul de
 // pescar (avatar+nume), fiindcă suntem deja pe profilul lui.
+// Card foto — același model ca .cr-card de la "Capturi recente". Reguli
+// explicite: click pe card (oriunde) → deschide poza; click pe numele
+// bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, kg, standText, metaLines, dateText, link, trecut } = opts;
-  const fotoClick = photoUrl ? `event.stopPropagation();openFS('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
+  const { photoUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const cardClick = photoUrl ? `openFS('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
   }).join('');
+  const baltaClick = baltaLink ? `event.stopPropagation();savePescarState();window.location.href='${baltaLink}'` : 'event.stopPropagation()';
+  const baltaHtml = baltaText
+    ? `<div class="cr-meta-line"><span class="cr-balta-link" onclick="${baltaClick}">📍 ${baltaText}</span></div>`
+    : '';
   const inner = `
-    <div class="cr-photo"${fotoClick ? ` onclick="${fotoClick}" style="cursor:zoom-in;background-image:url('${escH(photoUrl)}')"` : ''}></div>
+    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
     <div class="cr-info">
       <div class="cr-row1">
         ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
         ${standText ? `<span class="cr-stand">${escH(standText)}</span>` : ''}
       </div>
       ${metaHtml}
+      ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
-  if (link) return `<a href="${link}" onclick="savePescarState()" class="${cls}" style="text-decoration:none;display:flex;flex-direction:column;color:inherit;">${inner}</a>`;
-  return `<div class="${cls}">${inner}</div>`;
+  return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
 }
 
 function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
@@ -1054,9 +1063,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
       photoUrl: s.rec_foto || null,
       kg: s.rec_kg,
       standText: `Stand ${s.nume}`,
-      metaLines: [`📍 ${escH(s.balti?.nume || '—')}`],
+      baltaText: escH(s.balti?.nume || '—'),
+      baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
-      link: `balta.html?id=${s.balta_id}&stand=${s.id}`,
     });
   });
 
@@ -1072,9 +1081,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: standNume ? `Stand ${standNume}` : 'Record anterior',
-        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
       });
     });
@@ -1093,9 +1102,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: stand?.nume ? `Stand ${stand.nume}` : 'Record',
-        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
       });
     });
@@ -1130,9 +1139,10 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: capt.foto_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
+        metaLines: [`📅 Top 10 lunar`],
+        baltaText: escH(baltaNume),
+        baltaLink: `balta.html?id=${t.balta_id}`,
         dateText: capt.data_captura || '',
-        link: `balta.html?id=${t.balta_id}`,
       });
     });
 
@@ -1147,9 +1157,10 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: p.foto_url || null,
         kg: p.kg,
         standText: `Locul ${p.pozitie}`,
-        metaLines: [`🥇 Hall of Fame`, escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : '')],
+        metaLines: [`🥇 Hall of Fame`],
+        baltaText: escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : ''),
+        baltaLink: `balta.html?id=${baltaId}`,
         dateText: p.data_captura || '',
-        link: `balta.html?id=${baltaId}`,
       });
     });
   });
@@ -1166,9 +1177,10 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: capt.foto_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
+        metaLines: [`📅 Top 10 lunar`],
+        baltaText: escH(baltaNume),
+        baltaLink: null,
         dateText: capt.data_captura || '',
-        link: null,
         trecut: true,
       });
     });
@@ -1188,9 +1200,10 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: null,
         kg: l.kg,
         standText: 'Poziție pierdută',
-        metaLines: [`🥇 Hall of Fame`, escH(baltaNume)],
+        metaLines: [`🥇 Hall of Fame`],
+        baltaText: escH(baltaNume),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
         trecut: true,
       });
     });
