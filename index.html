@@ -2647,7 +2647,12 @@ function togglePublicBaltiDropdown(e) {
       ddAproape.style.display = 'none';
       document.body.style.overflow = '';
     }
-    pozitioneazaPublicBaltiDropdown();
+    const chip = document.getElementById('stat-publice-chip');
+    // Poziție analitică, nu getBoundingClientRect() imediat după scroll —
+    // scroll-ul e animat (smooth), citirea imediată ar prinde poziția veche.
+    const headerH = document.getElementById('hdr')?.offsetHeight || 0;
+    dd.style.top = (headerH + 8 + chip.offsetHeight + 8) + 'px';
+    scrollSearchUnderHeader('stat-publice-chip');
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
@@ -2658,6 +2663,7 @@ function togglePublicBaltiDropdown(e) {
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
   }
   dd.style.display = willOpen ? 'block' : 'none';
+  document.body.style.overflow = willOpen ? 'hidden' : '';
 }
 // Ancorează dropdown-ul vertical de bara "Bălți Verificate Zoda" (top = sub
 // bară); orizontal rămâne centrat pe mijlocul ecranului (CSS: left:50% +
@@ -2675,6 +2681,7 @@ document.addEventListener('click', function(e) {
   if (dd && dd.style.display === 'block' && chip && !chip.contains(e.target)) {
     dd.style.display = 'none';
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
+    document.body.style.overflow = '';
   }
   const chipAproape = document.getElementById('stat-aproape-chip');
   const ddAproape = document.getElementById('balti-aproape-dropdown');
