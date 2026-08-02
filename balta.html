@@ -347,8 +347,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .ist{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;cursor:pointer;}
 .ist.active{background:var(--zc-bg-tint);border-color:var(--zc-accent-dark);color:#38bdf8;font-weight:700;}
 /* Butoane selector luni istoric */
-#lunar-luna-buttons{display:flex;gap:6px;flex-wrap:nowrap;}
-.luna-btn{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+#lunar-luna-buttons{display:flex;gap:8px;flex-wrap:nowrap;justify-content:center;width:100%;}
+.luna-btn{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:14px;font-weight:600;padding:8px 16px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .luna-btn:hover{border-color:var(--zc-text-dim);color:var(--zc-text-secondary-2);}
 .luna-btn.active{background:var(--zc-bg-tint);border-color:#38bdf8;color:#38bdf8;font-weight:700;}
 
@@ -1030,8 +1030,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- Top 10 Lunar -->
     <div class="t10c" id="top10-lunar-card" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--zc-border);">
-        <div style="font-weight:800;font-size:13px;color:#38bdf8;">📅 <span id="lunar-titlu">Top 10 Lunar</span></div>
-        <button id="btn-istoric" onclick="toggleIstoric()" style="background:var(--zc-border);border:none;color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--zc-text-dim)';this.style.color='var(--zc-text-primary)'" onmouseout="this.style.background='var(--zc-border)';this.style.color='var(--zc-text-secondary-2)'">📜 Istoric</button>
+        <div style="font-weight:800;font-size:16px;color:#38bdf8;">📅 <span id="lunar-titlu">Top 10 Lunar</span></div>
+        <button id="btn-istoric" onclick="toggleIstoric()" style="background:var(--zc-border);border:none;color:var(--zc-text-secondary-2);font-size:14px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;" onmouseover="this.style.background='var(--zc-text-dim)';this.style.color='var(--zc-text-primary)'" onmouseout="this.style.background='var(--zc-border)';this.style.color='var(--zc-text-secondary-2)'">📜 Istoric</button>
       </div>
 
       <!-- Panel curent -->
@@ -1050,7 +1050,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <!-- Panel istoric -->
       <div id="lunar-istoric-panel" style="display:none;">
         <!-- Selector luni -->
-        <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--zc-border);overflow-x:auto;">
+        <div style="display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--zc-border);overflow-x:auto;justify-content:center;">
           <div id="lunar-luna-buttons"></div>
         </div>
         <div id="lunar-istoric-list"><div class="t10e">Selectează o lună.</div></div>
