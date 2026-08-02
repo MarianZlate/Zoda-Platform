@@ -539,6 +539,23 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .rez-row.trecut .rez-title{color:var(--text-dim);}
 .rez-row.trecut .rez-icon-wrap{opacity:.5;}
 .rez-row.trecut .rez-star{color:var(--text-faint);}
+
+/* Carduri foto — același design ca "Capturi recente" / pescar.html, pentru
+   modalurile Recorduri și Realizări. Click pe card (oriunde) → poză;
+   click pe numele bălții → pagina ei (regulile cerute explicit). */
+.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;padding:14px;}
+.cr-card{border-radius:18px;overflow:hidden;background:var(--panel);border:1px solid var(--border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
+.cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--bg);position:relative;}
+.cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(4,7,12,.92) 100%);}
+.cr-info{padding:10px 12px 12px;}
+.cr-row1{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+.cr-kg{font-size:17px;font-weight:900;color:var(--lime);white-space:nowrap;}
+.cr-stand{font-size:11.5px;color:var(--text-dim);font-weight:600;white-space:nowrap;}
+.cr-meta-line{font-size:13px;color:var(--text-dim);font-weight:600;margin-top:4px;line-height:1.4;}
+.cr-time-lg{font-size:12.5px;color:var(--text-faint);margin-top:6px;line-height:1.4;}
+.cr-balta-link{color:var(--lime);cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s;}
+.cr-balta-link:hover{text-decoration-color:var(--lime);}
+.trecut-card{opacity:.55;}
 .modal-empty-state{padding:32px 20px;text-align:center;}
 .modal-empty-icon{font-size:45px;margin-bottom:10px;}
 .modal-empty-title{font-size:15px;font-weight:700;color:var(--text-dim);margin-bottom:4px;}
@@ -1040,12 +1057,12 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <button class="modal-tab" onclick="switchRecorduriTab('trecute')" id="recorduri-tab-trecute">📜 Trecute</button>
     </div>
     <div class="hof-modal-list">
-      <div id="recorduri-active-list"></div>
+      <div class="cr-grid" id="recorduri-active-list"></div>
       <div class="modal-empty-state" id="recorduri-active-empty" style="display:none;">
         <div class="modal-empty-title">Niciun record activ</div>
         <div class="modal-empty-sub">Recordurile apar când deții recordul curent al unui stand.</div>
       </div>
-      <div id="recorduri-trecute-list" style="display:none;"></div>
+      <div class="cr-grid" id="recorduri-trecute-list" style="display:none;"></div>
       <div class="modal-empty-state" id="recorduri-trecute-empty" style="display:none;">
         <div class="modal-empty-icon">📜</div>
         <div class="modal-empty-title">Niciun record trecut</div>
@@ -1070,12 +1087,12 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <button class="modal-tab" onclick="switchRealizariTab('trecute')" id="realizari-tab-trecute">📜 Trecute</button>
     </div>
     <div class="hof-modal-list">
-      <div id="realizari-active-list"></div>
+      <div class="cr-grid" id="realizari-active-list"></div>
       <div class="modal-empty-state" id="realizari-active-empty" style="display:none;">
         <div class="modal-empty-title">Nicio realizare activă</div>
         <div class="modal-empty-sub">Realizările apar când ești în top 10 lunar sau Hall of Fame.</div>
       </div>
-      <div id="realizari-trecute-list" style="display:none;"></div>
+      <div class="cr-grid" id="realizari-trecute-list" style="display:none;"></div>
       <div class="modal-empty-state" id="realizari-trecute-empty" style="display:none;">
         <div class="modal-empty-icon">📜</div>
         <div class="modal-empty-title">Nicio realizare trecută</div>
@@ -3178,25 +3195,33 @@ function fmtDate(str) {
   return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-// Un rând de record/realizare — aceeași convenție ca pe pescar.html
-// (realizareRow), adaptată la variabilele CSS proprii ale cont.html.
-function realizareRow(opts) {
-  const { iconWrapClass, icon, photoUrl, title, meta, metaHtml, star, date, trecut, link } = opts;
-  const cls = 'rez-row' + (trecut ? ' trecut' : '');
-  const metaContent = metaHtml !== undefined ? metaHtml : escH(meta);
-  const iconContent = photoUrl
-    ? `<img src="${escH(photoUrl)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:9px;"/>`
-    : icon;
+// Card foto — același model ca .cr-card de la "Capturi recente" / pescar.html.
+// Reguli explicite: click pe card (oriunde) → deschide poza; click pe numele
+// bălții → pagina ei (singurul element cu navigare proprie, restul cardului
+// nu navighează nicăieri, doar arată poza).
+function crCardHtml(opts) {
+  const { photoUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const cardClick = photoUrl ? `deschideLightboxFoto('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
+  const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
+    return `<div class="cr-meta-line">${line}</div>`;
+  }).join('');
+  const baltaClick = baltaLink ? `event.stopPropagation();saveContState();window.location.href='${baltaLink}'` : 'event.stopPropagation()';
+  const baltaHtml = baltaText
+    ? `<div class="cr-meta-line"><span class="cr-balta-link" onclick="${baltaClick}">📍 ${baltaText}</span></div>`
+    : '';
   const inner = `
-    <div class="rez-icon-wrap ${iconWrapClass}" style="${photoUrl ? 'padding:0;overflow:hidden;' : ''}">${iconContent}</div>
-    <div class="rez-body">
-      <div class="rez-title">${escH(title)}</div>
-      <div class="rez-meta">${metaContent}</div>
-      ${date ? `<div class="rez-date">📅 ${escH(date)}</div>` : ''}
-    </div>
-    ${star ? `<div class="rez-star">⭐ +1</div>` : ''}`;
-  if (link) return `<a href="${link}" onclick="saveContState()" class="${cls}" style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);transition:background .15s;">${inner}</a>`;
-  return `<div class="${cls}">${inner}</div>`;
+    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
+    <div class="cr-info">
+      <div class="cr-row1">
+        ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
+        ${standText ? `<span class="cr-stand">${escH(standText)}</span>` : ''}
+      </div>
+      ${metaHtml}
+      ${baltaHtml}
+      ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
+    </div>`;
+  const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
+  return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
 }
 
 // Încarcă tot ce ține de recorduri de stand + top10 lunar + hall of fame
@@ -3226,7 +3251,7 @@ async function loadRecorduriSiRealizari(zodaId, recorduriActive) {
   // Top 10 lunar istoric
   const { data: top10Istoric } = await sb
     .from('top10_lunar_istoric')
-    .select('luna, pozitie, kg_total, balta_id, balti(nume)')
+    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, data_captura, standuri(nume))')
     .eq('zoda_id', zodaId)
     .order('pozitie', { ascending: true });
   const top10Sortat = (top10Istoric || []).sort((a, b) => {
@@ -3241,14 +3266,14 @@ async function loadRecorduriSiRealizari(zodaId, recorduriActive) {
   const hofActiveMap = {};
   await Promise.all(hofBaltaIds.map(async (baltaId) => {
     const { data: top10 } = await sb.from('capturi')
-      .select('id, kg, pescar_id')
+      .select('id, kg, pescar_id, foto_url, data_captura, standuri(nume)')
       .eq('balta_id', baltaId)
       .eq('status', 'approved')
       .order('kg', { ascending: false })
       .limit(10);
     if (!top10) return;
     const pozitii = [];
-    top10.forEach((c, i) => { if (c.pescar_id === zodaId) pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id }); });
+    top10.forEach((c, i) => { if (c.pescar_id === zodaId) pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id, foto_url: c.foto_url, data_captura: c.data_captura, standNume: c.standuri?.nume }); });
     if (pozitii.length) hofActiveMap[baltaId] = pozitii;
   }));
 
@@ -3265,30 +3290,33 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
   let activeHtml = '', trecuteHtml = '';
 
   recorduriActive.forEach(s => {
-    const baltaNume = s.balti?.nume || '—';
-    const judet = s.balti?.judet ? ` · ${escH(s.balti.judet)}` : '';
     const stea = steleLog.find(l => l.tip === 'record_stand' && l.referinta === String(s.id));
-    const kgEsc = s.rec_kg ? escH(String(s.rec_kg)) : '';
-    activeHtml += realizareRow({
-      iconWrapClass: 'gold', icon: '🏆', photoUrl: s.rec_foto || null,
-      title: `Record — Stand ${s.nume}`,
-      metaHtml: `${escH(baltaNume)}${judet}${kgEsc ? ' · <strong style="color:var(--lime);">' + kgEsc + ' kg</strong>' : ''}`,
-      star: true, date: stea ? 'Activ din ' + fmtDate(stea.created_at) : '', trecut: false,
-      link: `balta.html?id=${s.balta_id}&stand=${s.id}`,
+    activeHtml += crCardHtml({
+      photoUrl: s.rec_foto || null,
+      kg: s.rec_kg,
+      standText: `Stand ${s.nume}`,
+      baltaText: escH(s.balti?.nume || '—'),
+      baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
+      dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
+      trecut: false,
     });
   });
 
+  // Notă: stele_log nu ține poza capturii care a stabilit recordul (nici nu
+  // mai există neapărat — capturile ne-record se șterg la aprobare), deci
+  // cardurile trecute nu au poză, doar restul detaliilor.
   steleLog
     .filter(l => l.tip === 'record_stand' && !activeStandIds.has(l.referinta))
     .forEach(l => {
-      const baltaNume  = l.balti?.nume || '—';
-      const standNume  = standuriTrecuteMap[parseInt(l.referinta)] || '';
-      const titleStr   = standNume ? `Record — Stand ${standNume}` : 'Record — deținut anterior';
-      const kgStr      = l.kg ? ` · <strong style="color:var(--lime);">${parseFloat(l.kg).toFixed(1)} kg</strong>` : '';
-      trecuteHtml += realizareRow({
-        iconWrapClass: 'gray', icon: '🏆', title: titleStr, metaHtml: escH(baltaNume) + kgStr,
-        star: false, date: 'Câștigat la ' + fmtDate(l.created_at), trecut: true,
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
+      const standNume = standuriTrecuteMap[parseInt(l.referinta)] || '';
+      trecuteHtml += crCardHtml({
+        photoUrl: null,
+        kg: l.kg,
+        standText: standNume ? `Stand ${standNume}` : 'Record anterior',
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
+        dateText: 'Câștigat la ' + fmtDate(l.created_at),
+        trecut: true,
       });
     });
 
@@ -3298,13 +3326,14 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
     .forEach(l => {
       if (!stelaVazuta.has(l.referinta)) { stelaVazuta.add(l.referinta); return; }
       const stand = recorduriActive.find(s => String(s.id) === l.referinta);
-      const baltaNume = l.balti?.nume || '—';
-      const standNume = stand?.nume || '';
-      const kgStr = l.kg ? ` · <strong style="color:var(--lime);">${parseFloat(l.kg).toFixed(1)} kg</strong>` : '';
-      trecuteHtml += realizareRow({
-        iconWrapClass: 'gray', icon: '🏆', title: standNume ? `Record — Stand ${standNume}` : 'Record',
-        metaHtml: escH(baltaNume) + kgStr, star: false, date: 'Câștigat la ' + fmtDate(l.created_at), trecut: true,
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
+      trecuteHtml += crCardHtml({
+        photoUrl: null,
+        kg: l.kg,
+        standText: stand?.nume ? `Stand ${stand.nume}` : 'Record',
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
+        dateText: 'Câștigat la ' + fmtDate(l.created_at),
+        trecut: true,
       });
     });
 
@@ -3324,13 +3353,17 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
   let activeHtml = '', trecuteHtml = '';
 
   top10Istoric.filter(t => luniRecenteSet.has(t.luna)).forEach(t => {
-    const _p1 = t.luna.split('-');
-    const lunaFmt = new Date(parseInt(_p1[1]), parseInt(_p1[0]) - 1).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
     const baltaNume = t.balti?.nume || '—';
-    activeHtml += realizareRow({
-      iconWrapClass: 'green', icon: '📅', title: `Top 10 lunar — Locul ${t.pozitie}`,
-      meta: `${baltaNume} · ${lunaFmt}${t.kg_total ? ' · ' + parseFloat(t.kg_total).toFixed(1) + ' kg' : ''}`,
-      star: true, date: '', trecut: false, link: `balta.html?id=${t.balta_id}`,
+    const capt = t.capturi || {};
+    activeHtml += crCardHtml({
+      photoUrl: capt.foto_url || null,
+      kg: t.kg_total,
+      standText: `Locul ${t.pozitie}`,
+      metaLines: [`📅 Top 10 lunar`],
+      baltaText: escH(baltaNume),
+      baltaLink: `balta.html?id=${t.balta_id}`,
+      dateText: capt.data_captura || '',
+      trecut: false,
     });
   });
 
@@ -3338,35 +3371,49 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
     const logEntry = steleLog.find(l => l.tip === 'hall_of_fame' && String(l.balta_id) === String(baltaId));
     const baltaNume = logEntry?.balti?.nume || '—';
     pozitii.forEach(p => {
-      activeHtml += realizareRow({
-        iconWrapClass: 'gold', icon: '🥇', title: `Hall of Fame — Locul ${p.pozitie}`, meta: undefined,
-        metaHtml: `${escH(baltaNume)} · <strong style="color:var(--lime);">${parseFloat(p.kg).toFixed(1)} kg</strong>`,
-        star: true, date: 'Activ', trecut: false, link: `balta.html?id=${baltaId}`,
+      activeHtml += crCardHtml({
+        photoUrl: p.foto_url || null,
+        kg: p.kg,
+        standText: `Locul ${p.pozitie}`,
+        metaLines: [`🥇 Hall of Fame`],
+        baltaText: escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : ''),
+        baltaLink: `balta.html?id=${baltaId}`,
+        dateText: p.data_captura || '',
+        trecut: false,
       });
     });
   });
 
   top10Istoric.filter(t => !luniRecenteSet.has(t.luna)).forEach(t => {
-    const _p2 = t.luna.split('-');
-    const lunaFmt = new Date(parseInt(_p2[1]), parseInt(_p2[0]) - 1).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
     const baltaNume = t.balti?.nume || '—';
-    trecuteHtml += realizareRow({
-      iconWrapClass: 'gray', icon: '📅', title: `Top 10 lunar — Locul ${t.pozitie}`,
-      meta: `${baltaNume} · ${lunaFmt}${t.kg_total ? ' · ' + parseFloat(t.kg_total).toFixed(1) + ' kg' : ''}`,
-      star: false, date: '', trecut: true, link: null,
+    const capt = t.capturi || {};
+    trecuteHtml += crCardHtml({
+      photoUrl: capt.foto_url || null,
+      kg: t.kg_total,
+      standText: `Locul ${t.pozitie}`,
+      metaLines: [`📅 Top 10 lunar`],
+      baltaText: escH(baltaNume),
+      baltaLink: null,
+      dateText: capt.data_captura || '',
+      trecut: true,
     });
   });
 
+  // Notă: fără poză — stele_log nu ține foto_url, iar captura poate să nu mai existe.
   steleLog.filter(l => l.tip === 'hall_of_fame').forEach(l => {
     const baltaId = String(l.balta_id);
     const esteActiv = hofActiveMap && hofActiveMap[baltaId];
     if (esteActiv) return;
     const baltaNume = l.balti?.nume || '—';
-    const kgStr = l.kg ? ` · <strong style="color:var(--lime);">${parseFloat(l.kg).toFixed(1)} kg</strong>` : '';
-    trecuteHtml += realizareRow({
-      iconWrapClass: 'gray', icon: '🥇', title: 'Hall of Fame — poziție pierdută', metaHtml: escH(baltaNume) + kgStr,
-      star: false, date: 'Câștigat la ' + fmtDate(l.created_at), trecut: true,
-      link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
+    trecuteHtml += crCardHtml({
+      photoUrl: null,
+      kg: l.kg,
+      standText: 'Poziție pierdută',
+      metaLines: [`🥇 Hall of Fame`],
+      baltaText: escH(baltaNume),
+      baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
+      dateText: 'Câștigat la ' + fmtDate(l.created_at),
+      trecut: true,
     });
   });
 
