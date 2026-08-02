@@ -158,9 +158,23 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* HERO CARD */
 .hero-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:28px 24px;margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at top left,rgba(56,189,248,.04) 0%,transparent 60%);pointer-events:none;}
-.hero-avatar{width:80px;height:80px;border-radius:50%;background:var(--zc-bg-tint);border:3px solid var(--zc-accent-dark);display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
+.hero-avatar{width:80px;height:80px;border-radius:50%;background:var(--zc-bg-tint);border:3px solid #38bdf8;box-shadow:0 0 20px rgba(56,189,248,.55);display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:900;color:#38bdf8;flex-shrink:0;overflow:hidden;}
 .hero-avatar img{width:100%;height:100%;object-fit:cover;}
 .hero-info{flex:1;min-width:0;}
+.hero-member{font-size:12px;color:var(--zc-text-muted);margin:-6px 0 10px;}
+.hero-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%;padding-top:18px;margin-top:4px;border-top:1px solid var(--zc-border);position:relative;z-index:2;}
+.hero-stat-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;}
+.hero-stat-icon{font-size:19px;color:#38bdf8;}
+.hero-stat-val{font-size:21px;font-weight:800;color:var(--zc-text-primary);}
+.hero-stat-lbl{font-size:11px;color:var(--zc-text-muted);}
+.record-personal-title{font-weight:800;font-size:17px;color:var(--zc-text-primary);margin:18px 0 10px;width:100%;position:relative;z-index:2;}
+.record-personal-card{position:relative;border-radius:16px;overflow:hidden;min-height:150px;background-size:cover;background-position:center;background-color:var(--zc-bg-tint);cursor:pointer;display:flex;align-items:flex-end;width:100%;z-index:2;}
+.record-personal-card::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg, rgba(8,14,20,.92) 40%, rgba(8,14,20,.1) 78%);}
+.record-personal-body{position:relative;z-index:1;padding:16px 18px;}
+.record-personal-kg{font-size:26px;font-weight:900;color:#fff;}
+.record-personal-stand{font-size:13px;color:#e2e8f0;margin-top:2px;}
+.record-personal-loc{font-size:12.5px;color:#38bdf8;margin-top:6px;font-weight:600;}
+.record-personal-data{font-size:12px;color:#cbd5e1;margin-top:2px;}
 .hero-share-row{width:100%;position:relative;z-index:2;}
 .hero-follow-row{
   width:100%;flex-basis:100%;order:-1;
@@ -368,6 +382,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div class="hero-info">
       <div class="hero-name" id="hero-name">—</div>
       <div class="hero-zoda" id="hero-zoda">—</div>
+      <div class="hero-member" id="hero-member"></div>
       <div class="hero-stele">
         <div class="stele-badge">
           <span class="stele-num" id="hero-stele-num">0</span>
@@ -375,6 +390,34 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         </div>
         <div class="stele-breakdown" id="hero-stele-breakdown"></div>
       </div>
+    </div>
+    <div class="hero-stats-row">
+      <div class="hero-stat-item">
+        <div class="hero-stat-icon">🐟</div>
+        <div class="hero-stat-val" id="hero-stat-capturi">0</div>
+        <div class="hero-stat-lbl">Capturi</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-icon">📍</div>
+        <div class="hero-stat-val" id="hero-stat-balti">0</div>
+        <div class="hero-stat-lbl">Bălți</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-icon">🏆</div>
+        <div class="hero-stat-val" id="hero-stat-recorduri">0</div>
+        <div class="hero-stat-lbl">Recorduri</div>
+      </div>
+      <div class="hero-stat-item">
+        <div class="hero-stat-icon">⭐</div>
+        <div class="hero-stat-val" id="hero-stat-stele">0</div>
+        <div class="hero-stat-lbl">Stele</div>
+      </div>
+    </div>
+    <!-- RECORD PERSONAL — cea mai mare captură dintre standurile unde deține
+         recordul acum (recorduriActive, deja încărcat pentru tab-ul Active) -->
+    <div id="record-personal-wrap" style="display:none;">
+      <div class="record-personal-title">Record personal</div>
+      <div class="record-personal-card" id="record-personal-card"></div>
     </div>
     <div class="hero-share-row">
       <button onclick="shareProfile()" id="share-profile-btn" title="Distribuie profilul" class="hero-share-btn">
@@ -761,7 +804,17 @@ async function loadPescarData(zodaId) {
     if (pozitii.length) hofActiveMap[baltaId] = pozitii;
   }));
 
+  // 7. Capturi aprobate — pentru statul "Capturi" și "Bălți" (distincte,
+  //    derivat din capturile publice, nu din istoric_vizite care e privat)
+  const { data: capturiPublice } = await sb
+    .from('capturi')
+    .select('balta_id')
+    .eq('pescar_id', zodaId)
+    .eq('status', 'approved');
+
   renderHero(profile, steleData);
+  renderStatsRapide(capturiPublice || [], recorduriActive || []);
+  renderRecordPersonal(recorduriActive || []);
   renderRealizari(steleLogRaw || [], recorduriActive || [], top10Sortat, standuriTrecuteMap, hofActiveMap, hofBaltaIds);
   initButonUrmarirePescar(zodaId);
 
@@ -788,8 +841,17 @@ function renderHero(profile, steleData) {
   document.getElementById('hero-name').textContent = username;
   document.getElementById('hero-zoda').textContent = profile.zoda_id;
 
+  const memberEl = document.getElementById('hero-member');
+  if (memberEl) {
+    memberEl.textContent = profile.created_at
+      ? 'Membru din ' + new Date(profile.created_at).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
+      : '';
+  }
+
   const total = steleData?.total_stele || 0;
   document.getElementById('hero-stele-num').textContent = total;
+  const heroStatStele = document.getElementById('hero-stat-stele');
+  if (heroStatStele) heroStatStele.textContent = total;
 
   const rs  = steleData?.stele_record_stand  || 0;
   const t10 = steleData?.stele_top10_lunar   || 0;
@@ -800,6 +862,38 @@ function renderHero(profile, steleData) {
   if (hof) parts.push(`🏆 ${hof} Hall of Fame`);
   document.getElementById('hero-stele-breakdown').innerHTML = parts.join('<br/>') ||
     '<span style="color:var(--zc-border);">Nicio stea câștigată încă</span>';
+}
+
+// Capturi / Bălți (distincte, din capturile aprobate — nu istoric_vizite,
+// care e privat și nu poate fi citit pentru profilul altcuiva) / Recorduri
+function renderStatsRapide(capturiPublice, recorduriActive) {
+  const elCapturi = document.getElementById('hero-stat-capturi');
+  const elBalti    = document.getElementById('hero-stat-balti');
+  const elRec       = document.getElementById('hero-stat-recorduri');
+  if (elCapturi) elCapturi.textContent = capturiPublice.length;
+  if (elBalti) elBalti.textContent = new Set(capturiPublice.map(c => c.balta_id).filter(Boolean)).size;
+  if (elRec) elRec.textContent = recorduriActive.length;
+}
+
+// Record personal — cea mai mare captură dintre standurile unde pescarul
+// deține ACUM recordul (recorduriActive, deja încărcat pentru tab-ul Active)
+function renderRecordPersonal(recorduriActive) {
+  const wrap = document.getElementById('record-personal-wrap');
+  const card = document.getElementById('record-personal-card');
+  if (!wrap || !card) return;
+  const cuKg = recorduriActive.filter(s => s.rec_kg != null);
+  if (!cuKg.length) { wrap.style.display = 'none'; return; }
+  const rec = cuKg.reduce((max, s) => (s.rec_kg > max.rec_kg ? s : max), cuKg[0]);
+  card.style.backgroundImage = rec.rec_foto ? `url('${rec.rec_foto}')` : 'none';
+  card.style.cursor = 'default';
+  card.innerHTML = `
+    <div class="record-personal-body">
+      <div class="record-personal-kg">${rec.rec_kg} kg</div>
+      <div class="record-personal-stand">${rec.nume ? 'Stand ' + rec.nume : ''}</div>
+      <div class="record-personal-loc">📍 ${rec.balti?.nume || '—'}</div>
+      <div class="record-personal-data">${rec.rec_data || ''}</div>
+    </div>`;
+  wrap.style.display = 'block';
 }
 
 function renderRealizari(steleLog, recorduriActive, top10Istoric, standuriTrecuteMap, hofActiveMap, hofBaltaIds) {
