@@ -543,7 +543,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* Carduri foto — același design ca "Capturi recente" / pescar.html, pentru
    modalurile Recorduri și Realizări. Click pe card (oriunde) → poză;
    click pe numele bălții → pagina ei (regulile cerute explicit). */
-.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;padding:14px;}
+.cr-grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;}
+.cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-card{border-radius:18px;overflow:hidden;background:var(--panel);border:1px solid var(--border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(4,7,12,.92) 100%);}
