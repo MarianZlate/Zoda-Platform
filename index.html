@@ -4317,7 +4317,19 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Se conectează...';
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = 'Intră în cont';
-  if(error) { authShowErr('Email sau parolă incorectă.'); return; }
+  if(error) {
+    // Nu maschila toate erorile ca "parolă incorectă" — asta ascundea cauze
+    // reale (ex. cont neconfirmat) în spatele unui mesaj înșelător.
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('email not confirmed')) {
+      authShowErr('⚠️ Contul nu e confirmat încă — verifică emailul (inclusiv Spam) și apasă pe linkul de confirmare primit la înregistrare.');
+    } else if (msg.includes('invalid login credentials')) {
+      authShowErr('Email sau parolă incorectă.');
+    } else {
+      authShowErr('Eroare la autentificare: ' + (error.message || 'încearcă din nou.'));
+    }
+    return;
+  }
   if(!rememberMe) sessionStorage.setItem('zoda-session-only', '1');
   else            sessionStorage.removeItem('zoda-session-only');
   // closeAuthModal() va fi chemat de onAuthStateChange SIGNED_IN
