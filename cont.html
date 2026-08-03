@@ -557,6 +557,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-balta-link{color:var(--lime);cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s;}
 .cr-balta-link:hover{text-decoration-color:var(--lime);}
 .cr-share-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(4,7,12,.6);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding:0;}
+.cr-delete-btn{position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:50%;background:rgba(4,7,12,.6);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding:0;}
 .trecut-card{opacity:.55;}
 .modal-empty-state{padding:32px 20px;text-align:center;}
 .modal-empty-icon{font-size:45px;margin-bottom:10px;}
@@ -818,7 +819,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
       <!-- STATS RAPIDE -->
       <div class="hero-stats-row">
-        <div class="hero-stat-item">
+        <div class="hero-stat-item" onclick="openCapturileMeleModal()" style="cursor:pointer;">
           <svg class="hero-stat-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12c-1.5-3-5-5-9-5C5 7 2 9.5 2 12s3 5 7 5c4 0 7.5-2 9-5Z"/><path d="M18 12l4-3v6l-4-3Z"/><circle cx="7" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>
           <div class="hero-stat-val" id="hero-stat-capturi">0</div>
           <div class="hero-stat-lbl">Capturi</div>
@@ -1044,6 +1045,38 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
 </div><!-- /#page -->
 
+<!-- MODAL CAPTURILE MELE — toate capturile proprii aprobate, cu opțiune de ștergere -->
+<div id="capturile-mele-modal">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">🐟 Capturile mele</div>
+        <div class="hof-modal-sub">Toate capturile tale aprobate</div>
+      </div>
+      <button class="modal-close" onclick="closeCapturileMeleModal()">✕</button>
+    </div>
+    <div class="hof-modal-list">
+      <div class="cr-grid" id="capturile-mele-list"></div>
+      <div class="modal-empty-state" id="capturile-mele-empty" style="display:none;">
+        <div class="modal-empty-title">Nicio captură încă</div>
+        <div class="modal-empty-sub">Capturile tale aprobate vor apărea aici.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmare ștergere captură -->
+<div id="confirma-stergere-captura" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9500;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:360px;width:100%;">
+    <div style="font-weight:800;font-size:17px;color:var(--text);margin-bottom:8px;" id="csc-titlu">Ștergi această captură?</div>
+    <div style="font-size:13.5px;color:var(--text-dim);line-height:1.6;margin-bottom:18px;" id="csc-mesaj">Odată ștearsă, nu mai poate fi recuperată.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="anuleazaStergereCaptura()" style="flex:1;background:var(--panel-raised);border:1px solid var(--border);color:var(--text-dim);font-weight:700;padding:11px;border-radius:10px;cursor:pointer;">Anulează</button>
+      <button onclick="confirmaStergereCaptura()" style="flex:1;background:var(--danger);border:none;color:#fff;font-weight:700;padding:11px;border-radius:10px;cursor:pointer;">Șterge</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL RECORDURI — doar recordurile de stand (active + trecute) -->
 <div id="recorduri-modal">
   <div class="hof-modal-inner">
@@ -1231,6 +1264,15 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 <!-- ── MODAL ADAUGĂ CAPTURĂ ── -->
 <!-- CARD DE DISTRIBUIRE CAPTURĂ -->
 <!-- LIGHTBOX — vizualizare poză la dimensiune completă, la click pe o realizare -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--text);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:var(--lime);border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="lightbox-foto" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9000;align-items:center;justify-content:center;padding:20px;" onclick="closeLightboxFoto()">
   <button onclick="closeLightboxFoto()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#fff;font-size:31px;cursor:pointer;line-height:1;">✕</button>
   <img id="lightbox-foto-img" src="" style="max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain;"/>
@@ -1301,21 +1343,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
         </div>
         <input type="hidden" id="mc-pescar-id" />
         <input type="hidden" id="mc-pescar-nume" />
-        <div class="fg-hint">Dacă pescarul nu are cont pe Zoda, selectează „Pescar fără cont" și completează manual.</div>
-      </div>
-
-      <!-- Pescar fără cont (fallback) -->
-      <div id="pescar-manual-wrap" style="display:none;">
-        <div class="fg">
-          <label>NUME PESCAR (manual)</label>
-          <input type="text" id="mc-pescar-manual" placeholder="ex: Ion Popescu" oninput="checkFormValid()" class="field-inp" />
-        </div>
-      </div>
-      <div style="margin-bottom:16px;">
-        <label class="checkbox-row">
-          <input type="checkbox" id="mc-fara-cont" onchange="toggleFaraCont(this.checked)" />
-          Pescarul nu are cont pe Zoda
-        </label>
+        <div class="fg-hint">Capturile trebuie asociate unui cont Zoda existent — pescarul trebuie să-și creeze un cont înainte să i se poată înregistra o captură.</div>
       </div>
 
       <!-- Upload poză -->
@@ -1403,6 +1431,63 @@ function showToast(msg, isErr = false) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
+let _acordPendinteTip = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:var(--lime);">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:var(--lime);">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+  verificaAcorduriPendinte(data.user, currentRole);
+}
+
 // ── BOOT ─────────────────────────────────────────────────────────────────────
 async function boot() {
   const { data: { user } } = await sb.auth.getUser();
@@ -1416,6 +1501,7 @@ async function boot() {
   ]);
   currentProfile = profile || {};
   currentRole = roleData?.rol || 'user';
+  verificaAcorduriPendinte(user, currentRole);
 
   if (currentProfile.deleted_at) { showDeletedScreen(); return; }
 
@@ -2100,9 +2186,6 @@ async function openCaptura(baltaId, baltaNume) {
   document.getElementById('mc-pescar-search').value = '';
   document.getElementById('mc-pescar-id').value = '';
   document.getElementById('mc-pescar-nume').value = '';
-  document.getElementById('mc-pescar-manual').value = '';
-  document.getElementById('mc-fara-cont').checked = false;
-  document.getElementById('pescar-manual-wrap').style.display = 'none';
   document.getElementById('pescar-selectat').style.display = 'none';
   document.getElementById('pescar-dropdown').classList.remove('open');
   document.getElementById('zona-foto').classList.remove('has-file');
@@ -2143,9 +2226,6 @@ function closeCaptura() {
   document.getElementById('mc-stand').innerHTML = '<option value="">Selectează standul...</option>';
   document.getElementById('mc-pescar-search').value = '';
   document.getElementById('mc-pescar-id').value = '';
-  document.getElementById('mc-pescar-manual').value = '';
-  document.getElementById('mc-fara-cont').checked = false;
-  document.getElementById('pescar-manual-wrap').style.display = 'none';
   document.getElementById('pescar-selectat').style.display = 'none';
   document.getElementById('zona-foto').classList.remove('has-file');
   const fotoPreview = document.getElementById('foto-preview');
@@ -2156,18 +2236,6 @@ function closeCaptura() {
 }
 
 // Click în afara modalului NU mai închide — se pierde progresul completat din greșeală
-
-function toggleFaraCont(checked) {
-  document.getElementById('pescar-manual-wrap').style.display = checked ? 'block' : 'none';
-  if (checked) {
-    clearPescar();
-    document.getElementById('mc-pescar-search').value = '';
-    document.getElementById('mc-pescar-search').disabled = true;
-  } else {
-    document.getElementById('mc-pescar-search').disabled = false;
-  }
-  checkFormValid();
-}
 
 function clearPescar() {
   _pescarSelectat = null;
@@ -2295,15 +2363,13 @@ function checkFormValid() {
   const standId   = document.getElementById('mc-stand').value;
   const kg        = parseFloat(document.getElementById('mc-kg').value);
   const data      = document.getElementById('mc-data').value;
-  const faraCont  = document.getElementById('mc-fara-cont').checked;
   const pescarId  = document.getElementById('mc-pescar-id').value;
-  const pescarMan = document.getElementById('mc-pescar-manual').value.trim();
 
   const valid =
     !!standId &&
     (kg > 0 && !isNaN(kg)) &&
     !!data &&
-    (faraCont ? !!pescarMan : !!pescarId) &&
+    !!pescarId &&
     !!_fotoFile;
 
   const btn = document.getElementById('mc-submit-btn');
@@ -2344,19 +2410,16 @@ async function submitCaptura() {
   const standId  = document.getElementById('mc-stand').value;
   const kg       = parseFloat(document.getElementById('mc-kg').value);
   const data     = document.getElementById('mc-data').value;
-  const faraCont = document.getElementById('mc-fara-cont').checked;
   const pescarId = document.getElementById('mc-pescar-id').value;
-  const pescarManual = document.getElementById('mc-pescar-manual').value.trim();
 
   if (!standId)         { showErr('Selectează un stand.'); return; }
   if (!kg || kg <= 0)   { showErr('Introdu greutatea corectă.'); return; }
   if (!data)            { showErr('Selectează data capturii.'); return; }
-  if (!faraCont && !pescarId)  { showErr('Selectează pescarul sau bifează „fără cont".'); return; }
-  if (faraCont && !pescarManual) { showErr('Introdu numele pescarului.'); return; }
+  if (!pescarId)        { showErr('Selectează pescarul — capturile trebuie asociate unui cont Zoda existent.'); return; }
   if (!_fotoFile)       { showErr('Adaugă o fotografie a capturii.'); return; }
 
-  const pescarNume = faraCont ? pescarManual : (_pescarSelectat?.username || '');
-  const pescarZoda = faraCont ? null : pescarId;
+  const pescarNume = _pescarSelectat?.username || '';
+  const pescarZoda = pescarId;
 
   btn.disabled = true;
   btn.textContent = '⏳ Se trimite...';
@@ -3165,6 +3228,7 @@ async function loadCapturi() {
     .select('id, kg, specie, data_captura, foto_url, stand_id, balta_id, standuri(nume), balti(nume, judet)')
     .eq('pescar_id', zodaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .order('data_captura', { ascending: false });
 
   // Recorduri de stand pe care pescarul le deține (via rec_pescar_id)
@@ -3215,7 +3279,7 @@ function fmtDate(str) {
 // bălții → pagina ei (singurul element cu navigare proprie, restul cardului
 // nu navighează nicăieri, doar arată poza).
 function crCardHtml(opts) {
-  const { photoUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, shareData } = opts;
+  const { photoUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, shareData, deleteId } = opts;
   const cardClick = photoUrl ? `deschideLightboxFoto('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
@@ -3230,8 +3294,11 @@ function crCardHtml(opts) {
     const idx = window._shareCards.push(shareData) - 1;
     shareHtml = `<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(${idx})" title="Distribuie">📤</button>`;
   }
+  const deleteHtml = deleteId != null
+    ? `<button class="cr-delete-btn" onclick="event.stopPropagation();cereStergereCaptura(${deleteId})" title="Șterge">🗑️</button>`
+    : '';
   const inner = `
-    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}>${shareHtml}</div>
+    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}>${shareHtml}${deleteHtml}</div>
     <div class="cr-info">
       <div class="cr-row1">
         ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
@@ -3291,6 +3358,7 @@ async function loadRecorduriSiRealizari(zodaId, recorduriActive) {
       .select('id, kg, pescar_id, foto_url, data_captura, standuri(nume)')
       .eq('balta_id', baltaId)
       .eq('status', 'approved')
+      .eq('sters', false)
       .order('kg', { ascending: false })
       .limit(10);
     if (!top10) return;
@@ -3487,6 +3555,81 @@ function closeRealizariModal() {
   document.body.style.overflow = '';
   if (history.state && history.state.modal === 'realizari') history.back();
 }
+
+// ── CAPTURILE MELE — toate capturile proprii + ștergere ─────────────────────
+function openCapturileMeleModal() {
+  renderCapturileMele();
+  document.getElementById('capturile-mele-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'capturile-mele' }, '');
+}
+function closeCapturileMeleModal() {
+  document.getElementById('capturile-mele-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (history.state && history.state.modal === 'capturile-mele') history.back();
+}
+function renderCapturileMele() {
+  const list  = document.getElementById('capturile-mele-list');
+  const empty = document.getElementById('capturile-mele-empty');
+  const capturi = window._capturiMele || [];
+  if (!capturi.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  window._capturileMeleRef = capturi; // referință pentru butoanele de ștergere, indexate identic cu ce randăm
+  list.innerHTML = capturi.map(function(c, i) {
+    return crCardHtml({
+      photoUrl: c.foto_url || null,
+      kg: c.kg,
+      standText: c.standuri?.nume ? `Stand ${c.standuri.nume}` : '',
+      baltaText: escH(c.balti?.nume || '—'),
+      baltaLink: c.balta_id ? `balta.html?id=${c.balta_id}` : null,
+      dateText: c.data_captura || '',
+      deleteId: i,
+    });
+  }).join('');
+}
+
+let _capturaDeSters = null;
+function cereStergereCaptura(index) {
+  const c = (window._capturileMeleRef || [])[index];
+  if (!c) return;
+  _capturaDeSters = c;
+  document.getElementById('csc-titlu').textContent = `Ștergi captura de ${c.kg} kg?`;
+  document.getElementById('csc-mesaj').textContent =
+    'Odată ștearsă, captura nu mai poate fi recuperată și dispare din tot ce e public (clasamente, capturi recente, profilul tău). Stelele deja câștigate rămân neschimbate.';
+  document.getElementById('confirma-stergere-captura').style.display = 'flex';
+}
+function anuleazaStergereCaptura() {
+  _capturaDeSters = null;
+  document.getElementById('confirma-stergere-captura').style.display = 'none';
+}
+async function confirmaStergereCaptura() {
+  if (!_capturaDeSters) return;
+  const c = _capturaDeSters;
+  document.getElementById('confirma-stergere-captura').style.display = 'none';
+
+  const { data, error } = await sb.rpc('sterge_captura_proprie', { p_captura_id: c.id });
+  if (error || !data?.success) {
+    showToast('⚠️ ' + (data?.error || error?.message || 'Nu am putut șterge captura.'));
+    _capturaDeSters = null;
+    return;
+  }
+
+  showToast(data.era_record
+    ? '🗑️ Captură ștearsă — recordul standului a fost transferat automat.'
+    : '🗑️ Captură ștearsă.');
+  _capturaDeSters = null;
+
+  // Reîncarcă tot ce poate fi afectat: lista de capturi, stats-urile din
+  // hero, cardul de record personal și — dacă era record — și modalul de
+  // Recorduri, care s-ar putea să fi rămas cu date vechi.
+  await loadCapturi();
+  renderCapturileMele();
+}
+
 window.addEventListener('popstate', function (e) {
   if (!(e.state && e.state.modal === 'recorduri')) {
     const rEl = document.getElementById('recorduri-modal');
@@ -3495,6 +3638,10 @@ window.addEventListener('popstate', function (e) {
   if (!(e.state && e.state.modal === 'realizari')) {
     const aEl = document.getElementById('realizari-modal');
     if (aEl && aEl.classList.contains('open')) { aEl.classList.remove('open'); document.body.style.overflow = ''; }
+  }
+  if (!(e.state && e.state.modal === 'capturile-mele')) {
+    const cEl = document.getElementById('capturile-mele-modal');
+    if (cEl && cEl.classList.contains('open')) { cEl.classList.remove('open'); document.body.style.overflow = ''; }
   }
 });
 
