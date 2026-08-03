@@ -449,7 +449,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .li.drag-over{border-color:#38bdf8;background:var(--zc-bg-deep);}
 .li.dragging-item{opacity:.4;}
 /* Sort list in edit mode */
-.sort-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1/1;border:1px solid var(--zc-border);border-radius:12px;cursor:grab;touch-action:none;transition:background .15s,border-color .15s;background:var(--zc-bg);}
+.sort-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:50px;height:50px;border:1px solid var(--zc-border);border-radius:12px;cursor:grab;touch-action:none;transition:background .15s,border-color .15s;background:var(--zc-bg);}
 .sort-row:hover{background:var(--zc-border);}
 .sort-row.drag-over{background:var(--zc-bg-deep);border-color:#38bdf8;}
 .sort-row.dragging-item{opacity:.4;}
@@ -972,7 +972,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
     <div id="sort-list" style="display:none;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;overflow:hidden;">
       <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:#f59e0b;">⠿ Trage pentru a reordona standurile</div>
-      <div id="sort-list-items" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:14px;"></div>
+      <div id="sort-list-items" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px 10px;padding:16px 20px;justify-items:center;"></div>
     </div>
 
     <!-- Placeholder când niciun stand nu e selectat -->
