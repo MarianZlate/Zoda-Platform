@@ -980,15 +980,15 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div class="hof-modal-hdr">
       <div>
         <div class="hof-modal-title">🏆 Clasament</div>
-        <div class="hof-modal-sub" id="clasament-sub">Top pescari după stele</div>
+        <div class="hof-modal-sub" id="clasament-sub">Top 20 pescari după numărul total de stele obținute</div>
       </div>
       <button class="modal-close" onclick="closeHof()">✕</button>
     </div>
     <div class="lb-tab-toggle">
-      <button class="lb-tab-btn active" id="lb-tab-weekly" onclick="setClasamentTab('weekly')">Săptămâna asta</button>
-      <button class="lb-tab-btn" id="lb-tab-alltime" onclick="setClasamentTab('alltime')">All-time</button>
+      <button class="lb-tab-btn" id="lb-tab-weekly" onclick="setClasamentTab('weekly')">Săptămâna asta</button>
+      <button class="lb-tab-btn active" id="lb-tab-alltime" onclick="setClasamentTab('alltime')">All-time</button>
     </div>
-    <div class="hof-modal-list" id="lb-body-weekly">
+    <div class="hof-modal-list" id="lb-body-weekly" style="display:none;">
       <div class="hof-card" style="border:none;box-shadow:none;">
         <div class="hof-header">
           <div class="hof-header-text">
@@ -999,7 +999,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <div id="saptamanal-stele-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
       </div>
     </div>
-    <div class="hof-modal-list" id="lb-body-alltime" style="display:none;">
+    <div class="hof-modal-list" id="lb-body-alltime">
       <div id="hof-full"></div>
     </div>
   </div>
@@ -2124,6 +2124,7 @@ function openHof()  {
   if (switching) capEl.classList.remove('open');
   var authEl = document.getElementById('auth-modal');
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
+  setClasamentTab('alltime');
   document.getElementById('hof-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
