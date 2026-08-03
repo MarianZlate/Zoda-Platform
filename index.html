@@ -1957,6 +1957,7 @@ async function loadTopSaptamanal() {
     var { data: capturi } = await withTimeout(sb.from('capturi')
       .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, data_captura, standuri(nume), balti(nume)')
       .eq('status', 'approved')
+      .eq('sters', false)
       .gte('data_captura', luniDataLocala)
       .lt('data_captura', luniUrmatoareDataLocala)
       .order('kg', { ascending: false })
@@ -2009,7 +2010,7 @@ async function loadTopSaptamanal() {
       // Capturi — doar pentru locurile 1-3, pentru podium (ca la Hall of Fame)
       var top3IdsSapt = weeklyItems.slice(0, 3).map(function(h) { return h.zodaId; }).filter(Boolean);
       if (top3IdsSapt.length) {
-        var { data: capturiTop3Sapt } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3IdsSapt);
+        var { data: capturiTop3Sapt } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').eq('sters', false).in('pescar_id', top3IdsSapt);
         var countsSapt = {};
         (capturiTop3Sapt || []).forEach(function(c) { countsSapt[c.pescar_id] = (countsSapt[c.pescar_id] || 0) + 1; });
         weeklyItems.slice(0, 3).forEach(function(h) { h.capturi = countsSapt[h.zodaId] || 0; });
@@ -2086,7 +2087,7 @@ async function loadHof() {
   // (restul clasamentului nu-l afișează, nu merită interogarea pentru toți 20)
   const top3Ids = HOF.slice(0, 3).map(h => h.zodaId).filter(Boolean);
   if (top3Ids.length) {
-    const { data: capturiTop3 } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3Ids);
+    const { data: capturiTop3 } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').eq('sters', false).in('pescar_id', top3Ids);
     const counts = {};
     (capturiTop3 || []).forEach(c => { counts[c.pescar_id] = (counts[c.pescar_id] || 0) + 1; });
     HOF.slice(0, 3).forEach(h => { h.capturi = counts[h.zodaId] || 0; });
@@ -2158,6 +2159,7 @@ async function loadCapturiRecente() {
     var res = await sb.from('capturi')
       .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, balta_id, standuri(nume), balti(nume)')
       .eq('status', 'approved')
+      .eq('sters', false)
       .order('created_at', { ascending: false })
       .limit(20);
     var capturi = res.data || [];
@@ -4135,6 +4137,15 @@ function getStanduriData() {
 </div>
 
 <!-- AUTH MODAL -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:#38bdf8;border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="auth-modal">
   <div class="auth-inner">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
@@ -4316,9 +4327,76 @@ const WORKER_TURNSTILE_VERIFY = 'https://zoda-turnstile-verify.marianzlate90.wor
 // Versiunea curentă a Termenilor și Politicii de Confidențialitate — trebuie
 // ținută sincronă manual cu "Versiunea X.X" afișată în termeni.html/confidentialitate.html.
 // La fiecare actualizare semnificativă a acelor pagini, crește numărul aici ȘI acolo.
-const TERMS_VERSION = '1.0';
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
 let _turnstileOk = false;
 function onTurnstileOk(){ _turnstileOk = true; }
+
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+// Verifică, la fiecare logare, dacă userul a acceptat cea mai recentă
+// versiune a Termenilor (terms_version_accepted, salvat pe user_metadata) și
+// — dacă e balta_admin — dacă a confirmat explicit responsabilitățile lui
+// (balta_admin_ack_version). Blochează folosirea platformei până acceptă;
+// verifică un singur lucru pe rând (dacă are ambele restante, arată întâi
+// Termenii, apoi — după ce le acceptă — verifică din nou și arată acordul
+// de balta_admin).
+let _acordPendinteTip = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:#38bdf8;">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+
+  // Re-verifică — dacă mai are un al doilea acord restant (ex. termeni +
+  // balta_admin ambele), continuă direct cu următorul, fără să reîncarce pagina.
+  verificaAcorduriPendinte(data.user, currentRole);
+}
 function onTurnstileExpired(){ _turnstileOk = false; }
 
 async function doRegister() {
@@ -4438,6 +4516,7 @@ async function updateNavForUser(user) {
   } else {
     currentRole = _roleCache.rol;
   }
+  verificaAcorduriPendinte(user, currentRole);
 
   const profile = profileResult?.data;
   MY_ZODA_ID = profile?.zoda_id || null;
