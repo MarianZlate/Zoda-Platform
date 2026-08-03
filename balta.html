@@ -1178,6 +1178,15 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 </div>
 
 <!-- FULLSCREEN MODAL -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:#38bdf8;border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
@@ -1420,6 +1429,66 @@ function escHtmlPreview(v) {
   return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+// Aceeași logică ca pe index.html — vezi comentariul de-acolo pentru detalii.
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
+let _acordPendinteTip = null;
+let _acordPendinteRol = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  _acordPendinteRol = role;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:#38bdf8;">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+  verificaAcorduriPendinte(data.user, _acordPendinteRol);
+}
+
 async function checkAdminAndShowBar() {
   // Citim sesiunea din localStorage (zoda-auth) — fără token în URL
   var { data: { session } } = await sb.auth.getSession();
@@ -1429,6 +1498,7 @@ async function checkAdminAndShowBar() {
 
   var rRes = await sb.from('user_roles').select('rol').eq('id', user.id).single();
   var rol = rRes.data?.rol;
+  verificaAcorduriPendinte(user, rol);
   var canEdit = false;
   if (rol === 'zoda_admin') {
     canEdit = true;
@@ -1929,6 +1999,7 @@ async function loadHallOfFame(baltaId) {
     .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .order('kg', { ascending: false })
     .limit(10);
 
@@ -2082,6 +2153,7 @@ async function loadTop10Lunar(baltaId) {
     .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .gte('data_captura', lunaStart)
     .lt('data_captura', lunaEnd)
     .order('kg', { ascending: false })
@@ -2241,6 +2313,7 @@ async function loadCapturiModalBalta(baltaId) {
     .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .order('kg', { ascending: false });
 
   if (error || !capturi || !capturi.length) {
