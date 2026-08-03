@@ -449,13 +449,12 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .li.drag-over{border-color:#38bdf8;background:var(--zc-bg-deep);}
 .li.dragging-item{opacity:.4;}
 /* Sort list in edit mode */
-.sort-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--zc-border);cursor:grab;touch-action:none;transition:background .15s;}
-.sort-row:last-child{border-bottom:none;}
+.sort-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1/1;border:1px solid var(--zc-border);border-radius:12px;cursor:grab;touch-action:none;transition:background .15s,border-color .15s;background:var(--zc-bg);}
 .sort-row:hover{background:var(--zc-border);}
 .sort-row.drag-over{background:var(--zc-bg-deep);border-color:#38bdf8;}
 .sort-row.dragging-item{opacity:.4;}
-.sort-row-handle{color:var(--zc-text-dim);font-size:22px;flex-shrink:0;}
-.sort-row-name{font-size:15px;font-weight:700;color:var(--zc-text-primary);flex:1;}
+.sort-row-handle{color:var(--zc-text-dim);font-size:15px;line-height:1;}
+.sort-row-name{font-size:15px;font-weight:800;color:var(--zc-text-primary);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 4px;}
 .lnr{width:22px;height:22px;border-radius:50%;background:#e8142a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;flex-shrink:0;}
 .lz{font-size:12px;color:var(--zc-text-secondary-2);}
 .ls{font-size:10px;color:var(--zc-text-muted);margin-top:1px;}
@@ -973,7 +972,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
     <div id="sort-list" style="display:none;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;overflow:hidden;">
       <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:#f59e0b;">⠿ Trage pentru a reordona standurile</div>
-      <div id="sort-list-items"></div>
+      <div id="sort-list-items" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:14px;"></div>
     </div>
 
     <!-- Placeholder când niciun stand nu e selectat -->
