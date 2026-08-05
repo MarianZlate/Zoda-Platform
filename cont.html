@@ -1358,6 +1358,18 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
         <input type="file" id="mc-foto-input" accept="image/*" style="display:none;" onchange="onFotoSelect(this)" />
       </div>
 
+      <!-- Upload poză dovadă captură (obligatoriu) -->
+      <div class="fg">
+        <label>DOVADĂ CAPTURĂ — poză cu peștele cântărit *</label>
+        <div class="upload-zone" id="zona-foto-dovada" onclick="document.getElementById('mc-foto-dovada-input').click()">
+          <div class="upload-zone-icon">⚖️</div>
+          <div class="upload-zone-text">Click sau trage poza aici</div>
+          <div class="upload-zone-sub">Cântarul cu afișajul vizibil — obligatorie, pentru credibilitatea capturii</div>
+          <img id="foto-dovada-preview" class="upload-preview" alt="preview" />
+        </div>
+        <input type="file" id="mc-foto-dovada-input" accept="image/*" style="display:none;" onchange="onFotoDovadaSelect(this)" />
+      </div>
+
       <!-- Progress upload -->
       <div id="mc-progress" style="display:none;margin-bottom:14px;">
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;" id="mc-progress-text">Se uploadează...</div>
@@ -1371,7 +1383,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
     </div>
     <div class="mc-footer">
       <button onclick="closeCaptura()" class="btn-plain" style="padding:10px 20px;">Anulează</button>
-      <button id="mc-submit-btn" onclick="submitCaptura()" disabled style="background:var(--panel-raised);border:none;color:var(--text-ghost);font-size:15px;font-weight:700;padding:10px 24px;border-radius:var(--r-sm);cursor:not-allowed;transition:background .2s,color .2s;" title="Completează toate câmpurile obligatorii și adaugă o fotografie">📤 Trimite cererea</button>
+      <button id="mc-submit-btn" onclick="submitCaptura()" disabled style="background:var(--panel-raised);border:none;color:var(--text-ghost);font-size:15px;font-weight:700;padding:10px 24px;border-radius:var(--r-sm);cursor:not-allowed;transition:background .2s,color .2s;" title="Completează toate câmpurile obligatorii și adaugă ambele fotografii (captură + dovadă)">📤 Trimite cererea</button>
     </div>
   </div>
 </div>
@@ -1420,6 +1432,7 @@ let _baltaAdminId = null; // balta_id curentă pentru modal captură
 let _baltaAdminNume = '';
 let _pescarSelectat = null; // { id, zoda_id, username, avatar_url }
 let _fotoFile = null;
+let _fotoDovadaFile = null;
 let _pescarSearchTimer = null;
 
 // ── TOAST ────────────────────────────────────────────────────────────────────
@@ -2180,6 +2193,7 @@ async function openCaptura(baltaId, baltaNume) {
   _baltaAdminNume = baltaNume;
   _pescarSelectat = null;
   _fotoFile = null;
+  _fotoDovadaFile = null;
   document.getElementById('mc-stand').innerHTML = '<option value="">Selectează standul...</option>';
   document.getElementById('mc-kg').value = '';
   document.getElementById('mc-data').value = dataLocalaAzi();
@@ -2190,6 +2204,9 @@ async function openCaptura(baltaId, baltaNume) {
   document.getElementById('pescar-dropdown').classList.remove('open');
   document.getElementById('zona-foto').classList.remove('has-file');
   document.getElementById('foto-preview').style.display = 'none';
+  document.getElementById('zona-foto-dovada').classList.remove('has-file');
+  document.getElementById('foto-dovada-preview').style.display = 'none';
+  document.getElementById('mc-foto-dovada-input').value = '';
   document.getElementById('mc-err').style.display = 'none';
   document.getElementById('mc-progress').style.display = 'none';
   document.getElementById('mc-balta-name').textContent = baltaNume;
@@ -2201,7 +2218,7 @@ async function openCaptura(baltaId, baltaNume) {
   btn.style.background = 'var(--zc-border)';
   btn.style.color      = 'var(--zc-text-muted)';
   btn.style.cursor     = 'not-allowed';
-  btn.title            = 'Completează toate câmpurile și adaugă o fotografie';
+  btn.title            = 'Completează toate câmpurile și adaugă ambele fotografii (captură + dovadă)';
   btn.textContent      = '📤 Trimite cererea';
 
   document.getElementById('modal-captura').classList.add('open');
@@ -2221,6 +2238,7 @@ function closeCaptura() {
   document.getElementById('modal-captura').classList.remove('open');
   // Resetăm fișierele și formularul complet
   _fotoFile  = null;
+  _fotoDovadaFile = null;
   document.getElementById('mc-kg').value = '';
   document.getElementById('mc-data').value = '';
   document.getElementById('mc-stand').innerHTML = '<option value="">Selectează standul...</option>';
@@ -2230,6 +2248,9 @@ function closeCaptura() {
   document.getElementById('zona-foto').classList.remove('has-file');
   const fotoPreview = document.getElementById('foto-preview');
   if (fotoPreview) fotoPreview.style.display = 'none';
+  document.getElementById('zona-foto-dovada').classList.remove('has-file');
+  const fotoDovadaPreview = document.getElementById('foto-dovada-preview');
+  if (fotoDovadaPreview) fotoDovadaPreview.style.display = 'none';
   document.getElementById('mc-err').style.display = 'none';
   document.getElementById('mc-progress').style.display = 'none';
   checkFormValid();
@@ -2358,6 +2379,21 @@ function onFotoSelect(input) {
   });
 }
 
+// Foto dovadă captură (obligatorie) — intră în validarea de formular
+function onFotoDovadaSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 1200, 99999, 0.80).then(resized => {
+    _fotoDovadaFile = resized;
+    const zona = document.getElementById('zona-foto-dovada');
+    zona.classList.add('has-file');
+    const preview = document.getElementById('foto-dovada-preview');
+    preview.src = URL.createObjectURL(resized);
+    preview.style.display = 'block';
+    checkFormValid();
+  });
+}
+
 // ── VALIDARE FORMULAR MODAL ───────────────────────────────────────────────────
 function checkFormValid() {
   const standId   = document.getElementById('mc-stand').value;
@@ -2370,7 +2406,8 @@ function checkFormValid() {
     (kg > 0 && !isNaN(kg)) &&
     !!data &&
     !!pescarId &&
-    !!_fotoFile;
+    !!_fotoFile &&
+    !!_fotoDovadaFile;
 
   const btn = document.getElementById('mc-submit-btn');
   if (!btn) return;
@@ -2384,7 +2421,7 @@ function checkFormValid() {
     btn.style.background = 'var(--zc-border)';
     btn.style.color      = 'var(--zc-text-muted)';
     btn.style.cursor     = 'not-allowed';
-    btn.title            = 'Completează toate câmpurile și adaugă o fotografie';
+    btn.title            = 'Completează toate câmpurile și adaugă ambele fotografii (captură + dovadă)';
   }
 }
 
@@ -2417,6 +2454,7 @@ async function submitCaptura() {
   if (!data)            { showErr('Selectează data capturii.'); return; }
   if (!pescarId)        { showErr('Selectează pescarul — capturile trebuie asociate unui cont Zoda existent.'); return; }
   if (!_fotoFile)       { showErr('Adaugă o fotografie a capturii.'); return; }
+  if (!_fotoDovadaFile) { showErr('Adaugă poza cu peștele cântărit (dovadă captură) — e obligatorie.'); return; }
 
   const pescarNume = _pescarSelectat?.username || '';
   const pescarZoda = pescarId;
@@ -2429,6 +2467,13 @@ async function submitCaptura() {
     setProgress(5, 'Se uploadează fotografia...');
     const fotoUrl = await uploadToR2(_fotoFile, 'capturi', pct => setProgress(5 + pct * 0.95, `Foto: ${pct}%`));
 
+    // 1b. Upload foto dovadă (opțional)
+    let fotoDovadaUrl = null;
+    if (_fotoDovadaFile) {
+      setProgress(50, 'Se uploadează dovada capturii...');
+      fotoDovadaUrl = await uploadToR2(_fotoDovadaFile, 'capturi', pct => setProgress(50 + pct * 0.45, `Dovadă: ${pct}%`));
+    }
+
     setProgress(96, 'Se salvează cererea...');
 
     // 2. Insert în capturi
@@ -2440,6 +2485,7 @@ async function submitCaptura() {
       kg:           kg,
       data_captura: data,
       foto_url:     fotoUrl,
+      foto_dovada_url: fotoDovadaUrl,
       status:       'pending',
       submitted_by: currentUser.id,
     });
