@@ -3508,7 +3508,10 @@ function buildEditBody(b, ext) {
 
   <!-- FACILITĂȚI -->
   <div class="edit-section">
-    <div class="edit-section-title"><span>FACILITĂȚI</span></div>
+    <div class="edit-section-title">
+      <span>FACILITĂȚI</span>
+      <button type="button" id="save-fac-btn" onclick="saveEditFacilitati()" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">💾 Adaugă Facilități</button>
+    </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
       ${['cazare','cabana','baie_toaleta','restaurant_terasa','loc_joaca'].map((tip, i) => {
         const label = { cazare: 'Cazare', cabana: 'Cabană', baie_toaleta: 'Baie/Toalete', restaurant_terasa: 'Restaurant/Terasă', loc_joaca: 'Loc de joacă' }[tip];
@@ -3646,6 +3649,45 @@ function switchFacTab(tip) {
       body.style.display = 'none';
     }
   });
+}
+
+// Salvează DOAR facilitățile (fără restul formularului), fără să închidă modalul —
+// ca să poți completa/adăuga mai multe facilități în aceeași sesiune de edit.
+async function saveEditFacilitati() {
+  if (!editBaltaId) return;
+  const btn = document.getElementById('save-fac-btn');
+  const btnLabel = '💾 Adaugă Facilități';
+  if (btn) { btn.disabled = true; btn.textContent = 'Se salvează...'; }
+
+  const FAC_LABEL = { cazare: 'Cazare', cabana: 'Cabană', baie_toaleta: 'Baie/Toalete', restaurant_terasa: 'Restaurant/Terasă', loc_joaca: 'Loc de joacă' };
+  const FAC_TIPURI = ['cazare','cabana','baie_toaleta','restaurant_terasa','loc_joaca'];
+  let ok = true;
+
+  for (let i = 0; i < FAC_TIPURI.length; i++) {
+    const tip = FAC_TIPURI[i];
+    const detalii = document.getElementById('fac-' + tip + '-detalii')?.value.trim() || '';
+    const yt = document.getElementById('fac-' + tip + '-yt')?.value.trim() || '';
+    const standSel = document.getElementById('fac-' + tip + '-stand')?.value || '';
+    const standId = standSel ? parseInt(standSel, 10) : null;
+    const completat = !!(detalii || yt);
+
+    if (!completat) {
+      await sb.from('balta_facilitati').delete().eq('balta_id', editBaltaId).eq('tip', tip);
+    } else {
+      const { error: facErr } = await sb.from('balta_facilitati').upsert({
+        balta_id: editBaltaId, tip, detalii: detalii || null, youtube_url: yt || null, stand_id: standId, ordine: i,
+      }, { onConflict: 'balta_id,tip' });
+      if (facErr) { ok = false; showToast('⚠️ Facilitatea „' + FAC_LABEL[tip] + '" nu s-a salvat: ' + facErr.message, true); }
+    }
+
+    // Actualizează bifa ✓ de pe tab-ul respectiv, fără să reconstruiască tot formularul
+    const tabBtn = document.getElementById('fac-tab-btn-' + tip);
+    if (tabBtn) tabBtn.textContent = FAC_LABEL[tip] + (completat ? ' ✓' : '');
+  }
+
+  invalidateCache(editBaltaId);
+  if (ok) showToast('✅ Facilitățile au fost salvate!');
+  if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
 }
 
 function toggleEditStand(id) {
