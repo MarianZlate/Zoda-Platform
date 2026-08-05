@@ -834,6 +834,11 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         <div style="padding:10px;border-right:1px solid var(--zc-border);">
           <div class="sec-lbl">📸 CEA MAI MARE CAPTURĂ</div>
+          <div id="ov-rec-nav" style="display:none;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <button onclick="navigheazaRecFoto(-1)" title="Poza anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">◀</button>
+            <span id="ov-rec-foto-idx" style="font-size:10px;font-weight:700;color:var(--zc-text-muted);">Captură</span>
+            <button onclick="navigheazaRecFoto(1)" title="Poza următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
+          </div>
           <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">📷</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
             <div class="stat-row"><span class="stat-lbl">🏆</span><strong id="ov-kg" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
@@ -1641,7 +1646,8 @@ async function loadBalta(id) {
         pe:   s.rec_pescar    || '',
         pid:  s.rec_pescar_id || '',
         da:   s.rec_data      || '',
-        foto: s.rec_foto      || ''
+        foto: s.rec_foto      || '',
+        foto_dovada: s.rec_foto_dovada || ''
       },
       g: pozeFotou
     };
@@ -1731,7 +1737,7 @@ async function refreshBaltaInBackground(id, cacheKey) {
         z: s.nume || ('Stand '+(i+1)),
         cabana: s.cabana||false, foisor: s.foisor||false, ponton: s.ponton||false, stand_pamant: s.stand_pamant||false, stand_pietruit: s.stand_pietruit||false,
         wc: s.wc||false, iluminat: s.iluminat||false, priza: s.priza||false, wifi: s.wifi||false, di: s.distanta||0, la: s.latime||0, yt: s.yt||'',
-        r: { kg: s.rec_kg!=null?String(s.rec_kg):'', pe: s.rec_pescar||'', pid: s.rec_pescar_id||'', da: s.rec_data||'', foto: s.rec_foto||'' },
+        r: { kg: s.rec_kg!=null?String(s.rec_kg):'', pe: s.rec_pescar||'', pid: s.rec_pescar_id||'', da: s.rec_data||'', foto: s.rec_foto||'', foto_dovada: s.rec_foto_dovada||'' },
         g: pozeFotou, sort_order: s.sort_order
       };
     });
@@ -2668,6 +2674,41 @@ function selStand(id) {
   openOverlay(id);
 }
 
+var _ovRecGallery = [];
+var _ovRecFotoIdx = 0;
+
+// Randează poza curentă din galeria de record (captură / dovadă captură) +
+// arată/ascunde săgețile și eticheta din card, în funcție de câte poze există.
+function renderOvRecFoto() {
+  var recFoto = document.getElementById('ov-rec-foto');
+  var nav = document.getElementById('ov-rec-nav');
+  if (!recFoto) return;
+
+  if (_ovRecGallery.length) {
+    recFoto.className = 'foto-wrap';
+    recFoto.innerHTML = '';
+    var ri = document.createElement('img'); ri.src = _ovRecGallery[_ovRecFotoIdx]; ri.loading = 'lazy';
+    var rh = document.createElement('div'); rh.className = 'zoom-hint'; rh.textContent = '🔍';
+    recFoto.appendChild(ri); recFoto.appendChild(rh);
+    recFoto.onclick = function () { openFS(_ovRecGallery[_ovRecFotoIdx], _ovRecGallery, _ovRecFotoIdx); };
+  } else {
+    recFoto.className = 'foto-empty';
+    recFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
+  }
+
+  if (nav) {
+    nav.style.display = _ovRecGallery.length > 1 ? 'flex' : 'none';
+    var idxEl = document.getElementById('ov-rec-foto-idx');
+    if (idxEl) idxEl.textContent = _ovRecFotoIdx === 0 ? 'Captură' : 'Dovadă';
+  }
+}
+
+function navigheazaRecFoto(directie) {
+  if (!_ovRecGallery.length) return;
+  _ovRecFotoIdx = (_ovRecFotoIdx + directie + _ovRecGallery.length) % _ovRecGallery.length;
+  renderOvRecFoto();
+}
+
 function openOverlay(id) {
   selId = id;
   renderPins();
@@ -2722,16 +2763,9 @@ function openOverlay(id) {
   var oldRec = document.getElementById('ov-rec-foto');
   var recFoto = oldRec.cloneNode(false); recFoto.id = 'ov-rec-foto';
   oldRec.parentNode.replaceChild(recFoto, oldRec);
-  if (s.r.foto) {
-    recFoto.className = 'foto-wrap';
-    var ri = document.createElement('img'); ri.src = s.r.foto; ri.loading = 'lazy';
-    var rh = document.createElement('div'); rh.className = 'zoom-hint'; rh.textContent = '🔍';
-    recFoto.appendChild(ri); recFoto.appendChild(rh);
-    recFoto.addEventListener('click', function() { openFS(s.r.foto); });
-  } else {
-    recFoto.className = 'foto-empty';
-    recFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
-  }
+  _ovRecGallery = [s.r.foto, s.r.foto_dovada].filter(Boolean);
+  _ovRecFotoIdx = 0;
+  renderOvRecFoto();
 
   var oldSt = document.getElementById('ov-stand-foto');
   var stFoto = oldSt.cloneNode(false); stFoto.id = 'ov-stand-foto';
