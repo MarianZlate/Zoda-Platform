@@ -2533,7 +2533,7 @@ var _standFiltreActive = [];
 
 function standTreceFiltrul(s) {
   if (!_standFiltreActive.length) return true;
-  return _standFiltreActive.some(function(tip) { return !!s[tip]; });
+  return _standFiltreActive.every(function(tip) { return !!s[tip]; });
 }
 
 var STAND_FILTRE_LABELS = {
