@@ -3339,6 +3339,10 @@ async function openEditBalta(id) {
       ponton:         s.ponton         || false,
       stand_pamant:   s.stand_pamant   || false,
       stand_pietruit: s.stand_pietruit || false,
+      wc:         s.wc         || false,
+      iluminat:   s.iluminat   || false,
+      priza:      s.priza      || false,
+      wifi:       s.wifi       || false,
       di:         s.distanta   || '',
       la:         s.latime     || '',
       yt:         s.yt         || '',
@@ -3599,13 +3603,17 @@ function buildStandEditCard(s) {
     <div class="se-card-body" id="se-body-${s.id}">
       <div class="fg"><label>ZONĂ / DESCRIERE</label><input type="text" id="se-zona-${s.id}" value="${escHtml(s.zona||'')}" oninput="document.getElementById('se-card-name-${s.id}').textContent = this.value.trim() || 'Stand ${s.nr}';" /></div>
       <div class="fg">
-        <label>TIP STAND</label>
+        <label>TIP STAND ȘI UTILITĂȚI</label>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-cabana-${s.id}" ${s.cabana ? 'checked' : ''}/> Cabană</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-foisor-${s.id}" ${s.foisor ? 'checked' : ''}/> Foișor</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-ponton-${s.id}" ${s.ponton ? 'checked' : ''}/> Ponton</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-standpamant-${s.id}" ${s.stand_pamant ? 'checked' : ''}/> Stand pământ</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-standpietruit-${s.id}" ${s.stand_pietruit ? 'checked' : ''}/> Stand pietruit</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-wc-${s.id}" ${s.wc ? 'checked' : ''}/> W.C.</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-iluminat-${s.id}" ${s.iluminat ? 'checked' : ''}/> Iluminat</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-priza-${s.id}" ${s.priza ? 'checked' : ''}/> Priză</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-wifi-${s.id}" ${s.wifi ? 'checked' : ''}/> Wifi</label>
         </div>
       </div>
       <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" id="se-di-${s.id}" value="${s.di||''}" /></div>
@@ -4201,6 +4209,10 @@ async function saveEditBalta() {
     const ponton         = document.getElementById('se-ponton-' + sid)?.checked || false;
     const standPamant    = document.getElementById('se-standpamant-' + sid)?.checked || false;
     const standPietruit  = document.getElementById('se-standpietruit-' + sid)?.checked || false;
+    const wc         = document.getElementById('se-wc-' + sid)?.checked || false;
+    const iluminat   = document.getElementById('se-iluminat-' + sid)?.checked || false;
+    const priza      = document.getElementById('se-priza-' + sid)?.checked || false;
+    const wifi       = document.getElementById('se-wifi-' + sid)?.checked || false;
     const _diVal = document.getElementById('se-di-' + sid)?.value;
     const _laVal = document.getElementById('se-la-' + sid)?.value;
     const di = (_diVal !== '' && _diVal != null) ? (parseInt(_diVal)   || null) : null;
@@ -4214,7 +4226,7 @@ async function saveEditBalta() {
     let standId;
     if(isNew) {
       const { data: newStand, error: newStandErr } = await sb.from('standuri').insert({
-        balta_id: editBaltaId, nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, distanta: di, latime: la, yt, sort_order: sortOrder
+        balta_id: editBaltaId, nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, wc, iluminat, priza, wifi, distanta: di, latime: la, yt, sort_order: sortOrder
       }).select('id').single();
       if(newStandErr) {
         showToast('❌ Standul „' + zona + '" nu s-a putut crea: ' + newStandErr.message, true);
@@ -4237,7 +4249,7 @@ async function saveEditBalta() {
       standId = parseInt(sid);
       // Update câmpuri de bază
       const { error: stErr } = await sb.from('standuri').update({
-        nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, distanta: di, latime: la, yt, sort_order: sortOrder
+        nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, wc, iluminat, priza, wifi, distanta: di, latime: la, yt, sort_order: sortOrder
       }).eq('id', standId);
       if(stErr) {
         showToast('❌ Eroare stand ' + standId + ': ' + stErr.message, true);
@@ -4547,7 +4559,7 @@ async function abSubmit() {
     }
   }
   if(standuriData.length>0) {
-    const { error: standInsErr } = await sb.from('standuri').insert(standuriData.map(s=>({balta_id:baltaId,nume:s.nume,cabana:s.cabana||false,foisor:s.foisor||false,ponton:s.ponton||false,stand_pamant:s.stand_pamant||false,stand_pietruit:s.stand_pietruit||false,distanta:s.distanta||null,latime:s.latime||null,yt:s.yt||'',rec_foto:s.foto||null})));
+    const { error: standInsErr } = await sb.from('standuri').insert(standuriData.map(s=>({balta_id:baltaId,nume:s.nume,cabana:s.cabana||false,foisor:s.foisor||false,ponton:s.ponton||false,stand_pamant:s.stand_pamant||false,stand_pietruit:s.stand_pietruit||false,wc:s.wc||false,iluminat:s.iluminat||false,priza:s.priza||false,wifi:s.wifi||false,distanta:s.distanta||null,latime:s.latime||null,yt:s.yt||'',rec_foto:s.foto||null})));
     if(standInsErr) showToast('⚠️ Standurile nu s-au salvat complet: '+standInsErr.message, true);
   }
   // Upload hartă
@@ -4791,13 +4803,17 @@ function addStand(){
   div.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><div style="width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div><input type="text" id="s${nr}-nume" value="Stand ${nr}" style="flex:1;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:6px 10px;color:#f1f5f9;font-size:15px;font-weight:700;outline:none;" placeholder="Denumire stand" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/><button class="stand-del" onclick="delStand(${nr})">✕</button></div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
     <div class="fg">
-      <label>TIP STAND</label>
+      <label>TIP STAND ȘI UTILITĂȚI</label>
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-cabana"/> Cabană</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-foisor"/> Foișor</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-ponton"/> Ponton</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-standpamant"/> Stand pământ</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-standpietruit"/> Stand pietruit</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-wc"/> W.C.</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-iluminat"/> Iluminat</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-priza"/> Priză</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-wifi"/> Wifi</label>
       </div>
     </div>
     <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" min="0" id="s${nr}-di" placeholder="ex: 50"/></div>
@@ -4808,7 +4824,7 @@ function addStand(){
   container.appendChild(div);
 }
 function delStand(nr){const el=document.getElementById('stand-'+nr);if(el)el.remove();}
-function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,distanta:parseInt(document.getElementById(pfx+'-di')?.value)||0,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
+function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,wc:document.getElementById(pfx+'-wc')?.checked||false,iluminat:document.getElementById(pfx+'-iluminat')?.checked||false,priza:document.getElementById(pfx+'-priza')?.checked||false,wifi:document.getElementById(pfx+'-wifi')?.checked||false,distanta:parseInt(document.getElementById(pfx+'-di')?.value)||0,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
 
 // ── HARTĂ CANVAS ADD-BALTA ────────────────────────────────────────────────────
 (function(){
