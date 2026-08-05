@@ -834,7 +834,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         <div style="padding:10px;border-right:1px solid var(--zc-border);">
           <div class="sec-lbl">📸 CEA MAI MARE CAPTURĂ</div>
-          <div id="ov-rec-nav" style="display:none;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div id="ov-rec-nav" style="display:flex;visibility:hidden;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <button onclick="navigheazaRecFoto(-1)" title="Poza anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">◀</button>
             <span id="ov-rec-foto-idx" style="font-size:10px;font-weight:700;color:var(--zc-text-muted);">Captură</span>
             <button onclick="navigheazaRecFoto(1)" title="Poza următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
@@ -848,7 +848,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         </div>
         <div style="padding:10px;">
           <div class="sec-lbl">📸 GALERIE STAND</div>
-          <div id="ov-stand-gallery-nav" style="display:none;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div id="ov-stand-gallery-nav" style="display:flex;visibility:hidden;align-items:center;justify-content:space-between;margin-bottom:4px;">
             <button onclick="navigheazaStandFoto(-1)" title="Poza anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">◀</button>
             <span id="ov-stand-foto-idx" style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">1/1</span>
             <button onclick="navigheazaStandFoto(1)" title="Poza următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
@@ -2697,7 +2697,7 @@ function renderOvRecFoto() {
   }
 
   if (nav) {
-    nav.style.display = _ovRecGallery.length > 1 ? 'flex' : 'none';
+    nav.style.visibility = _ovRecGallery.length > 1 ? 'visible' : 'hidden';
     var idxEl = document.getElementById('ov-rec-foto-idx');
     if (idxEl) idxEl.textContent = _ovRecFotoIdx === 0 ? 'Captură' : 'Dovadă';
   }
@@ -3923,7 +3923,7 @@ function renderOvStandFoto() {
   }
 
   if (nav) {
-    nav.style.display = _ovStandGallery.length > 1 ? 'flex' : 'none';
+    nav.style.visibility = _ovStandGallery.length > 1 ? 'visible' : 'hidden';
     var idxEl = document.getElementById('ov-stand-foto-idx');
     if (idxEl) idxEl.textContent = (_ovStandFotoIdx + 1) + '/' + _ovStandGallery.length;
   }
