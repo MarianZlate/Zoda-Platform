@@ -3656,7 +3656,7 @@ function buildStandEditCard(s) {
         <label>📸 GALERIE STAND</label>
         <div class="gal-edit-wrap" id="se-gal-${s.id}">
           ${gals}
-          <div class="gal-add-btn" onclick="addEditGalerie(${s.id})" title="Adaugă fotografie">
+          <div class="gal-add-btn" onclick="addEditGalerie(${s.id})" title="Adaugă fotografie" style="${(s.galerie || []).length >= 4 ? 'display:none;' : ''}">
             <span style="font-size:22px;">+</span><span>Adaugă foto</span>
           </div>
         </div>
@@ -3914,6 +3914,12 @@ function addEditStand() {
 
 window._galFotoUploading = window._galFotoUploading || new Set();
 function addEditGalerie(standId) {
+  const wrapCheck = document.getElementById('se-gal-' + standId);
+  const pozeCurente = wrapCheck ? wrapCheck.querySelectorAll('.gal-thumb-edit').length : 0;
+  if (pozeCurente >= 4) {
+    showToast('⚠️ Poți încărca maximum 4 poze per stand. Șterge una ca să adaugi alta.', true);
+    return;
+  }
   // Creează un input file invizibil și îl triggăm
   const input = document.createElement('input');
   input.type = 'file';
@@ -3945,8 +3951,9 @@ function addEditGalerie(standId) {
       const url = await uploadToR2(resizedFile, 'standuri');
       loadDiv.className = 'gal-thumb-edit';
       loadDiv.style.cssText = '';
-      loadDiv.innerHTML = `<img src="${escHtml(url)}" loading="lazy"/><button class="gal-thumb-del" onclick="this.parentElement.remove()" title="Șterge">✕</button>`;
+      loadDiv.innerHTML = `<img src="${escHtml(url)}" loading="lazy"/><button class="gal-thumb-del" onclick="this.parentElement.remove();updateGalAddBtnVisibility(${standId});" title="Șterge">✕</button>`;
       loadDiv.dataset.url = url;
+      updateGalAddBtnVisibility(standId);
     } catch(e) {
       loadDiv.remove();
       showToast('❌ Eroare upload: ' + e.message, true);
@@ -4024,10 +4031,19 @@ function removeRecFoto(standId) {
   if(fi) fi.value = '';
 }
 
+function updateGalAddBtnVisibility(standId) {
+  const wrap = document.getElementById('se-gal-' + standId);
+  if (!wrap) return;
+  const addBtn = wrap.querySelector('.gal-add-btn');
+  const count = wrap.querySelectorAll('.gal-thumb-edit').length;
+  if (addBtn) addBtn.style.display = count >= 4 ? 'none' : '';
+}
+
 function delEditGalerie(standId, gi) {
   const wrap   = document.getElementById('se-gal-' + standId);
   const thumbs = wrap.querySelectorAll('.gal-thumb-edit');
   if(thumbs[gi]) thumbs[gi].remove();
+  updateGalAddBtnVisibility(standId);
 }
 
 function setEditViz(status) {
