@@ -887,13 +887,17 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
           </div>
         </div>
         <div style="margin-bottom:12px;">
-          <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">TIP STAND</label>
+          <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">TIP STAND ȘI UTILITĂȚI</label>
           <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:5px;">
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-cabana"/> Cabană</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-foisor"/> Foișor</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-ponton"/> Ponton</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-standpamant"/> Stand pământ</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-standpietruit"/> Stand pietruit</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-wc"/> W.C.</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-iluminat"/> Iluminat</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-priza"/> Priză</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-wifi"/> Wifi</label>
           </div>
         </div>
         <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">📸 POZE STAND</label>
@@ -2539,6 +2543,7 @@ function standTreceFiltrul(s) {
 var STAND_FILTRE_LABELS = {
   cabana: 'Cabană', foisor: 'Foișor', ponton: 'Ponton',
   stand_pamant: 'Stand pământ', stand_pietruit: 'Stand pietruit',
+  wc: 'W.C.', iluminat: 'Iluminat', priza: 'Priză', wifi: 'Wifi',
 };
 
 function renderStandFilterChips() {
@@ -2758,6 +2763,10 @@ function toggleOverlayEdit() {
     document.getElementById('ov-edit-ponton').checked = !!s.ponton;
     document.getElementById('ov-edit-standpamant').checked = !!s.stand_pamant;
     document.getElementById('ov-edit-standpietruit').checked = !!s.stand_pietruit;
+    document.getElementById('ov-edit-wc').checked = !!s.wc;
+    document.getElementById('ov-edit-iluminat').checked = !!s.iluminat;
+    document.getElementById('ov-edit-priza').checked = !!s.priza;
+    document.getElementById('ov-edit-wifi').checked = !!s.wifi;
     renderOverlayGallery(s);
     document.getElementById('ov-edit-status').textContent = '';
   }
@@ -3208,10 +3217,15 @@ async function saveOverlayStandDetails() {
   var ponton = document.getElementById('ov-edit-ponton').checked;
   var standPamant = document.getElementById('ov-edit-standpamant').checked;
   var standPietruit = document.getElementById('ov-edit-standpietruit').checked;
+  var wc = document.getElementById('ov-edit-wc').checked;
+  var iluminat = document.getElementById('ov-edit-iluminat').checked;
+  var priza = document.getElementById('ov-edit-priza').checked;
+  var wifi = document.getElementById('ov-edit-wifi').checked;
   try {
     const { data, error } = await sb.rpc('actualizeaza_stand_admin', {
       p_stand_id: selId, p_zona: zona || null, p_distanta: distanta, p_latime: latime,
-      p_cabana: cabana, p_foisor: foisor, p_ponton: ponton, p_stand_pamant: standPamant, p_stand_pietruit: standPietruit
+      p_cabana: cabana, p_foisor: foisor, p_ponton: ponton, p_stand_pamant: standPamant, p_stand_pietruit: standPietruit,
+      p_wc: wc, p_iluminat: iluminat, p_priza: priza, p_wifi: wifi
     });
     if (error) throw error;
     if (data && data.eroare) {
@@ -3223,6 +3237,7 @@ async function saveOverlayStandDetails() {
     if (zona) s.z = zona;
     s.di = distanta; s.la = latime;
     s.cabana = cabana; s.foisor = foisor; s.ponton = ponton; s.stand_pamant = standPamant; s.stand_pietruit = standPietruit;
+    s.wc = wc; s.iluminat = iluminat; s.priza = priza; s.wifi = wifi;
     document.getElementById('ov-nr').textContent = s.z || ('Stand ' + s.nr);
     document.getElementById('ov-la').textContent = (latime ? latime + 'm' : '—');
     document.getElementById('ov-di').textContent = (distanta ? distanta + 'm' : '—');
