@@ -907,7 +907,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         </div>
         <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">📸 POZE STAND</label>
         <div id="ov-edit-gallery" style="display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 10px;"></div>
-        <label class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
+        <label id="ov-edit-add-foto-btn" class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
           📷 Adaugă poză
           <input type="file" accept="image/*" style="display:none;" onchange="uploadOverlayStandFoto(this)"/>
         </label>
@@ -2778,6 +2778,8 @@ function toggleOverlayEdit() {
 function renderOverlayGallery(s) {
   var wrap = document.getElementById('ov-edit-gallery');
   var gal = s.g || [];
+  var addBtn = document.getElementById('ov-edit-add-foto-btn');
+  if (addBtn) addBtn.style.display = gal.length >= 4 ? 'none' : 'inline-flex';
   if (!gal.length) {
     wrap.innerHTML = '<div style="font-size:12px;color:var(--zc-text-muted);">Nicio poză adăugată încă.</div>';
     return;
@@ -2787,7 +2789,7 @@ function renderOverlayGallery(s) {
       '<img src="' + p.u + '" data-retries="0" onerror="retryStandFoto(this)" style="width:100%;height:100%;object-fit:cover;"/>' +
       '<button onclick="deleteOverlayStandFoto(' + p.id + ')" title="Șterge" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:12px;width:18px;height:18px;border-radius:4px;cursor:pointer;line-height:1;">✕</button>' +
       '</div>';
-  }).join('');
+  }).join('') + (gal.length >= 4 ? '<div style="font-size:11px;color:var(--zc-text-muted);width:100%;margin-top:2px;">Ai atins limita de 4 poze per stand.</div>' : '');
 }
 
 // Poza tocmai urcată pe R2 uneori nu e disponibilă instant (propagare CDN) —
@@ -2868,6 +2870,13 @@ async function uploadOverlayStandFoto(input) {
   var file = input.files[0];
   if (!file) return;
   var status = document.getElementById('ov-edit-status');
+  var sCurent = ST.find(function(x) { return x.id === selId; });
+  if (sCurent && (sCurent.g || []).length >= 4) {
+    status.textContent = '✕ Poți încărca maximum 4 poze per stand. Șterge una ca să adaugi alta.';
+    status.style.color = '#ef4444';
+    input.value = '';
+    return;
+  }
   status.textContent = 'Se încarcă poza...';
   status.style.color = 'var(--zc-text-secondary)';
   try {
