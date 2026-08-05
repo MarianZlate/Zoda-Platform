@@ -536,6 +536,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -603,8 +605,35 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'zoda-auth' }
 });
 
-function openFS(src) { if (!src) return; document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; }
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+
+function openFS(src, gallery, idx) {
+  if (!src && !(gallery && gallery.length)) return;
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+}
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; }
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "openFS('" + String(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
+}
 
 function fmtDate(str) {
   if (!str) return '';
@@ -965,7 +994,7 @@ async function loadPescarData(zodaId) {
   // 5. Top 10 lunar istoric — ordonăm după pozitie, apoi sortăm în JS după dată
   const { data: top10Istoric } = await sb
     .from('top10_lunar_istoric')
-    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, data_captura, standuri(nume))')
+    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('zoda_id', zodaId)
     .order('pozitie', { ascending: true });
 
@@ -991,7 +1020,7 @@ async function loadPescarData(zodaId) {
   await Promise.all(hofBaltaIds.map(async (baltaId) => {
     const { data: top10 } = await sb
       .from('capturi')
-      .select('id, kg, pescar_id, foto_url, data_captura, standuri(nume)')
+      .select('id, kg, pescar_id, foto_url, foto_dovada_url, data_captura, standuri(nume)')
       .eq('balta_id', baltaId)
       .eq('status', 'approved')
       .eq('sters', false)
@@ -1002,7 +1031,7 @@ async function loadPescarData(zodaId) {
     const pozitii = [];
     top10.forEach((c, i) => {
       if (c.pescar_id === zodaId) {
-        pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id, foto_url: c.foto_url, data_captura: c.data_captura, standNume: c.standuri?.nume });
+        pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id, foto_url: c.foto_url, foto_dovada_url: c.foto_dovada_url, data_captura: c.data_captura, standNume: c.standuri?.nume });
       }
     });
     if (pozitii.length) hofActiveMap[baltaId] = pozitii;
@@ -1102,8 +1131,8 @@ function renderRecordPersonal(recorduriActive) {
 // explicite: click pe card (oriunde) → deschide poza; click pe numele
 // bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
-  const cardClick = photoUrl ? `openFS('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
+  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const cardClick = buildFotoClickCaptura(photoUrl, photoDovadaUrl);
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
   }).join('');
@@ -1215,6 +1244,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
       const capt = t.capturi || {};
       activeHtml += crCardHtml({
         photoUrl: capt.foto_url || null,
+        photoDovadaUrl: capt.foto_dovada_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
         metaLines: [`📅 Top 10 lunar`],
@@ -1233,6 +1263,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
     pozitii.forEach(p => {
       activeHtml += crCardHtml({
         photoUrl: p.foto_url || null,
+        photoDovadaUrl: p.foto_dovada_url || null,
         kg: p.kg,
         standText: `Locul ${p.pozitie}`,
         metaLines: [`🥇 Hall of Fame`],
@@ -1253,6 +1284,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
       const capt = t.capturi || {};
       trecuteHtml += crCardHtml({
         photoUrl: capt.foto_url || null,
+        photoDovadaUrl: capt.foto_dovada_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
         metaLines: [`📅 Top 10 lunar`],
