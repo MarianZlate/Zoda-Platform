@@ -982,6 +982,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 <!-- FULLSCREEN MODAL (poză) -->
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -1940,8 +1942,26 @@ function _blocheazaPortret() {
   } catch (e) {}
 }
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+
+function openFS(src, gallery, idx) {
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+  _permiteRotire('fs-modal');
+}
+
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
 
 async function loadTopSaptamanal() {
@@ -1969,7 +1989,7 @@ async function loadTopSaptamanal() {
   var capturiListEl = document.getElementById('saptamanal-capturi-list');
   try {
     var { data: capturi } = await withTimeout(sb.from('capturi')
-      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, data_captura, standuri(nume), balti(nume)')
+      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, foto_dovada_url, balta_id, data_captura, standuri(nume), balti(nume)')
       .eq('status', 'approved')
       .eq('sters', false)
       .gte('data_captura', luniDataLocala)
@@ -2171,7 +2191,7 @@ async function loadCapturiRecente() {
   var track = document.getElementById('cr-track');
   try {
     var res = await sb.from('capturi')
-      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, balta_id, standuri(nume), balti(nume)')
+      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, balta_id, standuri(nume), balti(nume)')
       .eq('status', 'approved')
       .eq('sters', false)
       .order('created_at', { ascending: false })
@@ -2210,7 +2230,7 @@ function capturaRecentaCardHtml(c) {
   var baltaTxt = c.balti && c.balti.nume ? escH(c.balti.nume) : '';
   var pescarNumeTxt = escH(c.pescar_nume || '—');
   var pescarClick = c.pescar_id ? "event.stopPropagation();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-  var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+  var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
   var baltaClick = c.balta_id ? "event.stopPropagation();__goToBalta(" + c.balta_id + ")" : '';
   return ''
     + '<div class="cr-card">'
@@ -4912,6 +4932,17 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
