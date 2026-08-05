@@ -2002,7 +2002,7 @@ async function loadHallOfFame(baltaId) {
   if (BALTA && BALTA.vizibilitate === 'basic') { card.style.display = 'none'; return; }
 
   var { data: capturi } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
     .eq('sters', false)
@@ -2026,7 +2026,7 @@ async function loadHallOfFame(baltaId) {
       ? '<img class="cr-avatar" src="' + escH(c._avatar) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-    var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
     return ''
       + '<div class="cr-card">'
       + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
@@ -2053,6 +2053,17 @@ async function loadHallOfFame(baltaId) {
 function dataLocalaAzi() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 
 function escH(str) {
@@ -2107,6 +2118,7 @@ function renderLunarRows(rows, containerId, isIstoric) {
     var pescarNume = r.pescar_nume || '—';
     var capturaInfo = isIstoric ? (r.capturi || null) : null;
     var fotoUrl    = isIstoric ? (capturaInfo ? capturaInfo.foto_url : null) : r.foto_url;
+    var fotoDovadaUrl = isIstoric ? (capturaInfo ? capturaInfo.foto_dovada_url : null) : r.foto_dovada_url;
     var standNume  = isIstoric ? (capturaInfo && capturaInfo.standuri ? capturaInfo.standuri.nume : null) : (r.standuri ? r.standuri.nume : null);
     var dataStr    = isIstoric ? (capturaInfo && capturaInfo.data_captura ? capturaInfo.data_captura : '') : (r.data_captura ? r.data_captura : '');
 
@@ -2114,7 +2126,7 @@ function renderLunarRows(rows, containerId, isIstoric) {
       ? '<img class="cr-avatar" src="' + escH(r._avatar) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = zodaId ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + zodaId + "'" : 'event.stopPropagation()';
-    var fotoClick = fotoUrl ? "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(fotoUrl, fotoDovadaUrl);
 
     return ''
       + '<div class="cr-card">'
@@ -2156,7 +2168,7 @@ async function loadTop10Lunar(baltaId) {
   var lunaEnd = anEnd + '-' + String(lunEnd).padStart(2, '0') + '-01';
 
   var { data: rows } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
     .eq('sters', false)
@@ -2316,7 +2328,7 @@ async function loadCapturiModalBalta(baltaId) {
   }
 
   var { data: capturi, error } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
     .eq('sters', false)
@@ -2360,7 +2372,7 @@ async function loadCapturiModalBalta(baltaId) {
       ? '<img class="cr-avatar" src="' + escH(avatarUrl) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-    var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
     return ''
       + '<div class="cr-card">'
       + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
@@ -2468,7 +2480,7 @@ async function selectLunaIstoric(luna) {
   if (listEl) listEl.innerHTML = '<div class="t10e">Se încarcă...</div>';
 
   var { data: rows, error } = await sb.from('top10_lunar_istoric')
-    .select('id, zoda_id, kg_total, pozitie, capturi(foto_url, data_captura, standuri(nume))')
+    .select('id, zoda_id, kg_total, pozitie, capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('balta_id', BALTA.id)
     .eq('luna', luna)
     .order('pozitie', { ascending: true });
