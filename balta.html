@@ -915,23 +915,25 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <button class="xbtn" onclick="closeFacilitatiOverlay()" style="position:absolute;right:0;top:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:50%;width:32px;height:32px;font-size:18px;">✕</button>
       </div>
       <div id="facilitati-overlay">
+        <!-- Tab-uri — un tab pe facilitate, click = comută facilitatea afișată -->
+        <div id="fac-tabs" style="display:flex;overflow-x:auto;gap:6px;padding:12px 14px;border-bottom:1px solid var(--zc-border);"></div>
+
+        <!-- Anterior/Următor — comută între videoclipurile facilității curente -->
         <div class="ov-hdr">
-          <button id="fac-prev-btn" onclick="navigheazaFacilitate(-1)" title="Facilitatea anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
+          <button id="fac-prev-btn" onclick="navigheazaFacVideo(-1)" title="Videoclipul anterior" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
           <div class="spnr" id="fac-nume" style="flex:1;text-align:center;">Facilitate</div>
-          <button id="fac-next-btn" onclick="navigheazaFacilitate(1)" title="Facilitatea următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
+          <button id="fac-next-btn" onclick="navigheazaFacVideo(1)" title="Videoclipul următor" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
         </div>
+
         <div style="padding:14px;">
           <div id="fac-detalii" style="font-size:15px;line-height:1.6;color:var(--zc-text-strong);white-space:pre-wrap;margin-bottom:12px;">-</div>
         </div>
 
-        <!-- Videoclipuri de prezentare a facilității — pot fi mai multe, fiecare
-             legat opțional de alt stand. Randate dinamic în openFacilitateOverlay(). -->
-        <div id="fac-videos-list"></div>
-
-        <!-- Puncte de pagină — sar direct la o facilitate -->
-        <div id="fac-dots" style="display:flex;justify-content:center;gap:8px;padding:12px;border-top:1px solid var(--zc-border);"></div>
+        <!-- Videoclipul curent al facilității + buton spre standul lui, dacă e legat de unul -->
+        <div id="fac-video-current"></div>
       </div>
       <!-- ═══ /FACILITĂȚI OVERLAY ═══ -->
+
 
   </div><!-- /#map-grid -->
 
@@ -3253,6 +3255,7 @@ function closeOverlay() {
 // ═══ FACILITĂȚI ═══════════════════════════════════════════════════════════
 var FACILITATI = [];
 var selFacIdx = 0;
+var selVidIdx = 0;
 var _returnToFacilitati = false;
 var _returnFacIdx = 0;
 var _facVideosCurrent = [];
@@ -3298,20 +3301,10 @@ function openFacilitateOverlay(idx) {
   if (!FACILITATI.length) return;
   idx = Math.max(0, Math.min(idx, FACILITATI.length - 1));
   selFacIdx = idx;
-  var f = FACILITATI[idx];
+  selVidIdx = 0;
 
-  document.getElementById('fac-nume').textContent = FAC_LABELS[f.tip] || f.tip;
-  document.getElementById('fac-detalii').textContent = f.detalii || 'Fără detalii încă.';
-
-  renderFacVideosList(f.videos || []);
-
-  document.getElementById('fac-prev-btn').style.visibility = idx === 0 ? 'hidden' : 'visible';
-  document.getElementById('fac-next-btn').style.visibility = idx === FACILITATI.length - 1 ? 'hidden' : 'visible';
-
-  var dots = document.getElementById('fac-dots');
-  dots.innerHTML = FACILITATI.map(function (_, i) {
-    return '<span class="fac-dot' + (i === idx ? ' active' : '') + '" onclick="openFacilitateOverlay(' + i + ')" title="' + (i + 1) + '"></span>';
-  }).join('');
+  renderFacTabs();
+  renderFacCurrent();
 
   document.getElementById('facilitati-overlay').style.display = 'flex';
   document.getElementById('facilitati-overlay-backdrop').style.display = 'block';
@@ -3320,48 +3313,84 @@ function openFacilitateOverlay(idx) {
   setTimeout(pozitioneazaTopbarFacilitati, 0);
 }
 
-// Randează lista de videoclipuri ale facilității curente (0, 1 sau mai multe),
-// fiecare cu thumbnail propriu + buton „Vezi standul" dacă e legat de unul.
-function renderFacVideosList(videos) {
-  var wrap = document.getElementById('fac-videos-list');
-  var valide = videos.filter(function (v) { return v.youtube_url && ytVideoId(v.youtube_url); });
-  if (!valide.length) { wrap.innerHTML = ''; return; }
-
-  wrap.innerHTML = valide.map(function (v, i) {
-    var standBtn = v.stand_id
-      ? '<button onclick="deschideStandVideo(' + i + ')" style="display:flex;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;">📍 Vezi standul ' + escFacHtml(v.standuri ? v.standuri.nume : '') + ' →</button>'
-      : '';
-    return '<div style="padding:10px 14px 14px;border-top:1px solid var(--zc-border);" data-vidx="' + i + '">'
-      + (valide.length > 1 ? '<div style="font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP ' + (i + 1) + '/' + valide.length + '</div>' : '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP DE PREZENTARE</div>')
-      + '<div id="fac-yt-thumb-wrap-' + i + '" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playFacVideo(' + i + ')">'
-      + '<img src="https://img.youtube.com/vi/' + ytVideoId(v.youtube_url) + '/hqdefault.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>'
-      + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">'
-      + '<div style="width:52px;height:52px;border-radius:50%;background:rgba(232,20,42,.92);display:flex;align-items:center;justify-content:center;">'
-      + '<div style="width:0;height:0;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff;margin-left:3px;"></div></div></div></div>'
-      + '<div id="fac-yt-iframe-wrap-' + i + '" style="display:none;position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);">'
-      + '<iframe src="" frameborder="0" allow="autoplay;encrypted-media;fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe></div>'
-      + standBtn + '</div>';
+// Tab-uri sus — unul per facilitate, click = comută facilitatea afișată
+function renderFacTabs() {
+  var tabs = document.getElementById('fac-tabs');
+  tabs.innerHTML = FACILITATI.map(function (f, i) {
+    var activ = i === selFacIdx;
+    return '<button onclick="switchFacilitateTab(' + i + ')" style="flex-shrink:0;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;'
+      + (activ ? 'border:1.5px solid #38bdf8;background:#071c26;color:#38bdf8;' : 'border:1.5px solid var(--zc-border);background:var(--zc-bg);color:var(--zc-text-secondary-2);')
+      + '">' + escFacHtml(FAC_LABELS[f.tip] || f.tip) + '</button>';
   }).join('');
-  _facVideosCurrent = valide;
+}
+
+function switchFacilitateTab(idx) {
+  if (idx === selFacIdx) return;
+  selFacIdx = idx;
+  selVidIdx = 0;
+  renderFacTabs();
+  renderFacCurrent();
+}
+
+// Comută între videoclipurile facilității curente (nu între facilități)
+function navigheazaFacVideo(directie) {
+  var f = FACILITATI[selFacIdx];
+  var videos = (f.videos || []).filter(function (v) { return v.youtube_url && ytVideoId(v.youtube_url); });
+  var idxNou = selVidIdx + directie;
+  if (idxNou < 0 || idxNou >= videos.length) return;
+  selVidIdx = idxNou;
+  renderFacCurrent();
+}
+
+// Randează: numele facilității + detaliile + videoclipul curent + butonul spre stand
+function renderFacCurrent() {
+  var f = FACILITATI[selFacIdx];
+  var videos = (f.videos || []).filter(function (v) { return v.youtube_url && ytVideoId(v.youtube_url); });
+
+  document.getElementById('fac-nume').textContent = FAC_LABELS[f.tip] || f.tip;
+  document.getElementById('fac-detalii').textContent = f.detalii || 'Fără detalii încă.';
+
+  document.getElementById('fac-prev-btn').style.visibility = (videos.length > 1 && selVidIdx > 0) ? 'visible' : 'hidden';
+  document.getElementById('fac-next-btn').style.visibility = (videos.length > 1 && selVidIdx < videos.length - 1) ? 'visible' : 'hidden';
+
+  var wrap = document.getElementById('fac-video-current');
+  _facVideosCurrent = videos;
+  if (!videos.length) { wrap.innerHTML = ''; return; }
+
+  var v = videos[selVidIdx];
+  var standBtn = v.stand_id
+    ? '<button onclick="deschideStandVideo()" style="display:flex;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;">📍 Vezi standul ' + escFacHtml(v.standuri ? v.standuri.nume : '') + ' →</button>'
+    : '';
+
+  wrap.innerHTML = '<div style="padding:10px 14px 14px;border-top:1px solid var(--zc-border);">'
+    + (videos.length > 1 ? '<div style="font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP ' + (selVidIdx + 1) + '/' + videos.length + '</div>' : '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP DE PREZENTARE</div>')
+    + '<div id="fac-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playFacVideo()">'
+    + '<img src="https://img.youtube.com/vi/' + ytVideoId(v.youtube_url) + '/hqdefault.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>'
+    + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">'
+    + '<div style="width:52px;height:52px;border-radius:50%;background:rgba(232,20,42,.92);display:flex;align-items:center;justify-content:center;">'
+    + '<div style="width:0;height:0;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff;margin-left:3px;"></div></div></div></div>'
+    + '<div id="fac-yt-iframe-wrap" style="display:none;position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);">'
+    + '<iframe src="" frameborder="0" allow="autoplay;encrypted-media;fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe></div>'
+    + standBtn + '</div>';
 }
 
 function escFacHtml(s) {
   return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function playFacVideo(i) {
-  var v = _facVideosCurrent[i];
+function playFacVideo() {
+  var v = _facVideosCurrent[selVidIdx];
   if (!v) return;
   var emb = ytEmbed(v.youtube_url);
   if (!emb) return;
-  var iframeWrap = document.getElementById('fac-yt-iframe-wrap-' + i);
+  var iframeWrap = document.getElementById('fac-yt-iframe-wrap');
   iframeWrap.querySelector('iframe').src = emb.replace('?rel=0', '?rel=0&autoplay=1');
-  document.getElementById('fac-yt-thumb-wrap-' + i).style.display = 'none';
+  document.getElementById('fac-yt-thumb-wrap').style.display = 'none';
   iframeWrap.style.display = 'block';
 }
 
-function deschideStandVideo(i) {
-  var v = _facVideosCurrent[i];
+function deschideStandVideo() {
+  var v = _facVideosCurrent[selVidIdx];
   if (!v || !v.stand_id) return;
   _returnToFacilitati = true;
   _returnFacIdx = selFacIdx;
@@ -3371,19 +3400,14 @@ function deschideStandVideo(i) {
   openOverlay(v.stand_id);
 }
 
-function navigheazaFacilitate(directie) {
-  var idxNou = selFacIdx + directie;
-  if (idxNou < 0 || idxNou >= FACILITATI.length) return;
-  openFacilitateOverlay(idxNou);
-}
-
 function closeFacilitatiOverlay() {
   document.getElementById('facilitati-overlay').style.display = 'none';
   document.getElementById('facilitati-overlay-backdrop').style.display = 'none';
   document.getElementById('facilitati-overlay-topbar').style.display = 'none';
   document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
-  document.querySelectorAll('#fac-videos-list iframe').forEach(function (f) { f.src = ''; });
+  var ifr = document.querySelector('#fac-video-current iframe');
+  if (ifr) ifr.src = '';
 }
 
 function pozitioneazaTopbarFacilitati() {
