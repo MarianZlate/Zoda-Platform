@@ -959,7 +959,13 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
     <div id="sort-list" style="display:none;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;overflow:hidden;">
-      <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:#f59e0b;">⠿ Ține apăsat pe un stand și trage-l ca să reordonezi</div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;">⠿ Ține apăsat pe un stand și trage-l ca să reordonezi</div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" onclick="sortStandList('asc')" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;">🔼 Crescător</button>
+          <button type="button" onclick="sortStandList('desc')" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;">🔽 Descrescător</button>
+        </div>
+      </div>
       <div id="sort-list-items" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px 10px;padding:16px 20px;justify-items:center;"></div>
     </div>
 
@@ -3848,6 +3854,22 @@ function renderSortList() {
       + '</div>';
   }).join('');
   initSortListDrag();
+}
+
+// Sortare rapidă crescător/descrescător a listei de reordonare (pe lângă
+// tragerea manuală, care rămâne neschimbată) — sortează după numele standului,
+// numeric dacă e posibil (ex: 2, 3, ... 18bis alfabetic la coadă).
+function sortStandList(dir) {
+  ST.sort(function (a, b) {
+    var na = parseFloat(a.z), nb = parseFloat(b.z);
+    var cmp;
+    if (!isNaN(na) && !isNaN(nb)) cmp = na - nb;
+    else cmp = String(a.z).localeCompare(String(b.z), 'ro', { numeric: true, sensitivity: 'base' });
+    return dir === 'asc' ? cmp : -cmp;
+  });
+  ST.forEach(function (s, i) { s.nr = i + 1; });
+  renderSortList();
+  updatePills();
 }
 
 function initSortListDrag() {
