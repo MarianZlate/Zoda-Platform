@@ -833,11 +833,15 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="baie_toaleta" /> Baie/Toalete</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="restaurant_terasa" /> Restaurant/Terasă</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="loc_joaca" /> Loc de joacă</label>
-      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin:10px 0 6px;border-top:1px solid var(--zc-border);padding-top:10px;">TIP STAND</div>
+      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin:10px 0 6px;border-top:1px solid var(--zc-border);padding-top:10px;">TIP STAND ȘI UTILITĂȚI</div>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="foisor" /> Foișor</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="ponton" /> Ponton</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pamant" /> Stand pământ</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pietruit" /> Stand pietruit</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="wc" /> W.C.</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="iluminat" /> Iluminat</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="priza" /> Priză</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="wifi" /> Wifi</label>
       <button onclick="aplicaFiltruIndex()" style="width:100%;margin-top:8px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));border:none;border-radius:8px;padding:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">✓ Aplică filtrul</button>
       <button onclick="resetFiltruIndex()" style="width:100%;margin-top:6px;background:none;border:1px solid var(--zc-border);border-radius:8px;padding:6px;color:var(--zc-text-muted);font-size:12.5px;font-weight:600;cursor:pointer;">Șterge filtrul</button>
     </div>
@@ -1595,7 +1599,7 @@ async function incarcaDateFiltruIndex() {
   try {
     const [{ data: facRows }, { data: standRows }] = await Promise.all([
       sb.from('balta_facilitati').select('balta_id, tip'),
-      sb.from('standuri').select('balta_id, cabana, foisor, ponton, stand_pamant, stand_pietruit'),
+      sb.from('standuri').select('balta_id, cabana, foisor, ponton, stand_pamant, stand_pietruit, wc, iluminat, priza, wifi'),
     ]);
     _baltaFacSet = {};
     (facRows || []).forEach(function (f) {
@@ -1604,12 +1608,16 @@ async function incarcaDateFiltruIndex() {
     });
     _baltaStandFlags = {};
     (standRows || []).forEach(function (s) {
-      var cur = _baltaStandFlags[s.balta_id] || { cabana: false, foisor: false, ponton: false, stand_pamant: false, stand_pietruit: false };
+      var cur = _baltaStandFlags[s.balta_id] || { cabana: false, foisor: false, ponton: false, stand_pamant: false, stand_pietruit: false, wc: false, iluminat: false, priza: false, wifi: false };
       cur.cabana = cur.cabana || !!s.cabana;
       cur.foisor = cur.foisor || !!s.foisor;
       cur.ponton = cur.ponton || !!s.ponton;
       cur.stand_pamant = cur.stand_pamant || !!s.stand_pamant;
       cur.stand_pietruit = cur.stand_pietruit || !!s.stand_pietruit;
+      cur.wc = cur.wc || !!s.wc;
+      cur.iluminat = cur.iluminat || !!s.iluminat;
+      cur.priza = cur.priza || !!s.priza;
+      cur.wifi = cur.wifi || !!s.wifi;
       _baltaStandFlags[s.balta_id] = cur;
     });
   } catch (e) {
@@ -1625,7 +1633,7 @@ function baltaTreceFiltrulIndex(b) {
   var st = (_baltaStandFlags && _baltaStandFlags[b.id]) || {};
   return _indexFiltreActive.some(function (key) {
     if (key === 'cabana') return fac.has('cabana') || st.cabana;
-    if (key === 'foisor' || key === 'ponton' || key === 'stand_pamant' || key === 'stand_pietruit') return !!st[key];
+    if (key === 'foisor' || key === 'ponton' || key === 'stand_pamant' || key === 'stand_pietruit' || key === 'wc' || key === 'iluminat' || key === 'priza' || key === 'wifi') return !!st[key];
     return fac.has(key); // cazare, baie_toaleta, restaurant_terasa, loc_joaca
   });
 }
