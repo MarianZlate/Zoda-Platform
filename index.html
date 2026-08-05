@@ -289,10 +289,10 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-open{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 #stats-bar{display:block;margin-bottom:10px;padding:0 14px;}
 .stats-inner{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
-.stat-chip{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;color:var(--zc-text-secondary);text-align:center;padding:6px 14px;font-size:12px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
+.stat-chip{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:20px;color:var(--zc-text-secondary);text-align:center;padding:6px 14px;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 @media(max-width:390px){
   .stats-inner{gap:6px;}
-  .stat-chip{padding:5px 9px;font-size:10.5px;gap:3px;}
+  .stat-chip{padding:5px 9px;font-size:11.5px;gap:3px;}
   .stat-chip span[style*="font-size:17px"]{font-size:13px !important;}
 }
 .stat-chip strong{color:var(--zc-text-primary);font-size:inherit;}
@@ -848,14 +848,14 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="stats-bar">
     <div class="stats-inner">
         <div class="stat-chip stat-chip-clickable" id="stat-aproape-chip" onclick="toggleBaltiAproapeDropdown(event)">
-          <span>📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;">▾</span>
+          <span style="font-size:15px;">📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
           <div id="balti-aproape-dropdown" class="pbd-panel">
             <div class="pbd-hdr">📍 Raza 30 km · nu salvăm locația ta</div>
             <div id="balti-aproape-list"><div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Apasă ca să vezi bălțile din apropiere.</div></div>
           </div>
         </div>
         <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown(event)">
-          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;">▾</span>
+          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
           <div id="public-balti-dropdown" class="pbd-panel">
             <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
             <div id="public-balti-list"></div>
