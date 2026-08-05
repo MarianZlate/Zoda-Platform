@@ -1632,6 +1632,7 @@ async function loadBalta(id) {
       arePozitieReala: pozitie.x != null && pozitie.y != null,
       z: s.nume || ('Stand ' + (i+1)),
       cabana: s.cabana || false, foisor: s.foisor || false, ponton: s.ponton || false, stand_pamant: s.stand_pamant || false, stand_pietruit: s.stand_pietruit || false,
+      wc: s.wc || false, iluminat: s.iluminat || false, priza: s.priza || false, wifi: s.wifi || false,
       di: s.distanta || 0,
       la: s.latime   || 0,
       yt: s.yt       || '',
@@ -1728,7 +1729,8 @@ async function refreshBaltaInBackground(id, cacheKey) {
         y: pozitie.y != null ? pozitie.y : (6 + Math.floor(i / 23) * 10),
         arePozitieReala: pozitie.x != null && pozitie.y != null,
         z: s.nume || ('Stand '+(i+1)),
-        cabana: s.cabana||false, foisor: s.foisor||false, ponton: s.ponton||false, stand_pamant: s.stand_pamant||false, stand_pietruit: s.stand_pietruit||false, di: s.distanta||0, la: s.latime||0, yt: s.yt||'',
+        cabana: s.cabana||false, foisor: s.foisor||false, ponton: s.ponton||false, stand_pamant: s.stand_pamant||false, stand_pietruit: s.stand_pietruit||false,
+        wc: s.wc||false, iluminat: s.iluminat||false, priza: s.priza||false, wifi: s.wifi||false, di: s.distanta||0, la: s.latime||0, yt: s.yt||'',
         r: { kg: s.rec_kg!=null?String(s.rec_kg):'', pe: s.rec_pescar||'', pid: s.rec_pescar_id||'', da: s.rec_data||'', foto: s.rec_foto||'' },
         g: pozeFotou, sort_order: s.sort_order
       };
