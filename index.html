@@ -4196,6 +4196,16 @@ function getStanduriData() {
 
     <!-- LOGIN -->
     <div id="pane-login">
+      <button class="auth-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuă cu Google
+      </button>
+
+      <div style="text-align:center;margin:18px 0;">
+        <button onclick="toggleAuthEmailForm('login')" id="login-email-toggle" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;">sau conectează-te cu email</button>
+      </div>
+
+      <div id="login-email-form-wrap" style="display:none;">
       <form id="login-form" onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
       <div class="auth-fg">
         <label>EMAIL</label>
@@ -4214,15 +4224,22 @@ function getStanduriData() {
       <div style="text-align:center;margin-top:8px;">
         <button onclick="doForgotPassword()" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;" onmouseover="this.style.color='var(--zc-text-secondary-2)'" onmouseout="this.style.color='var(--zc-text-muted)'">Ai uitat parola?</button>
       </div>
-      <div class="auth-divider">sau</div>
-      <button class="auth-google" onclick="doGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continuă cu Google
-      </button>
+      </div>
     </div>
 
     <!-- REGISTER -->
     <div id="pane-register" style="display:none;">
+      <button class="auth-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuă cu Google
+      </button>
+      <div style="font-size:11px;color:var(--zc-text-dim);text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:var(--zc-text-muted);">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:var(--zc-text-muted);">Politica de Confidențialitate</a>.</div>
+
+      <div style="text-align:center;margin:18px 0;">
+        <button onclick="toggleAuthEmailForm('register')" id="reg-email-toggle" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;">sau creează cont cu alt email</button>
+      </div>
+
+      <div id="reg-email-form-wrap" style="display:none;">
       <form id="register-form" onsubmit="event.preventDefault(); doRegister();" autocomplete="on">
       <div class="auth-fg">
         <label>NUME DE UTILIZATOR</label>
@@ -4249,12 +4266,7 @@ function getStanduriData() {
       </div>
       <button class="auth-btn" id="reg-btn" type="submit">Creează cont</button>
       </form>
-      <div class="auth-divider">sau</div>
-      <button class="auth-google" onclick="doGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continuă cu Google
-      </button>
-      <div style="font-size:11px;color:var(--zc-text-dim);text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:var(--zc-text-muted);">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:var(--zc-text-muted);">Politica de Confidențialitate</a>.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -4264,6 +4276,19 @@ function getStanduriData() {
 let currentUser = null;
 let currentRole = 'user';
 let _roleCache  = null; // cache: { userId, rol } — evită query repetate
+
+function toggleAuthEmailForm(care) {
+  var wrapId   = care === 'login' ? 'login-email-form-wrap' : 'reg-email-form-wrap';
+  var toggleId = care === 'login' ? 'login-email-toggle'    : 'reg-email-toggle';
+  var wrap = document.getElementById(wrapId);
+  var toggle = document.getElementById(toggleId);
+  if (!wrap) return;
+  var deschis = wrap.style.display !== 'none';
+  wrap.style.display = deschis ? 'none' : 'block';
+  if (toggle) toggle.textContent = deschis
+    ? (care === 'login' ? 'sau conectează-te cu email' : 'sau creează cont cu alt email')
+    : 'ascunde formularul de email';
+}
 
 function openAuthModal()  {
   var hofEl = document.getElementById('hof-modal');
@@ -4311,6 +4336,12 @@ function authSwitchTab(tab) {
   document.getElementById('pane-register').style.display = tab === 'register' ? 'block' : 'none';
   document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  // Repliem formularele de email la starea implicită (ascunse), ca userul
+  // să vadă mereu Google întâi când comută între taburi.
+  document.getElementById('login-email-form-wrap').style.display = 'none';
+  document.getElementById('login-email-toggle').textContent = 'sau conectează-te cu email';
+  document.getElementById('reg-email-form-wrap').style.display = 'none';
+  document.getElementById('reg-email-toggle').textContent = 'sau creează cont cu alt email';
   authClearMsg();
 }
 
