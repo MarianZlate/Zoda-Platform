@@ -90,8 +90,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg:#0a0f1a;
   --zc-bg-panel:#111827;
   --zc-border:#1e293b;
-  --zc-text-dim:#334155;
-  --zc-text-muted:#4b5563;
+  --zc-text-dim:#4d5d78;
+  --zc-text-muted:#64748f;
   --zc-text-secondary:#64748b;
   --zc-text-secondary-2:#94a3b8;
   --zc-text-strong:#e2e8f0;
@@ -108,7 +108,7 @@ html[data-theme="light"]{
   --zc-bg:#f4f7fb;
   --zc-bg-panel:#ffffff;
   --zc-border:#dde4ec;
-  --zc-text-dim:#94a3b8;
+  --zc-text-dim:#6b7a90;
   --zc-text-muted:#64748b;
   --zc-text-secondary:#475569;
   --zc-text-secondary-2:#64748b;
@@ -270,7 +270,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* Carduri foto — același design ca "Capturi recente" de pe index.html, folosit
    acum și pentru Record personal + modalurile Recorduri/Realizări, pentru
    consistență vizuală și comportamentală completă (poză → fullscreen). */
-.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;padding:14px;}
+.cr-grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;}
+.cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-card{border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
@@ -285,6 +286,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
 .cr-meta-line{font-size:13px;color:var(--zc-text-muted);font-weight:600;margin-top:4px;line-height:1.4;}
 .cr-time-lg{font-size:12.5px;color:var(--zc-text-dim);margin-top:6px;line-height:1.4;}
+.cr-balta-link{color:#38bdf8;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s;}
+.cr-balta-link:hover{text-decoration-color:#38bdf8;}
 .trecut-card{opacity:.55;}
 
 /* EMPTY */
@@ -312,7 +315,16 @@ html[data-theme="light"] .logo-img-light{display:block;}
 
 /* DESKTOP */
 @media(min-width:769px){
-  #bottom-nav{display:none;}
+  #bottom-nav{
+    left:50%;right:auto;transform:translateX(-50%);
+    bottom:14px;width:auto;max-width:520px;
+    border-radius:14px;border:1px solid var(--zc-border);
+    padding:6px 22px;gap:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .bn-btn{font-size:11px;font-weight:700;padding:3px 14px;gap:2px;max-width:130px;}
+  .bn-btn svg{width:15px;height:15px;}
+  #footer-bottom{padding-bottom:60px;}
   #hdr-in{padding:0 24px;height:62px;}
   .logo{font-size:20px;}
   #page{padding:32px 24px 80px;}
@@ -350,7 +362,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 .footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
 .footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:var(--zc-text-dim);}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
 #footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 #footer-company strong{color:var(--zc-text-secondary);}
@@ -416,7 +428,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
     <div class="hero-stats-row">
       <div class="hero-stat-item">
-        <svg class="hero-stat-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6Z"/><circle cx="12" cy="16" r="1.4"/></svg>
+        <svg class="hero-stat-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12c-1.5-3-5-5-9-5C5 7 2 9.5 2 12s3 5 7 5c4 0 7.5-2 9-5Z"/><path d="M18 12l4-3v6l-4-3Z"/><circle cx="7" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>
         <div class="hero-stat-val" id="hero-stat-capturi">0</div>
         <div class="hero-stat-lbl">Capturi</div>
       </div>
@@ -513,8 +525,19 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 </div>
 
 <!-- FULLSCREEN MODAL -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:#38bdf8;border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -582,8 +605,35 @@ const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'zoda-auth' }
 });
 
-function openFS(src) { if (!src) return; document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; }
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+
+function openFS(src, gallery, idx) {
+  if (!src && !(gallery && gallery.length)) return;
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+}
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; }
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "openFS('" + String(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
+}
 
 function fmtDate(str) {
   if (!str) return '';
@@ -781,16 +831,82 @@ async function loadProfileForBlur(zodaId) {
   } catch(e) {}
 }
 
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
+let _acordPendinteTip = null;
+let _acordPendinteRol = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  _acordPendinteRol = role;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:#38bdf8;">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+  verificaAcorduriPendinte(data.user, _acordPendinteRol);
+}
+
 async function boot() {
   const zodaId = new URLSearchParams(location.search).get('id');
   if (!zodaId) { showError('Link invalid — lipsește ID-ul pescarului.'); return; }
 
   // Verifică sesiunea — dacă nu e logat, blur + overlay
   let isLoggedIn = false;
+  let sessionUser = null;
   try {
     const { data: { session } } = await sb.auth.getSession();
     isLoggedIn = !!session?.user;
+    sessionUser = session?.user || null;
   } catch(e) { isLoggedIn = false; }
+
+  if (isLoggedIn && sessionUser) {
+    sb.from('user_roles').select('rol').eq('id', sessionUser.id).single()
+      .then(({ data }) => verificaAcorduriPendinte(sessionUser, data?.rol || 'user'));
+  }
 
   if (!isLoggedIn) {
     // Încărcăm oricum profilul ca să afișăm pagina blurată în spate
@@ -878,7 +994,7 @@ async function loadPescarData(zodaId) {
   // 5. Top 10 lunar istoric — ordonăm după pozitie, apoi sortăm în JS după dată
   const { data: top10Istoric } = await sb
     .from('top10_lunar_istoric')
-    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, data_captura, standuri(nume))')
+    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('zoda_id', zodaId)
     .order('pozitie', { ascending: true });
 
@@ -904,9 +1020,10 @@ async function loadPescarData(zodaId) {
   await Promise.all(hofBaltaIds.map(async (baltaId) => {
     const { data: top10 } = await sb
       .from('capturi')
-      .select('id, kg, pescar_id, foto_url, data_captura, standuri(nume)')
+      .select('id, kg, pescar_id, foto_url, foto_dovada_url, data_captura, standuri(nume)')
       .eq('balta_id', baltaId)
       .eq('status', 'approved')
+      .eq('sters', false)
       .order('kg', { ascending: false })
       .limit(10);
 
@@ -914,7 +1031,7 @@ async function loadPescarData(zodaId) {
     const pozitii = [];
     top10.forEach((c, i) => {
       if (c.pescar_id === zodaId) {
-        pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id, foto_url: c.foto_url, data_captura: c.data_captura, standNume: c.standuri?.nume });
+        pozitii.push({ pozitie: i + 1, kg: c.kg, capturaId: c.id, foto_url: c.foto_url, foto_dovada_url: c.foto_dovada_url, data_captura: c.data_captura, standNume: c.standuri?.nume });
       }
     });
     if (pozitii.length) hofActiveMap[baltaId] = pozitii;
@@ -926,7 +1043,8 @@ async function loadPescarData(zodaId) {
     .from('capturi')
     .select('balta_id')
     .eq('pescar_id', zodaId)
-    .eq('status', 'approved');
+    .eq('status', 'approved')
+    .eq('sters', false);
 
   renderHero(profile, steleData);
   renderStatsRapide(capturiPublice || [], recorduriActive || []);
@@ -1009,25 +1127,32 @@ function renderRecordPersonal(recorduriActive) {
 // Card foto — același model ca .cr-card de la "Capturi recente", folosit
 // pentru rândurile din modalurile Recorduri și Realizări. Fără rândul de
 // pescar (avatar+nume), fiindcă suntem deja pe profilul lui.
+// Card foto — același model ca .cr-card de la "Capturi recente". Reguli
+// explicite: click pe card (oriunde) → deschide poza; click pe numele
+// bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, kg, standText, metaLines, dateText, link, trecut } = opts;
-  const fotoClick = photoUrl ? `event.stopPropagation();openFS('${escH(photoUrl).replace(/'/g, "\\'")}')` : '';
+  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const cardClick = buildFotoClickCaptura(photoUrl, photoDovadaUrl);
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
   }).join('');
+  const baltaClick = baltaLink ? `event.stopPropagation();savePescarState();window.location.href='${baltaLink}'` : 'event.stopPropagation()';
+  const baltaHtml = baltaText
+    ? `<div class="cr-meta-line"><span class="cr-balta-link" onclick="${baltaClick}">📍 ${baltaText}</span></div>`
+    : '';
   const inner = `
-    <div class="cr-photo"${fotoClick ? ` onclick="${fotoClick}" style="cursor:zoom-in;background-image:url('${escH(photoUrl)}')"` : ''}></div>
+    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
     <div class="cr-info">
       <div class="cr-row1">
         ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
         ${standText ? `<span class="cr-stand">${escH(standText)}</span>` : ''}
       </div>
       ${metaHtml}
+      ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
-  if (link) return `<a href="${link}" onclick="savePescarState()" class="${cls}" style="text-decoration:none;display:flex;flex-direction:column;color:inherit;">${inner}</a>`;
-  return `<div class="${cls}">${inner}</div>`;
+  return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
 }
 
 function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
@@ -1045,9 +1170,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
       photoUrl: s.rec_foto || null,
       kg: s.rec_kg,
       standText: `Stand ${s.nume}`,
-      metaLines: [`📍 ${escH(s.balti?.nume || '—')}`],
+      baltaText: escH(s.balti?.nume || '—'),
+      baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
-      link: `balta.html?id=${s.balta_id}&stand=${s.id}`,
     });
   });
 
@@ -1063,9 +1188,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: standNume ? `Stand ${standNume}` : 'Record anterior',
-        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
       });
     });
@@ -1084,9 +1209,9 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
         photoUrl: null,
         kg: l.kg,
         standText: stand?.nume ? `Stand ${stand.nume}` : 'Record',
-        metaLines: [`📍 ${escH(l.balti?.nume || '—')}`],
+        baltaText: escH(l.balti?.nume || '—'),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}&stand=${l.referinta}` : null,
         trecut: true,
       });
     });
@@ -1119,11 +1244,13 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
       const capt = t.capturi || {};
       activeHtml += crCardHtml({
         photoUrl: capt.foto_url || null,
+        photoDovadaUrl: capt.foto_dovada_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
+        metaLines: [`📅 Top 10 lunar`],
+        baltaText: escH(baltaNume),
+        baltaLink: `balta.html?id=${t.balta_id}`,
         dateText: capt.data_captura || '',
-        link: `balta.html?id=${t.balta_id}`,
       });
     });
 
@@ -1136,11 +1263,13 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
     pozitii.forEach(p => {
       activeHtml += crCardHtml({
         photoUrl: p.foto_url || null,
+        photoDovadaUrl: p.foto_dovada_url || null,
         kg: p.kg,
         standText: `Locul ${p.pozitie}`,
-        metaLines: [`🥇 Hall of Fame`, escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : '')],
+        metaLines: [`🥇 Hall of Fame`],
+        baltaText: escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : ''),
+        baltaLink: `balta.html?id=${baltaId}`,
         dateText: p.data_captura || '',
-        link: `balta.html?id=${baltaId}`,
       });
     });
   });
@@ -1155,11 +1284,13 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
       const capt = t.capturi || {};
       trecuteHtml += crCardHtml({
         photoUrl: capt.foto_url || null,
+        photoDovadaUrl: capt.foto_dovada_url || null,
         kg: t.kg_total,
         standText: `Locul ${t.pozitie}`,
-        metaLines: [`📅 Top 10 lunar`, escH(baltaNume)],
+        metaLines: [`📅 Top 10 lunar`],
+        baltaText: escH(baltaNume),
+        baltaLink: null,
         dateText: capt.data_captura || '',
-        link: null,
         trecut: true,
       });
     });
@@ -1179,9 +1310,10 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         photoUrl: null,
         kg: l.kg,
         standText: 'Poziție pierdută',
-        metaLines: [`🥇 Hall of Fame`, escH(baltaNume)],
+        metaLines: [`🥇 Hall of Fame`],
+        baltaText: escH(baltaNume),
+        baltaLink: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
         dateText: 'Câștigat la ' + fmtDate(l.created_at),
-        link: l.balta_id ? `balta.html?id=${l.balta_id}` : null,
         trecut: true,
       });
     });
@@ -1209,10 +1341,11 @@ function savePescarState() {
 }
 
 // ── MENIU DE JOS ─────────────────────────────────────────────────────────────
-// Acasă — identic cu linkul "← Înapoi" din header.
+// Acasă — merge direct pe index, nu prin history.back() (care ar putea
+// ajunge altundeva decât acasă, în funcție de cum s-a navigat până aici).
 function bnGoAcasaPescar() {
   savePescarState();
-  if (history.length > 1) { history.back(); } else { window.location.href = 'index.html'; }
+  window.location.href = 'index.html';
 }
 // Recorduri (fost "Capturi") — deschide modalul cu recordurile de stand.
 function bnGoRecorduriPescar() {
