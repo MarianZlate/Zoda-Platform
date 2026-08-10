@@ -119,8 +119,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg:#0a0f1a;
   --zc-bg-panel:#111827;
   --zc-border:#1e293b;
-  --zc-text-dim:#334155;
-  --zc-text-muted:#4b5563;
+  --zc-text-dim:#4d5d78;
+  --zc-text-muted:#64748f;
   --zc-text-secondary:#64748b;
   --zc-text-secondary-2:#94a3b8;
   --zc-text-strong:#e2e8f0;
@@ -137,7 +137,7 @@ html[data-theme="light"]{
   --zc-bg:#f4f7fb;
   --zc-bg-panel:#ffffff;
   --zc-border:#dde4ec;
-  --zc-text-dim:#94a3b8;
+  --zc-text-dim:#6b7a90;
   --zc-text-muted:#64748b;
   --zc-text-secondary:#475569;
   --zc-text-secondary-2:#64748b;
@@ -159,7 +159,7 @@ html.theme-transitioning *{
    RESET & BAZĂ COMUNĂ
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;isolation:isolate;}
+html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;isolation:isolate;overflow-x:hidden;max-width:100vw;}
 
 /* ============================================================
    SCALA DE Z-INDEX — sursă unică de adevăr pentru tot ce se
@@ -268,7 +268,7 @@ nav{display:flex;align-items:center;gap:6px;}
 #search-wrap{position:relative;max-width:580px;margin:0 auto 10px;padding:0 14px;}
 #search-box{display:flex;align-items:center;gap:10px;background:var(--zc-bg-panel);border:2px solid var(--zc-border);border-radius:16px;padding:13px 18px;transition:border-color .2s,box-shadow .2s;box-shadow:0 12px 32px -10px rgba(0,0,0,.5);}
 #search-box:focus-within{border-color:#38bdf8;box-shadow:0 12px 32px -10px rgba(0,0,0,.5),0 0 0 4px rgba(56,189,248,.14);}
-#search-input{flex:1;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:16px;}
+#search-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:16px;}
 #search-input::placeholder{color:var(--zc-text-muted);}
 #clear-btn{background:transparent;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:20px;line-height:1;display:none;}
 #dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow-y:auto;max-height:min(60vh,420px);z-index:var(--z-dropdown);box-shadow:0 8px 32px rgba(0,0,0,.5);display:none;}
@@ -276,9 +276,10 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-close-btn{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .dd-close-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 /* Caută pescari — aceeași formă/stil ca #search-box (căutare bălți), doar cu alt id */
+#cauta-pescari-card{max-width:580px;margin:0 auto 10px;padding:0 14px;}
 #cauta-pescari-box{display:flex;align-items:center;gap:8px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-border);border-radius:14px;padding:7px 16px;transition:border-color .2s,box-shadow .2s;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 #cauta-pescari-box:focus-within{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 4px rgba(56,189,248,.14);}
-#cauta-pescari-input{flex:1;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:14px;}
+#cauta-pescari-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:14px;}
 #cauta-pescari-input::placeholder{color:var(--zc-text-muted);}
 .dd-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--zc-border);cursor:pointer;gap:12px;transition:background .15s;}
 .dd-item:last-child{border-bottom:none;}
@@ -288,7 +289,12 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-open{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 #stats-bar{display:block;margin-bottom:10px;padding:0 14px;}
 .stats-inner{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
-.stat-chip{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;color:var(--zc-text-secondary);text-align:center;padding:6px 14px;font-size:12px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
+.stat-chip{background:var(--zc-bg-panel);border:1.5px solid #38bdf8;border-radius:20px;color:var(--zc-text-secondary);text-align:center;padding:6px 14px;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);}
+@media(max-width:390px){
+  .stats-inner{gap:6px;}
+  .stat-chip{padding:5px 9px;font-size:11.5px;gap:3px;}
+  .stat-chip span[style*="font-size:17px"]{font-size:13px !important;}
+}
 .stat-chip strong{color:var(--zc-text-primary);font-size:inherit;}
 .stat-chip-clickable{cursor:pointer;user-select:none;position:relative;transition:border-color .15s,box-shadow .15s;}
 .stat-chip-clickable:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(56,189,248,.12);}
@@ -301,6 +307,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .pbd-panel a:last-child{border-bottom:none;}
 .pbd-panel a:hover{background:var(--zc-border);color:#38bdf8;}
 #main{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr;align-items:start;padding:0 8px 40px;gap:10px;}
+#main > *{min-width:0;}
 /* Generice pentru orice hartă Leaflet de pe pagină — folosite acum doar de
    abMap (mini-harta din wizard-ul "Adaugă baltă"), harta principală a fost
    scoasă complet. */
@@ -308,7 +315,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .leaflet-top,.leaflet-bottom{z-index:400!important;}
 
 /* CAPTURI RECENTE — înlocuiește harta Leaflet */
-#cr-wrap{margin:0 10px;}
+#cr-wrap{margin:0 10px;min-width:0;}
 #cr-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;}
 #cr-title{font-size:19px;font-weight:900;color:var(--zc-text-primary);}
 #cr-vezi-tot{background:none;border:none;color:#38bdf8;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 6px;}
@@ -328,9 +335,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
 @media(min-width:600px){ .cr-card{flex:0 0 calc(33.333% - 7px);} }
-.cr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;}
+.cr-grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;}
+.cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-grid .cr-card{flex:none;}
-@media(max-width:480px){ .cr-grid{grid-template-columns:repeat(2,1fr);gap:8px;} }
 
 .balta-tooltip::before{border-top-color:var(--zc-border)!important;}
 
@@ -428,6 +435,7 @@ nav{display:flex;align-items:center;gap:6px;}
   /* mobil: spațiu jos ca ultimele rânduri să nu fie ascunse sub #bottom-nav,
      care plutește deasupra modalului full-page (vezi z-index-ul lui) */
   padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
+.hof-modal-list.cr-grid{padding:14px 14px calc(84px + env(safe-area-inset-bottom));}
 .lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
 .lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
 .lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
@@ -438,7 +446,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .judet-opt .judet-match{color:#38bdf8;font-weight:800;}
 #auth-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
 #auth-modal.open{display:flex;}
-.auth-inner{background:var(--zc-bg);border:1px solid var(--zc-border);width:100%;position:relative;max-width:100%;border-radius:16px 16px 0 0;padding:24px 18px;margin-top:auto;}
+.auth-inner{background:var(--zc-bg);border:1px solid var(--zc-border);width:100%;position:relative;max-width:100%;border-radius:16px 16px 0 0;padding:24px 18px;margin-top:auto;margin-bottom:calc(70px + env(safe-area-inset-bottom));}
 .auth-close{position:absolute;top:16px;right:18px;background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
 .auth-logo{text-align:center;font-size:36px;margin-bottom:8px;}
 .auth-title{text-align:center;font-size:22px;font-weight:900;color:var(--zc-text-primary);margin-bottom:4px;}
@@ -606,7 +614,7 @@ nav{display:flex;align-items:center;gap:6px;}
   .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
   .hof-modal-list{padding-bottom:8px;}
   #auth-modal{align-items:center;justify-content:center;}
-  .auth-inner{max-width:420px;border-radius:20px;padding:32px 28px;margin-top:0;}
+  .auth-inner{max-width:420px;border-radius:20px;padding:32px 28px;margin-top:0;margin-bottom:0;}
   #edit-modal{align-items:flex-start;justify-content:center;padding:80px 20px 20px;}
   .edit-inner{max-width:760px;border-radius:20px;margin-top:0;}
   .edit-hdr{border-radius:20px 20px 0 0;padding:20px 24px;}
@@ -634,7 +642,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 .footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
 .footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:var(--zc-text-dim);}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
 #footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 #footer-company strong{color:var(--zc-text-secondary);}
@@ -825,11 +833,15 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="baie_toaleta" /> Baie/Toalete</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="restaurant_terasa" /> Restaurant/Terasă</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="loc_joaca" /> Loc de joacă</label>
-      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin:10px 0 6px;border-top:1px solid var(--zc-border);padding-top:10px;">TIP STAND</div>
+      <div style="font-size:11px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.05em;margin:10px 0 6px;border-top:1px solid var(--zc-border);padding-top:10px;">TIP STAND ȘI UTILITĂȚI</div>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="foisor" /> Foișor</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="ponton" /> Ponton</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pamant" /> Stand pământ</label>
       <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="stand_pietruit" /> Stand pietruit</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="wc" /> W.C.</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="iluminat" /> Iluminat</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="priza" /> Priză</label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--zc-text-strong);padding:5px 2px;cursor:pointer;"><input type="checkbox" class="idx-filter-cb" value="wifi" /> Wifi</label>
       <button onclick="aplicaFiltruIndex()" style="width:100%;margin-top:8px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));border:none;border-radius:8px;padding:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">✓ Aplică filtrul</button>
       <button onclick="resetFiltruIndex()" style="width:100%;margin-top:6px;background:none;border:1px solid var(--zc-border);border-radius:8px;padding:6px;color:var(--zc-text-muted);font-size:12.5px;font-weight:600;cursor:pointer;">Șterge filtrul</button>
     </div>
@@ -840,14 +852,14 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="stats-bar">
     <div class="stats-inner">
         <div class="stat-chip stat-chip-clickable" id="stat-aproape-chip" onclick="toggleBaltiAproapeDropdown(event)">
-          <span>📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;">▾</span>
+          <span style="font-size:15px;">📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
           <div id="balti-aproape-dropdown" class="pbd-panel">
             <div class="pbd-hdr">📍 Raza 30 km · nu salvăm locația ta</div>
             <div id="balti-aproape-list"><div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Apasă ca să vezi bălțile din apropiere.</div></div>
           </div>
         </div>
         <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown(event)">
-          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;">▾</span>
+          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
           <div id="public-balti-dropdown" class="pbd-panel">
             <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
             <div id="public-balti-list"></div>
@@ -857,7 +869,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
 
   <!-- CĂUTĂ PESCARI DE URMĂRIT — sub stats-bar, înaintea Capturi recente -->
-  <div id="cauta-pescari-card" style="display:none;position:relative;max-width:580px;margin:0 auto 10px;padding:0 14px;overflow:visible;">
+  <div id="cauta-pescari-card" style="display:none;position:relative;overflow:visible;">
     <div id="cauta-pescari-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--zc-text-muted)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" id="cauta-pescari-input" oninput="cautaPescariUrmarire(this.value)" onfocus="onFocusCautaPescari()" placeholder="Caută și urmărește pescari..."/>
@@ -970,6 +982,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 <!-- FULLSCREEN MODAL (poză) -->
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -979,15 +993,15 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div class="hof-modal-hdr">
       <div>
         <div class="hof-modal-title">🏆 Clasament</div>
-        <div class="hof-modal-sub" id="clasament-sub">Top pescari după stele</div>
+        <div class="hof-modal-sub" id="clasament-sub">Top 20 pescari după numărul total de stele obținute</div>
       </div>
       <button class="modal-close" onclick="closeHof()">✕</button>
     </div>
     <div class="lb-tab-toggle">
-      <button class="lb-tab-btn active" id="lb-tab-weekly" onclick="setClasamentTab('weekly')">Săptămâna asta</button>
-      <button class="lb-tab-btn" id="lb-tab-alltime" onclick="setClasamentTab('alltime')">All-time</button>
+      <button class="lb-tab-btn" id="lb-tab-weekly" onclick="setClasamentTab('weekly')">Săptămâna asta</button>
+      <button class="lb-tab-btn active" id="lb-tab-alltime" onclick="setClasamentTab('alltime')">All-time</button>
     </div>
-    <div class="hof-modal-list" id="lb-body-weekly">
+    <div class="hof-modal-list" id="lb-body-weekly" style="display:none;">
       <div class="hof-card" style="border:none;box-shadow:none;">
         <div class="hof-header">
           <div class="hof-header-text">
@@ -998,7 +1012,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <div id="saptamanal-stele-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
       </div>
     </div>
-    <div class="hof-modal-list" id="lb-body-alltime" style="display:none;">
+    <div class="hof-modal-list" id="lb-body-alltime">
       <div id="hof-full"></div>
     </div>
   </div>
@@ -1587,7 +1601,7 @@ async function incarcaDateFiltruIndex() {
   try {
     const [{ data: facRows }, { data: standRows }] = await Promise.all([
       sb.from('balta_facilitati').select('balta_id, tip'),
-      sb.from('standuri').select('balta_id, cabana, foisor, ponton, stand_pamant, stand_pietruit'),
+      sb.from('standuri').select('balta_id, cabana, foisor, ponton, stand_pamant, stand_pietruit, wc, iluminat, priza, wifi'),
     ]);
     _baltaFacSet = {};
     (facRows || []).forEach(function (f) {
@@ -1596,12 +1610,16 @@ async function incarcaDateFiltruIndex() {
     });
     _baltaStandFlags = {};
     (standRows || []).forEach(function (s) {
-      var cur = _baltaStandFlags[s.balta_id] || { cabana: false, foisor: false, ponton: false, stand_pamant: false, stand_pietruit: false };
+      var cur = _baltaStandFlags[s.balta_id] || { cabana: false, foisor: false, ponton: false, stand_pamant: false, stand_pietruit: false, wc: false, iluminat: false, priza: false, wifi: false };
       cur.cabana = cur.cabana || !!s.cabana;
       cur.foisor = cur.foisor || !!s.foisor;
       cur.ponton = cur.ponton || !!s.ponton;
       cur.stand_pamant = cur.stand_pamant || !!s.stand_pamant;
       cur.stand_pietruit = cur.stand_pietruit || !!s.stand_pietruit;
+      cur.wc = cur.wc || !!s.wc;
+      cur.iluminat = cur.iluminat || !!s.iluminat;
+      cur.priza = cur.priza || !!s.priza;
+      cur.wifi = cur.wifi || !!s.wifi;
       _baltaStandFlags[s.balta_id] = cur;
     });
   } catch (e) {
@@ -1617,7 +1635,7 @@ function baltaTreceFiltrulIndex(b) {
   var st = (_baltaStandFlags && _baltaStandFlags[b.id]) || {};
   return _indexFiltreActive.some(function (key) {
     if (key === 'cabana') return fac.has('cabana') || st.cabana;
-    if (key === 'foisor' || key === 'ponton' || key === 'stand_pamant' || key === 'stand_pietruit') return !!st[key];
+    if (key === 'foisor' || key === 'ponton' || key === 'stand_pamant' || key === 'stand_pietruit' || key === 'wc' || key === 'iluminat' || key === 'priza' || key === 'wifi') return !!st[key];
     return fac.has(key); // cazare, baie_toaleta, restaurant_terasa, loc_joaca
   });
 }
@@ -1924,8 +1942,26 @@ function _blocheazaPortret() {
   } catch (e) {}
 }
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+
+function openFS(src, gallery, idx) {
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+  _permiteRotire('fs-modal');
+}
+
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
 
 async function loadTopSaptamanal() {
@@ -1953,8 +1989,9 @@ async function loadTopSaptamanal() {
   var capturiListEl = document.getElementById('saptamanal-capturi-list');
   try {
     var { data: capturi } = await withTimeout(sb.from('capturi')
-      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, balta_id, data_captura, standuri(nume), balti(nume)')
+      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, foto_dovada_url, balta_id, data_captura, standuri(nume), balti(nume)')
       .eq('status', 'approved')
+      .eq('sters', false)
       .gte('data_captura', luniDataLocala)
       .lt('data_captura', luniUrmatoareDataLocala)
       .order('kg', { ascending: false })
@@ -2007,7 +2044,7 @@ async function loadTopSaptamanal() {
       // Capturi — doar pentru locurile 1-3, pentru podium (ca la Hall of Fame)
       var top3IdsSapt = weeklyItems.slice(0, 3).map(function(h) { return h.zodaId; }).filter(Boolean);
       if (top3IdsSapt.length) {
-        var { data: capturiTop3Sapt } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3IdsSapt);
+        var { data: capturiTop3Sapt } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').eq('sters', false).in('pescar_id', top3IdsSapt);
         var countsSapt = {};
         (capturiTop3Sapt || []).forEach(function(c) { countsSapt[c.pescar_id] = (countsSapt[c.pescar_id] || 0) + 1; });
         weeklyItems.slice(0, 3).forEach(function(h) { h.capturi = countsSapt[h.zodaId] || 0; });
@@ -2084,7 +2121,7 @@ async function loadHof() {
   // (restul clasamentului nu-l afișează, nu merită interogarea pentru toți 20)
   const top3Ids = HOF.slice(0, 3).map(h => h.zodaId).filter(Boolean);
   if (top3Ids.length) {
-    const { data: capturiTop3 } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').in('pescar_id', top3Ids);
+    const { data: capturiTop3 } = await sb.from('capturi').select('pescar_id').eq('status', 'approved').eq('sters', false).in('pescar_id', top3Ids);
     const counts = {};
     (capturiTop3 || []).forEach(c => { counts[c.pescar_id] = (counts[c.pescar_id] || 0) + 1; });
     HOF.slice(0, 3).forEach(h => { h.capturi = counts[h.zodaId] || 0; });
@@ -2123,6 +2160,7 @@ function openHof()  {
   if (switching) capEl.classList.remove('open');
   var authEl = document.getElementById('auth-modal');
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
+  setClasamentTab('alltime');
   document.getElementById('hof-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
@@ -2153,8 +2191,9 @@ async function loadCapturiRecente() {
   var track = document.getElementById('cr-track');
   try {
     var res = await sb.from('capturi')
-      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, balta_id, standuri(nume), balti(nume)')
+      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, balta_id, standuri(nume), balti(nume)')
       .eq('status', 'approved')
+      .eq('sters', false)
       .order('created_at', { ascending: false })
       .limit(20);
     var capturi = res.data || [];
@@ -2191,7 +2230,7 @@ function capturaRecentaCardHtml(c) {
   var baltaTxt = c.balti && c.balti.nume ? escH(c.balti.nume) : '';
   var pescarNumeTxt = escH(c.pescar_nume || '—');
   var pescarClick = c.pescar_id ? "event.stopPropagation();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-  var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+  var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
   var baltaClick = c.balta_id ? "event.stopPropagation();__goToBalta(" + c.balta_id + ")" : '';
   return ''
     + '<div class="cr-card">'
@@ -4132,6 +4171,15 @@ function getStanduriData() {
 </div>
 
 <!-- AUTH MODAL -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:#38bdf8;border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="auth-modal">
   <div class="auth-inner">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
@@ -4148,6 +4196,14 @@ function getStanduriData() {
 
     <!-- LOGIN -->
     <div id="pane-login">
+      <button class="auth-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuă cu Google
+      </button>
+
+      <div class="auth-divider" style="margin:18px 0;">sau conectează-te cu email</div>
+
+      <div id="login-email-form-wrap" style="display:block;">
       <form id="login-form" onsubmit="event.preventDefault(); doLogin();" autocomplete="on">
       <div class="auth-fg">
         <label>EMAIL</label>
@@ -4166,15 +4222,22 @@ function getStanduriData() {
       <div style="text-align:center;margin-top:8px;">
         <button onclick="doForgotPassword()" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;" onmouseover="this.style.color='var(--zc-text-secondary-2)'" onmouseout="this.style.color='var(--zc-text-muted)'">Ai uitat parola?</button>
       </div>
-      <div class="auth-divider">sau</div>
-      <button class="auth-google" onclick="doGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continuă cu Google
-      </button>
+      </div>
     </div>
 
     <!-- REGISTER -->
     <div id="pane-register" style="display:none;">
+      <button class="auth-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continuă cu Google
+      </button>
+      <div style="font-size:11px;color:var(--zc-text-dim);text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:var(--zc-text-muted);">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:var(--zc-text-muted);">Politica de Confidențialitate</a>.</div>
+
+      <div style="text-align:center;margin:18px 0;">
+        <button onclick="toggleAuthEmailForm('register')" id="reg-email-toggle" style="background:transparent;border:none;color:var(--zc-text-muted);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;">sau creează cont cu alt email</button>
+      </div>
+
+      <div id="reg-email-form-wrap" style="display:none;">
       <form id="register-form" onsubmit="event.preventDefault(); doRegister();" autocomplete="on">
       <div class="auth-fg">
         <label>NUME DE UTILIZATOR</label>
@@ -4201,12 +4264,7 @@ function getStanduriData() {
       </div>
       <button class="auth-btn" id="reg-btn" type="submit">Creează cont</button>
       </form>
-      <div class="auth-divider">sau</div>
-      <button class="auth-google" onclick="doGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 48 48" style="pointer-events:none;flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continuă cu Google
-      </button>
-      <div style="font-size:11px;color:var(--zc-text-dim);text-align:center;margin-top:8px;line-height:1.5;">Continuând cu Google, ești de acord cu <a href="termeni.html" target="_blank" style="color:var(--zc-text-muted);">Termenii</a> și <a href="confidentialitate.html" target="_blank" style="color:var(--zc-text-muted);">Politica de Confidențialitate</a>.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -4216,6 +4274,19 @@ function getStanduriData() {
 let currentUser = null;
 let currentRole = 'user';
 let _roleCache  = null; // cache: { userId, rol } — evită query repetate
+
+function toggleAuthEmailForm(care) {
+  var wrapId   = care === 'login' ? 'login-email-form-wrap' : 'reg-email-form-wrap';
+  var toggleId = care === 'login' ? 'login-email-toggle'    : 'reg-email-toggle';
+  var wrap = document.getElementById(wrapId);
+  var toggle = document.getElementById(toggleId);
+  if (!wrap) return;
+  var deschis = wrap.style.display !== 'none';
+  wrap.style.display = deschis ? 'none' : 'block';
+  if (toggle) toggle.textContent = deschis
+    ? (care === 'login' ? 'sau conectează-te cu email' : 'sau creează cont cu alt email')
+    : 'ascunde formularul de email';
+}
 
 function openAuthModal()  {
   var hofEl = document.getElementById('hof-modal');
@@ -4263,6 +4334,11 @@ function authSwitchTab(tab) {
   document.getElementById('pane-register').style.display = tab === 'register' ? 'block' : 'none';
   document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  // Repliem doar formularul de la "Cont nou" — la "Autentificare" rămâne
+  // mereu deschis (majoritatea userilor au password manager care completează
+  // instant, mai rapid decât Google Sign-In).
+  document.getElementById('reg-email-form-wrap').style.display = 'none';
+  document.getElementById('reg-email-toggle').textContent = 'sau creează cont cu alt email';
   authClearMsg();
 }
 
@@ -4303,7 +4379,19 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Se conectează...';
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = 'Intră în cont';
-  if(error) { authShowErr('Email sau parolă incorectă.'); return; }
+  if(error) {
+    // Nu maschila toate erorile ca "parolă incorectă" — asta ascundea cauze
+    // reale (ex. cont neconfirmat) în spatele unui mesaj înșelător.
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('email not confirmed')) {
+      authShowErr('⚠️ Contul nu e confirmat încă — verifică emailul (inclusiv Spam) și apasă pe linkul de confirmare primit la înregistrare.');
+    } else if (msg.includes('invalid login credentials')) {
+      authShowErr('Email sau parolă incorectă.');
+    } else {
+      authShowErr('Eroare la autentificare: ' + (error.message || 'încearcă din nou.'));
+    }
+    return;
+  }
   if(!rememberMe) sessionStorage.setItem('zoda-session-only', '1');
   else            sessionStorage.removeItem('zoda-session-only');
   // closeAuthModal() va fi chemat de onAuthStateChange SIGNED_IN
@@ -4313,9 +4401,76 @@ const WORKER_TURNSTILE_VERIFY = 'https://zoda-turnstile-verify.marianzlate90.wor
 // Versiunea curentă a Termenilor și Politicii de Confidențialitate — trebuie
 // ținută sincronă manual cu "Versiunea X.X" afișată în termeni.html/confidentialitate.html.
 // La fiecare actualizare semnificativă a acelor pagini, crește numărul aici ȘI acolo.
-const TERMS_VERSION = '1.0';
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
 let _turnstileOk = false;
 function onTurnstileOk(){ _turnstileOk = true; }
+
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+// Verifică, la fiecare logare, dacă userul a acceptat cea mai recentă
+// versiune a Termenilor (terms_version_accepted, salvat pe user_metadata) și
+// — dacă e balta_admin — dacă a confirmat explicit responsabilitățile lui
+// (balta_admin_ack_version). Blochează folosirea platformei până acceptă;
+// verifică un singur lucru pe rând (dacă are ambele restante, arată întâi
+// Termenii, apoi — după ce le acceptă — verifică din nou și arată acordul
+// de balta_admin).
+let _acordPendinteTip = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:#38bdf8;">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+
+  // Re-verifică — dacă mai are un al doilea acord restant (ex. termeni +
+  // balta_admin ambele), continuă direct cu următorul, fără să reîncarce pagina.
+  verificaAcorduriPendinte(data.user, currentRole);
+}
 function onTurnstileExpired(){ _turnstileOk = false; }
 
 async function doRegister() {
@@ -4435,6 +4590,7 @@ async function updateNavForUser(user) {
   } else {
     currentRole = _roleCache.rol;
   }
+  verificaAcorduriPendinte(user, currentRole);
 
   const profile = profileResult?.data;
   MY_ZODA_ID = profile?.zoda_id || null;
@@ -4538,16 +4694,16 @@ async function sorteazaSiRandeazaPescari(dd, rezultate) {
       : `<div style="width:32px;height:32px;border-radius:50%;background:var(--zc-bg-tint);color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">${initials}</div>`;
     return `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:1px solid var(--zc-border);gap:10px;">
-        <a href="pescar.html?id=${escH(u.zoda_id)}" style="display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;">
+        <a href="pescar.html?id=${escH(u.zoda_id)}" style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;text-decoration:none;">
           ${avatarHtml}
-          <div style="min-width:0;">
+          <div style="min-width:0;flex:1;">
             <div style="font-size:15px;color:var(--zc-text-strong);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escH(u.username || u.zoda_id)}</div>
-            <div style="font-size:11.8px;color:var(--zc-text-muted);">${escH(u.zoda_id)}</div>
+            <div style="font-size:11.8px;color:var(--zc-text-muted);white-space:nowrap;">${escH(u.zoda_id)}</div>
           </div>
         </a>
         ${dejaUrmarit
-          ? '<span style="font-size:12px;color:var(--zc-text-muted);white-space:nowrap;">✓ Urmărit</span>'
-          : `<button onclick="urmarestePescarDinIndex('${escH(u.zoda_id)}','${escH(u.username||u.zoda_id).replace(/'/g,"\\'")}')" style="background:var(--zc-accent-dark);color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">+ Urmărește</button>`}
+          ? '<span style="font-size:12px;color:var(--zc-text-muted);white-space:nowrap;flex-shrink:0;">✓ Urmărit</span>'
+          : `<button onclick="urmarestePescarDinIndex('${escH(u.zoda_id)}','${escH(u.username||u.zoda_id).replace(/'/g,"\\'")}')" style="background:var(--zc-accent-dark);color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ Urmărește</button>`}
       </div>`;
   }).join('');
 }
@@ -4804,6 +4960,17 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -5550,7 +5717,16 @@ setTimeout(showIosToast, 3000);
 .bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
 .bn-btn.active{color:#38bdf8;}
 @media(min-width:769px){
-  #bottom-nav{display:none;}
+  #bottom-nav{
+    left:50%;right:auto;transform:translateX(-50%);
+    bottom:14px;width:auto;max-width:520px;
+    border-radius:14px;border:1px solid var(--zc-border);
+    padding:6px 22px;gap:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .bn-btn{font-size:11px;font-weight:700;padding:3px 14px;gap:2px;max-width:130px;}
+  .bn-btn svg{width:15px;height:15px;}
+  #footer-bottom{padding-bottom:60px;}
 }
 #cookie-notice.show{display:flex;}
 #cookie-notice-text{font-size:13px;color:var(--zc-text-secondary-2);line-height:1.6;max-width:640px;}
@@ -5750,7 +5926,7 @@ setTimeout(showIosToast, 3000);
     <span>Acasă</span>
   </button>
   <button class="bn-btn" id="bn-capturi" onclick="openCapturiModal()">
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6Z"/><circle cx="12" cy="16" r="1.4"/></svg>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12c-1.5-3-5-5-9-5C5 7 2 9.5 2 12s3 5 7 5c4 0 7.5-2 9-5Z"/><path d="M18 12l4-3v6l-4-3Z"/><circle cx="7" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>
     <span>Capturi</span>
   </button>
   <button class="bn-btn" id="bn-clasament" onclick="openHof()">
