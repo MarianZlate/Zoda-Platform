@@ -98,8 +98,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-bg:#0a0f1a;
   --zc-bg-panel:#111827;
   --zc-border:#1e293b;
-  --zc-text-dim:#334155;
-  --zc-text-muted:#4b5563;
+  --zc-text-dim:#4d5d78;
+  --zc-text-muted:#64748f;
   --zc-text-secondary:#64748b;
   --zc-text-secondary-2:#94a3b8;
   --zc-text-strong:#e2e8f0;
@@ -116,7 +116,7 @@ html[data-theme="light"]{
   --zc-bg:#f4f7fb;
   --zc-bg-panel:#ffffff;
   --zc-border:#dde4ec;
-  --zc-text-dim:#94a3b8;
+  --zc-text-dim:#6b7a90;
   --zc-text-muted:#64748b;
   --zc-text-secondary:#475569;
   --zc-text-secondary-2:#64748b;
@@ -202,11 +202,11 @@ html[data-theme="light"] .logo-img-light{display:block;}
     radial-gradient(85% 70% at 22% -15%, rgba(14,116,144,.5), transparent 72%),
     linear-gradient(160deg, #0c222f, #081118);
   /* mobil — bandă subțire, doar accent, nu spațiu gol */
-  height:38px;margin-bottom:-20px;}
+  height:38px;margin-bottom:-8px;}
 
 /* INFO BAR — acum card plutitor: colțuri mari, umbră, se suprapune peste
    hero-glow de mai sus (vezi margin-bottom negativ pe .balta-hero-glow) */
-.info-bar{position:relative;z-index:1;display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;box-shadow:0 22px 46px -14px rgba(0,0,0,.6);flex-wrap:wrap;
+.info-bar{position:relative;z-index:1;display:flex;align-items:center;gap:6px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;box-shadow:0 6px 16px -8px rgba(0,0,0,.5);flex-wrap:wrap;
   /* mobil */
   padding:16px 14px 14px;}
 .ebtn{border-radius:8px;font-weight:700;cursor:pointer;border:none;
@@ -232,7 +232,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
   flex:none;width:100%;}
 
 /* MAP WRAP */
-#map-wrap{position:relative;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;background:#0d1520;user-select:none;width:100%;max-width:100%;box-shadow:0 0 32px rgba(56,189,248,.25),0 0 8px rgba(56,189,248,.15);}
+#map-wrap{position:relative;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;background:var(--zc-bg-tint);user-select:none;width:100%;max-width:100%;box-shadow:0 0 32px rgba(56,189,248,.25),0 0 8px rgba(56,189,248,.15);}
 /* #ov-edit-section stă în interiorul #map-wrap (user-select:none, pt drag pe hartă) —
    aici redăm selecția de text, altfel nu poți selecta/șterge cu mouse-ul sau tap din
    câmpurile de nume/adâncime/distanță/lățime ale standului. */
@@ -268,7 +268,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #facilitati-overlay{
   display:none;z-index:2000;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.85);
   position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:calc(100% - 24px);max-width:480px;max-height:88vh;overflow-y:auto;}
+  width:calc(100% - 24px);max-width:480px;max-height:88vh;overflow-y:auto;
+  flex-direction:column;}
 #facilitati-overlay[style*="display: block"],
 #facilitati-overlay[style*="display:block"]{display:flex!important;flex-direction:column;}
 .fac-dot{width:9px;height:9px;border-radius:50%;background:var(--zc-border);cursor:pointer;flex-shrink:0;transition:background .15s,transform .15s;}
@@ -406,7 +407,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* Capturi (modal) — același design de card-foto ca "Capturi recente" de pe
    index.html (cr-card/cr-grid), pentru consistență vizuală și comportamentală
    completă între pagini. */
-.cr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;padding:14px;}
+.cr-grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;}
+.cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-card{border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
@@ -420,7 +422,16 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
 @media(min-width:769px){
-  #bottom-nav{display:none;}
+  #bottom-nav{
+    left:50%;right:auto;transform:translateX(-50%);
+    bottom:14px;width:auto;max-width:520px;
+    border-radius:14px;border:1px solid var(--zc-border);
+    padding:6px 22px;gap:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .bn-btn{font-size:11px;font-weight:700;padding:3px 14px;gap:2px;max-width:130px;}
+  .bn-btn svg{width:15px;height:15px;}
+  #footer-bottom{padding-bottom:60px;}
   #clasament-modal,#capturi-modal-balta{align-items:center;justify-content:center;}
   .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
   .hof-modal-list{padding-bottom:8px;}
@@ -439,13 +450,13 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .li.drag-over{border-color:#38bdf8;background:var(--zc-bg-deep);}
 .li.dragging-item{opacity:.4;}
 /* Sort list in edit mode */
-.sort-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--zc-border);cursor:grab;touch-action:none;transition:background .15s;}
-.sort-row:last-child{border-bottom:none;}
+.sort-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:50px;height:50px;border:1px solid var(--zc-border);border-radius:12px;cursor:grab;transition:background .15s,border-color .15s;background:var(--zc-bg);}
+.sort-row.hold-active{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25);}
 .sort-row:hover{background:var(--zc-border);}
 .sort-row.drag-over{background:var(--zc-bg-deep);border-color:#38bdf8;}
 .sort-row.dragging-item{opacity:.4;}
-.sort-row-handle{color:var(--zc-text-dim);font-size:22px;flex-shrink:0;}
-.sort-row-name{font-size:15px;font-weight:700;color:var(--zc-text-primary);flex:1;}
+.sort-row-handle{color:var(--zc-text-dim);font-size:15px;line-height:1;}
+.sort-row-name{font-size:15px;font-weight:800;color:var(--zc-text-primary);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 4px;}
 .lnr{width:22px;height:22px;border-radius:50%;background:#e8142a;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;flex-shrink:0;}
 .lz{font-size:12px;color:var(--zc-text-secondary-2);}
 .ls{font-size:10px;color:var(--zc-text-muted);margin-top:1px;}
@@ -494,7 +505,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
   #share-balta-wrap{display:flex;}
   #btn-share-balta-mobile{display:none;}
   /* pe desktop, tot ce ține de contact/acțiuni revine la un rând simplu */
-  .balta-hero-glow{height:64px;margin-bottom:-30px;}
+  .balta-hero-glow{height:64px;margin-bottom:-12px;}
   .ib-contact-row{width:auto;margin-top:0;}
   .ib-contact-row #btn-fb,.ib-contact-row #btn-wa{width:auto;height:auto;padding:7px 12px!important;}
   #ib-actions-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:0;width:auto;}
@@ -580,7 +591,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 .footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
 .footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px 22px;font-size:12px;color:var(--zc-text-dim);}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
 #footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 #footer-company strong{color:var(--zc-text-secondary);}
@@ -823,6 +834,11 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         <div style="padding:10px;border-right:1px solid var(--zc-border);">
           <div class="sec-lbl">📸 CEA MAI MARE CAPTURĂ</div>
+          <div id="ov-rec-nav" style="display:flex;visibility:hidden;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <button onclick="navigheazaRecFoto(-1)" title="Poza anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">◀</button>
+            <span id="ov-rec-foto-idx" style="font-size:10px;font-weight:700;color:var(--zc-text-muted);">Captură</span>
+            <button onclick="navigheazaRecFoto(1)" title="Poza următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
+          </div>
           <div id="ov-rec-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">📷</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
             <div class="stat-row"><span class="stat-lbl">🏆</span><strong id="ov-kg" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
@@ -831,7 +847,12 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
           </div>
         </div>
         <div style="padding:10px;">
-          <div class="sec-lbl">📸 STAND</div>
+          <div class="sec-lbl">📸 GALERIE STAND</div>
+          <div id="ov-stand-gallery-nav" style="display:flex;visibility:hidden;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <button onclick="navigheazaStandFoto(-1)" title="Poza anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">◀</button>
+            <span id="ov-stand-foto-idx" style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">1/1</span>
+            <button onclick="navigheazaStandFoto(1)" title="Poza următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;">▶</button>
+          </div>
           <div id="ov-stand-foto" class="foto-empty" style="margin-bottom:8px;"><span style="font-size:27px;">📷</span><span>Fără fotografie</span></div>
           <div style="display:flex;flex-direction:column;gap:3px;">
             <div class="stat-row"><span class="stat-lbl">📏 Lățime stand</span><strong id="ov-la" style="color:#38bdf8;font-size:16px;font-weight:900;">-</strong></div>
@@ -876,18 +897,22 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
           </div>
         </div>
         <div style="margin-bottom:12px;">
-          <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">TIP STAND</label>
+          <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">TIP STAND ȘI UTILITĂȚI</label>
           <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:5px;">
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-cabana"/> Cabană</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-foisor"/> Foișor</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-ponton"/> Ponton</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-standpamant"/> Stand pământ</label>
             <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-standpietruit"/> Stand pietruit</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-wc"/> W.C.</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-iluminat"/> Iluminat</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-priza"/> Priză</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--zc-text-strong);cursor:pointer;"><input type="checkbox" id="ov-edit-wifi"/> Wifi</label>
           </div>
         </div>
         <label style="font-size:11px;font-weight:700;color:var(--zc-text-muted);">📸 POZE STAND</label>
         <div id="ov-edit-gallery" style="display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 10px;"></div>
-        <label class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
+        <label id="ov-edit-add-foto-btn" class="rec-upload-btn" style="display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;margin-bottom:10px;">
           📷 Adaugă poză
           <input type="file" accept="image/*" style="display:none;" onchange="uploadOverlayStandFoto(this)"/>
         </label>
@@ -905,39 +930,25 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <button class="xbtn" onclick="closeFacilitatiOverlay()" style="position:absolute;right:0;top:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:50%;width:32px;height:32px;font-size:18px;">✕</button>
       </div>
       <div id="facilitati-overlay">
+        <!-- Tab-uri — un tab pe facilitate, click = comută facilitatea afișată -->
+        <div id="fac-tabs" style="display:flex;overflow-x:auto;gap:6px;padding:12px 14px;border-bottom:1px solid var(--zc-border);"></div>
+
+        <!-- Anterior/Următor — comută între videoclipurile facilității curente -->
         <div class="ov-hdr">
-          <button id="fac-prev-btn" onclick="navigheazaFacilitate(-1)" title="Facilitatea anterioară" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
+          <button id="fac-prev-btn" onclick="navigheazaFacVideo(-1)" title="Videoclipul anterior" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">◀ Anterior</button>
           <div class="spnr" id="fac-nume" style="flex:1;text-align:center;">Facilitate</div>
-          <button id="fac-next-btn" onclick="navigheazaFacilitate(1)" title="Facilitatea următoare" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
+          <button id="fac-next-btn" onclick="navigheazaFacVideo(1)" title="Videoclipul următor" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:13px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;flex-shrink:0;white-space:nowrap;">Următor ▶</button>
         </div>
+
         <div style="padding:14px;">
           <div id="fac-detalii" style="font-size:15px;line-height:1.6;color:var(--zc-text-strong);white-space:pre-wrap;margin-bottom:12px;">-</div>
-          <button id="fac-stand-link" onclick="deschideStandulFacilitatii()" style="display:none;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;">📍 Vezi standul <span id="fac-stand-nume"></span> →</button>
         </div>
 
-        <!-- Videoclip de prezentare a facilității -->
-        <div id="fac-yt-section" style="display:none;padding:10px 14px 14px;border-top:1px solid var(--zc-border);">
-          <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;"><svg width="14" height="14" viewBox="0 0 576 512" style="flex-shrink:0;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>VIDEOCLIP DE PREZENTARE</div>
-          <div id="fac-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playFacilitateYT()">
-            <img id="fac-yt-thumb" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">
-              <div style="width:52px;height:52px;border-radius:50%;background:rgba(232,20,42,.92);display:flex;align-items:center;justify-content:center;">
-                <div style="width:0;height:0;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff;margin-left:3px;"></div>
-              </div>
-            </div>
-          </div>
-          <div id="fac-yt-iframe-wrap" style="display:none;position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);">
-            <iframe id="fac-yt-iframe" src="" frameborder="0"
-              allow="autoplay;encrypted-media;fullscreen" allowfullscreen
-              style="position:absolute;inset:0;width:100%;height:100%;border:none;">
-            </iframe>
-          </div>
-        </div>
-
-        <!-- Puncte de pagină — sar direct la o facilitate -->
-        <div id="fac-dots" style="display:flex;justify-content:center;gap:8px;padding:12px;border-top:1px solid var(--zc-border);"></div>
+        <!-- Videoclipul curent al facilității + buton spre standul lui, dacă e legat de unul -->
+        <div id="fac-video-current"></div>
       </div>
       <!-- ═══ /FACILITĂȚI OVERLAY ═══ -->
+
 
   </div><!-- /#map-grid -->
 
@@ -962,8 +973,14 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
     <!-- Lista reordonare standuri — vizibila doar in edit mode -->
     <div id="sort-list" style="display:none;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;overflow:hidden;">
-      <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:#f59e0b;">⠿ Trage pentru a reordona standurile</div>
-      <div id="sort-list-items"></div>
+      <div style="padding:10px 14px;border-bottom:1px solid var(--zc-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:12px;font-weight:700;color:#f59e0b;">⠿ Ține apăsat pe un stand și trage-l ca să reordonezi</div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" onclick="sortStandList('asc')" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;">🔼 Crescător</button>
+          <button type="button" onclick="sortStandList('desc')" style="background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:12px;font-weight:700;padding:6px 10px;border-radius:7px;cursor:pointer;white-space:nowrap;">🔽 Descrescător</button>
+        </div>
+      </div>
+      <div id="sort-list-items" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px 10px;padding:16px 20px;justify-items:center;"></div>
     </div>
 
     <!-- Placeholder când niciun stand nu e selectat -->
@@ -1168,8 +1185,19 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 </div>
 
 <!-- FULLSCREEN MODAL -->
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
+    <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
+    <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
+    <div id="acord-necesar-err" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;"></div>
+    <button id="acord-necesar-btn" onclick="acceptaAcordPendinte()" style="width:100%;background:#38bdf8;border:none;color:#0a0f1a;font-weight:800;font-size:16px;padding:14px;border-radius:12px;cursor:pointer;">Am înțeles și sunt de acord</button>
+  </div>
+</div>
+
 <div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out;">
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
@@ -1410,6 +1438,66 @@ function escHtmlPreview(v) {
   return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
+// Aceeași logică ca pe index.html — vezi comentariul de-acolo pentru detalii.
+const TERMS_VERSION = '1.1';
+const BALTA_ADMIN_ACK_VERSION = '1.0';
+let _acordPendinteTip = null;
+let _acordPendinteRol = null;
+function verificaAcorduriPendinte(user, role) {
+  if (!user) return;
+  _acordPendinteRol = role;
+  const meta = user.user_metadata || {};
+
+  if (meta.terms_version_accepted !== TERMS_VERSION) {
+    _acordPendinteTip = 'termeni';
+    document.getElementById('acord-necesar-titlu').textContent = '📋 Termenii și Condițiile au fost actualizate';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Am actualizat <a href="termeni.html" target="_blank" style="color:#38bdf8;">Termenii și Condițiile</a>. ' +
+      'Te rugăm să le citești și să confirmi din nou, ca să poți continua să folosești platforma.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+
+  if (role === 'balta_admin' && meta.balta_admin_ack_version !== BALTA_ADMIN_ACK_VERSION) {
+    _acordPendinteTip = 'balta_admin';
+    document.getElementById('acord-necesar-titlu').textContent = '🏊 Responsabilitățile administratorului de baltă';
+    document.getElementById('acord-necesar-text').innerHTML =
+      'Ca administrator de baltă, ești responsabil pentru conținutul pe care îl încarci pe Platformă în numele altor pescari. ' +
+      'Înainte de a asocia o captură contului unui pescar, ai obligația să obții acordul lui pentru publicarea fotografiei și pentru asocierea capturii cu contul său. ' +
+      'Detalii complete în <a href="termeni.html" target="_blank" style="color:#38bdf8;">Secțiunea 4 din Termeni</a>.';
+    document.getElementById('acord-necesar-err').style.display = 'none';
+    document.getElementById('acord-necesar-modal').style.display = 'flex';
+    return;
+  }
+}
+async function acceptaAcordPendinte() {
+  const tip = _acordPendinteTip;
+  if (!tip) { document.getElementById('acord-necesar-modal').style.display = 'none'; return; }
+
+  const btn = document.getElementById('acord-necesar-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  const updateData = tip === 'termeni'
+    ? { terms_version_accepted: TERMS_VERSION, terms_accepted_at: new Date().toISOString() }
+    : { balta_admin_ack_version: BALTA_ADMIN_ACK_VERSION, balta_admin_ack_at: new Date().toISOString() };
+
+  const { data, error } = await sb.auth.updateUser({ data: updateData });
+  btn.disabled = false; btn.textContent = 'Am înțeles și sunt de acord';
+
+  if (error) {
+    const errEl = document.getElementById('acord-necesar-err');
+    errEl.textContent = '⚠️ ' + error.message + ' — încearcă din nou.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('acord-necesar-modal').style.display = 'none';
+  _acordPendinteTip = null;
+  verificaAcorduriPendinte(data.user, _acordPendinteRol);
+}
+
 async function checkAdminAndShowBar() {
   // Citim sesiunea din localStorage (zoda-auth) — fără token în URL
   var { data: { session } } = await sb.auth.getSession();
@@ -1419,6 +1507,7 @@ async function checkAdminAndShowBar() {
 
   var rRes = await sb.from('user_roles').select('rol').eq('id', user.id).single();
   var rol = rRes.data?.rol;
+  verificaAcorduriPendinte(user, rol);
   var canEdit = false;
   if (rol === 'zoda_admin') {
     canEdit = true;
@@ -1548,6 +1637,7 @@ async function loadBalta(id) {
       arePozitieReala: pozitie.x != null && pozitie.y != null,
       z: s.nume || ('Stand ' + (i+1)),
       cabana: s.cabana || false, foisor: s.foisor || false, ponton: s.ponton || false, stand_pamant: s.stand_pamant || false, stand_pietruit: s.stand_pietruit || false,
+      wc: s.wc || false, iluminat: s.iluminat || false, priza: s.priza || false, wifi: s.wifi || false,
       di: s.distanta || 0,
       la: s.latime   || 0,
       yt: s.yt       || '',
@@ -1556,7 +1646,8 @@ async function loadBalta(id) {
         pe:   s.rec_pescar    || '',
         pid:  s.rec_pescar_id || '',
         da:   s.rec_data      || '',
-        foto: s.rec_foto      || ''
+        foto: s.rec_foto      || '',
+        foto_dovada: s.rec_foto_dovada || ''
       },
       g: pozeFotou
     };
@@ -1644,8 +1735,9 @@ async function refreshBaltaInBackground(id, cacheKey) {
         y: pozitie.y != null ? pozitie.y : (6 + Math.floor(i / 23) * 10),
         arePozitieReala: pozitie.x != null && pozitie.y != null,
         z: s.nume || ('Stand '+(i+1)),
-        cabana: s.cabana||false, foisor: s.foisor||false, ponton: s.ponton||false, stand_pamant: s.stand_pamant||false, stand_pietruit: s.stand_pietruit||false, di: s.distanta||0, la: s.latime||0, yt: s.yt||'',
-        r: { kg: s.rec_kg!=null?String(s.rec_kg):'', pe: s.rec_pescar||'', pid: s.rec_pescar_id||'', da: s.rec_data||'', foto: s.rec_foto||'' },
+        cabana: s.cabana||false, foisor: s.foisor||false, ponton: s.ponton||false, stand_pamant: s.stand_pamant||false, stand_pietruit: s.stand_pietruit||false,
+        wc: s.wc||false, iluminat: s.iluminat||false, priza: s.priza||false, wifi: s.wifi||false, di: s.distanta||0, la: s.latime||0, yt: s.yt||'',
+        r: { kg: s.rec_kg!=null?String(s.rec_kg):'', pe: s.rec_pescar||'', pid: s.rec_pescar_id||'', da: s.rec_data||'', foto: s.rec_foto||'', foto_dovada: s.rec_foto_dovada||'' },
         g: pozeFotou, sort_order: s.sort_order
       };
     });
@@ -1916,9 +2008,10 @@ async function loadHallOfFame(baltaId) {
   if (BALTA && BALTA.vizibilitate === 'basic') { card.style.display = 'none'; return; }
 
   var { data: capturi } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .order('kg', { ascending: false })
     .limit(10);
 
@@ -1939,7 +2032,7 @@ async function loadHallOfFame(baltaId) {
       ? '<img class="cr-avatar" src="' + escH(c._avatar) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-    var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
     return ''
       + '<div class="cr-card">'
       + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
@@ -1966,6 +2059,17 @@ async function loadHallOfFame(baltaId) {
 function dataLocalaAzi() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
+// poza principală, iar dacă există și dovadă captură (peștele cântărit),
+// o adaugă în galerie, cu săgeți stânga/dreapta, la fel ca la pozele de stand.
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 
 function escH(str) {
@@ -2020,6 +2124,7 @@ function renderLunarRows(rows, containerId, isIstoric) {
     var pescarNume = r.pescar_nume || '—';
     var capturaInfo = isIstoric ? (r.capturi || null) : null;
     var fotoUrl    = isIstoric ? (capturaInfo ? capturaInfo.foto_url : null) : r.foto_url;
+    var fotoDovadaUrl = isIstoric ? (capturaInfo ? capturaInfo.foto_dovada_url : null) : r.foto_dovada_url;
     var standNume  = isIstoric ? (capturaInfo && capturaInfo.standuri ? capturaInfo.standuri.nume : null) : (r.standuri ? r.standuri.nume : null);
     var dataStr    = isIstoric ? (capturaInfo && capturaInfo.data_captura ? capturaInfo.data_captura : '') : (r.data_captura ? r.data_captura : '');
 
@@ -2027,7 +2132,7 @@ function renderLunarRows(rows, containerId, isIstoric) {
       ? '<img class="cr-avatar" src="' + escH(r._avatar) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = zodaId ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + zodaId + "'" : 'event.stopPropagation()';
-    var fotoClick = fotoUrl ? "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(fotoUrl, fotoDovadaUrl);
 
     return ''
       + '<div class="cr-card">'
@@ -2069,9 +2174,10 @@ async function loadTop10Lunar(baltaId) {
   var lunaEnd = anEnd + '-' + String(lunEnd).padStart(2, '0') + '-01';
 
   var { data: rows } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .gte('data_captura', lunaStart)
     .lt('data_captura', lunaEnd)
     .order('kg', { ascending: false })
@@ -2228,9 +2334,10 @@ async function loadCapturiModalBalta(baltaId) {
   }
 
   var { data: capturi, error } = await sb.from('capturi')
-    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, stand_id, standuri(nume)')
+    .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
     .eq('balta_id', baltaId)
     .eq('status', 'approved')
+    .eq('sters', false)
     .order('kg', { ascending: false });
 
   if (error || !capturi || !capturi.length) {
@@ -2271,7 +2378,7 @@ async function loadCapturiModalBalta(baltaId) {
       ? '<img class="cr-avatar" src="' + escH(avatarUrl) + '" alt=""/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
-    var fotoClick = c.foto_url ? "event.stopPropagation();openFS('" + escH(c.foto_url).replace(/'/g, "\\'") + "')" : '';
+    var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
     return ''
       + '<div class="cr-card">'
       + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
@@ -2323,7 +2430,7 @@ function bnGoAcasaBalta() {
     history.replaceState(null, '');
   }
   saveBaltaState();
-  if (history.length > 1) { history.back(); } else { window.location.href = 'index.html'; }
+  window.location.href = 'index.html';
 }
 // Contul meu — dacă e logat, direct pe cont.html; altfel, aceeași cale de
 // autentificare ca restul paginii (redirect spre index cu flag de register).
@@ -2379,7 +2486,7 @@ async function selectLunaIstoric(luna) {
   if (listEl) listEl.innerHTML = '<div class="t10e">Se încarcă...</div>';
 
   var { data: rows, error } = await sb.from('top10_lunar_istoric')
-    .select('id, zoda_id, kg_total, pozitie, capturi(foto_url, data_captura, standuri(nume))')
+    .select('id, zoda_id, kg_total, pozitie, capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('balta_id', BALTA.id)
     .eq('luna', luna)
     .order('pozitie', { ascending: true });
@@ -2457,12 +2564,13 @@ var _standFiltreActive = [];
 
 function standTreceFiltrul(s) {
   if (!_standFiltreActive.length) return true;
-  return _standFiltreActive.some(function(tip) { return !!s[tip]; });
+  return _standFiltreActive.every(function(tip) { return !!s[tip]; });
 }
 
 var STAND_FILTRE_LABELS = {
   cabana: 'Cabană', foisor: 'Foișor', ponton: 'Ponton',
   stand_pamant: 'Stand pământ', stand_pietruit: 'Stand pietruit',
+  wc: 'W.C.', iluminat: 'Iluminat', priza: 'Priză', wifi: 'Wifi',
 };
 
 function renderStandFilterChips() {
@@ -2566,6 +2674,41 @@ function selStand(id) {
   openOverlay(id);
 }
 
+var _ovRecGallery = [];
+var _ovRecFotoIdx = 0;
+
+// Randează poza curentă din galeria de record (captură / dovadă captură) +
+// arată/ascunde săgețile și eticheta din card, în funcție de câte poze există.
+function renderOvRecFoto() {
+  var recFoto = document.getElementById('ov-rec-foto');
+  var nav = document.getElementById('ov-rec-nav');
+  if (!recFoto) return;
+
+  if (_ovRecGallery.length) {
+    recFoto.className = 'foto-wrap';
+    recFoto.innerHTML = '';
+    var ri = document.createElement('img'); ri.src = _ovRecGallery[_ovRecFotoIdx]; ri.loading = 'lazy';
+    var rh = document.createElement('div'); rh.className = 'zoom-hint'; rh.textContent = '🔍';
+    recFoto.appendChild(ri); recFoto.appendChild(rh);
+    recFoto.onclick = function () { openFS(_ovRecGallery[_ovRecFotoIdx], _ovRecGallery, _ovRecFotoIdx); };
+  } else {
+    recFoto.className = 'foto-empty';
+    recFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
+  }
+
+  if (nav) {
+    nav.style.visibility = _ovRecGallery.length > 1 ? 'visible' : 'hidden';
+    var idxEl = document.getElementById('ov-rec-foto-idx');
+    if (idxEl) idxEl.textContent = _ovRecFotoIdx === 0 ? 'Captură' : 'Dovadă';
+  }
+}
+
+function navigheazaRecFoto(directie) {
+  if (!_ovRecGallery.length) return;
+  _ovRecFotoIdx = (_ovRecFotoIdx + directie + _ovRecGallery.length) % _ovRecGallery.length;
+  renderOvRecFoto();
+}
+
 function openOverlay(id) {
   selId = id;
   renderPins();
@@ -2620,31 +2763,16 @@ function openOverlay(id) {
   var oldRec = document.getElementById('ov-rec-foto');
   var recFoto = oldRec.cloneNode(false); recFoto.id = 'ov-rec-foto';
   oldRec.parentNode.replaceChild(recFoto, oldRec);
-  if (s.r.foto) {
-    recFoto.className = 'foto-wrap';
-    var ri = document.createElement('img'); ri.src = s.r.foto; ri.loading = 'lazy';
-    var rh = document.createElement('div'); rh.className = 'zoom-hint'; rh.textContent = '🔍';
-    recFoto.appendChild(ri); recFoto.appendChild(rh);
-    recFoto.addEventListener('click', function() { openFS(s.r.foto); });
-  } else {
-    recFoto.className = 'foto-empty';
-    recFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
-  }
+  _ovRecGallery = [s.r.foto, s.r.foto_dovada].filter(Boolean);
+  _ovRecFotoIdx = 0;
+  renderOvRecFoto();
 
   var oldSt = document.getElementById('ov-stand-foto');
   var stFoto = oldSt.cloneNode(false); stFoto.id = 'ov-stand-foto';
   oldSt.parentNode.replaceChild(stFoto, oldSt);
-  if (s.g && s.g.length) {
-    stFoto.className = 'foto-wrap';
-    var si = document.createElement('img'); si.src = s.g[0].u; si.loading = 'lazy';
-    var sh = document.createElement('div'); sh.className = 'zoom-hint'; sh.textContent = '🔍';
-    stFoto.appendChild(si); stFoto.appendChild(sh);
-    var su = s.g[0].u;
-    stFoto.addEventListener('click', function() { openFS(su); });
-  } else {
-    stFoto.className = 'foto-empty';
-    stFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
-  }
+  _ovStandGallery = (s.g || []).map(function (p) { return p.u; });
+  _ovStandFotoIdx = 0;
+  renderOvStandFoto();
 
   var ovYtSection = document.getElementById('ov-yt-section');
   var ovYtVid = ytVideoId(s.yt || '');
@@ -2682,6 +2810,10 @@ function toggleOverlayEdit() {
     document.getElementById('ov-edit-ponton').checked = !!s.ponton;
     document.getElementById('ov-edit-standpamant').checked = !!s.stand_pamant;
     document.getElementById('ov-edit-standpietruit').checked = !!s.stand_pietruit;
+    document.getElementById('ov-edit-wc').checked = !!s.wc;
+    document.getElementById('ov-edit-iluminat').checked = !!s.iluminat;
+    document.getElementById('ov-edit-priza').checked = !!s.priza;
+    document.getElementById('ov-edit-wifi').checked = !!s.wifi;
     renderOverlayGallery(s);
     document.getElementById('ov-edit-status').textContent = '';
   }
@@ -2692,6 +2824,8 @@ function toggleOverlayEdit() {
 function renderOverlayGallery(s) {
   var wrap = document.getElementById('ov-edit-gallery');
   var gal = s.g || [];
+  var addBtn = document.getElementById('ov-edit-add-foto-btn');
+  if (addBtn) addBtn.style.display = gal.length >= 4 ? 'none' : 'inline-flex';
   if (!gal.length) {
     wrap.innerHTML = '<div style="font-size:12px;color:var(--zc-text-muted);">Nicio poză adăugată încă.</div>';
     return;
@@ -2701,7 +2835,7 @@ function renderOverlayGallery(s) {
       '<img src="' + p.u + '" data-retries="0" onerror="retryStandFoto(this)" style="width:100%;height:100%;object-fit:cover;"/>' +
       '<button onclick="deleteOverlayStandFoto(' + p.id + ')" title="Șterge" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#ef4444;font-size:12px;width:18px;height:18px;border-radius:4px;cursor:pointer;line-height:1;">✕</button>' +
       '</div>';
-  }).join('');
+  }).join('') + (gal.length >= 4 ? '<div style="font-size:11px;color:var(--zc-text-muted);width:100%;margin-top:2px;">Ai atins limita de 4 poze per stand.</div>' : '');
 }
 
 // Poza tocmai urcată pe R2 uneori nu e disponibilă instant (propagare CDN) —
@@ -2782,6 +2916,13 @@ async function uploadOverlayStandFoto(input) {
   var file = input.files[0];
   if (!file) return;
   var status = document.getElementById('ov-edit-status');
+  var sCurent = ST.find(function(x) { return x.id === selId; });
+  if (sCurent && (sCurent.g || []).length >= 4) {
+    status.textContent = '✕ Poți încărca maximum 4 poze per stand. Șterge una ca să adaugi alta.';
+    status.style.color = '#ef4444';
+    input.value = '';
+    return;
+  }
   status.textContent = 'Se încarcă poza...';
   status.style.color = 'var(--zc-text-secondary)';
   try {
@@ -3132,10 +3273,15 @@ async function saveOverlayStandDetails() {
   var ponton = document.getElementById('ov-edit-ponton').checked;
   var standPamant = document.getElementById('ov-edit-standpamant').checked;
   var standPietruit = document.getElementById('ov-edit-standpietruit').checked;
+  var wc = document.getElementById('ov-edit-wc').checked;
+  var iluminat = document.getElementById('ov-edit-iluminat').checked;
+  var priza = document.getElementById('ov-edit-priza').checked;
+  var wifi = document.getElementById('ov-edit-wifi').checked;
   try {
     const { data, error } = await sb.rpc('actualizeaza_stand_admin', {
       p_stand_id: selId, p_zona: zona || null, p_distanta: distanta, p_latime: latime,
-      p_cabana: cabana, p_foisor: foisor, p_ponton: ponton, p_stand_pamant: standPamant, p_stand_pietruit: standPietruit
+      p_cabana: cabana, p_foisor: foisor, p_ponton: ponton, p_stand_pamant: standPamant, p_stand_pietruit: standPietruit,
+      p_wc: wc, p_iluminat: iluminat, p_priza: priza, p_wifi: wifi
     });
     if (error) throw error;
     if (data && data.eroare) {
@@ -3147,6 +3293,7 @@ async function saveOverlayStandDetails() {
     if (zona) s.z = zona;
     s.di = distanta; s.la = latime;
     s.cabana = cabana; s.foisor = foisor; s.ponton = ponton; s.stand_pamant = standPamant; s.stand_pietruit = standPietruit;
+    s.wc = wc; s.iluminat = iluminat; s.priza = priza; s.wifi = wifi;
     document.getElementById('ov-nr').textContent = s.z || ('Stand ' + s.nr);
     document.getElementById('ov-la').textContent = (latime ? latime + 'm' : '—');
     document.getElementById('ov-di').textContent = (distanta ? distanta + 'm' : '—');
@@ -3186,9 +3333,10 @@ function closeOverlay() {
 // ═══ FACILITĂȚI ═══════════════════════════════════════════════════════════
 var FACILITATI = [];
 var selFacIdx = 0;
+var selVidIdx = 0;
 var _returnToFacilitati = false;
 var _returnFacIdx = 0;
-var _currentFacYtUrl = '';
+var _facVideosCurrent = [];
 
 var FAC_LABELS = {
   cazare: 'Cazare',
@@ -3202,10 +3350,20 @@ async function loadFacilitati(baltaId) {
   var pill = document.getElementById('pill-facilitati');
   try {
     var { data } = await sb.from('balta_facilitati')
-      .select('id, tip, detalii, youtube_url, stand_id, ordine, standuri(nume)')
+      .select('id, tip, detalii, ordine')
       .eq('balta_id', baltaId)
       .order('ordine', { ascending: true });
     FACILITATI = data || [];
+    if (FACILITATI.length) {
+      var facIds = FACILITATI.map(function (f) { return f.id; });
+      var { data: videoRows } = await sb.from('balta_facilitati_video')
+        .select('id, facilitate_id, youtube_url, stand_id, ordine, standuri(nume)')
+        .in('facilitate_id', facIds)
+        .order('ordine', { ascending: true });
+      FACILITATI.forEach(function (f) {
+        f.videos = (videoRows || []).filter(function (v) { return v.facilitate_id === f.id; });
+      });
+    }
   } catch (e) {
     FACILITATI = [];
   }
@@ -3221,38 +3379,10 @@ function openFacilitateOverlay(idx) {
   if (!FACILITATI.length) return;
   idx = Math.max(0, Math.min(idx, FACILITATI.length - 1));
   selFacIdx = idx;
-  var f = FACILITATI[idx];
+  selVidIdx = 0;
 
-  document.getElementById('fac-nume').textContent = FAC_LABELS[f.tip] || f.tip;
-  document.getElementById('fac-detalii').textContent = f.detalii || 'Fără detalii încă.';
-
-  var standBtn = document.getElementById('fac-stand-link');
-  if (f.stand_id) {
-    standBtn.style.display = 'flex';
-    document.getElementById('fac-stand-nume').textContent = f.standuri ? f.standuri.nume : '';
-  } else {
-    standBtn.style.display = 'none';
-  }
-
-  _currentFacYtUrl = f.youtube_url || '';
-  var ytSection = document.getElementById('fac-yt-section');
-  document.getElementById('fac-yt-iframe').src = '';
-  document.getElementById('fac-yt-iframe-wrap').style.display = 'none';
-  document.getElementById('fac-yt-thumb-wrap').style.display = 'block';
-  if (_currentFacYtUrl && ytVideoId(_currentFacYtUrl)) {
-    ytSection.style.display = 'block';
-    document.getElementById('fac-yt-thumb').src = 'https://img.youtube.com/vi/' + ytVideoId(_currentFacYtUrl) + '/hqdefault.jpg';
-  } else {
-    ytSection.style.display = 'none';
-  }
-
-  document.getElementById('fac-prev-btn').style.visibility = idx === 0 ? 'hidden' : 'visible';
-  document.getElementById('fac-next-btn').style.visibility = idx === FACILITATI.length - 1 ? 'hidden' : 'visible';
-
-  var dots = document.getElementById('fac-dots');
-  dots.innerHTML = FACILITATI.map(function (_, i) {
-    return '<span class="fac-dot' + (i === idx ? ' active' : '') + '" onclick="openFacilitateOverlay(' + i + ')" title="' + (i + 1) + '"></span>';
-  }).join('');
+  renderFacTabs();
+  renderFacCurrent();
 
   document.getElementById('facilitati-overlay').style.display = 'flex';
   document.getElementById('facilitati-overlay-backdrop').style.display = 'block';
@@ -3261,10 +3391,91 @@ function openFacilitateOverlay(idx) {
   setTimeout(pozitioneazaTopbarFacilitati, 0);
 }
 
-function navigheazaFacilitate(directie) {
-  var idxNou = selFacIdx + directie;
-  if (idxNou < 0 || idxNou >= FACILITATI.length) return;
-  openFacilitateOverlay(idxNou);
+// Tab-uri sus — unul per facilitate, click = comută facilitatea afișată
+function renderFacTabs() {
+  var tabs = document.getElementById('fac-tabs');
+  tabs.innerHTML = FACILITATI.map(function (f, i) {
+    var activ = i === selFacIdx;
+    return '<button onclick="switchFacilitateTab(' + i + ')" style="flex-shrink:0;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;'
+      + (activ ? 'border:1.5px solid #38bdf8;background:#071c26;color:#38bdf8;' : 'border:1.5px solid var(--zc-border);background:var(--zc-bg);color:var(--zc-text-secondary-2);')
+      + '">' + escFacHtml(FAC_LABELS[f.tip] || f.tip) + '</button>';
+  }).join('');
+}
+
+function switchFacilitateTab(idx) {
+  if (idx === selFacIdx) return;
+  selFacIdx = idx;
+  selVidIdx = 0;
+  renderFacTabs();
+  renderFacCurrent();
+}
+
+// Comută între videoclipurile facilității curente (nu între facilități)
+function navigheazaFacVideo(directie) {
+  var f = FACILITATI[selFacIdx];
+  var videos = (f.videos || []).filter(function (v) { return v.youtube_url && ytVideoId(v.youtube_url); });
+  var idxNou = selVidIdx + directie;
+  if (idxNou < 0 || idxNou >= videos.length) return;
+  selVidIdx = idxNou;
+  renderFacCurrent();
+}
+
+// Randează: numele facilității + detaliile + videoclipul curent + butonul spre stand
+function renderFacCurrent() {
+  var f = FACILITATI[selFacIdx];
+  var videos = (f.videos || []).filter(function (v) { return v.youtube_url && ytVideoId(v.youtube_url); });
+
+  document.getElementById('fac-nume').textContent = FAC_LABELS[f.tip] || f.tip;
+  document.getElementById('fac-detalii').textContent = f.detalii || 'Fără detalii încă.';
+
+  document.getElementById('fac-prev-btn').style.visibility = (videos.length > 1 && selVidIdx > 0) ? 'visible' : 'hidden';
+  document.getElementById('fac-next-btn').style.visibility = (videos.length > 1 && selVidIdx < videos.length - 1) ? 'visible' : 'hidden';
+
+  var wrap = document.getElementById('fac-video-current');
+  _facVideosCurrent = videos;
+  if (!videos.length) { wrap.innerHTML = ''; return; }
+
+  var v = videos[selVidIdx];
+  var standBtn = v.stand_id
+    ? '<button onclick="deschideStandVideo()" style="display:flex;align-items:center;gap:6px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:8px;padding:8px 14px;color:#38bdf8;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;">📍 Vezi standul ' + escFacHtml(v.standuri ? v.standuri.nume : '') + ' →</button>'
+    : '';
+
+  wrap.innerHTML = '<div style="padding:10px 14px 14px;border-top:1px solid var(--zc-border);">'
+    + (videos.length > 1 ? '<div style="font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP ' + (selVidIdx + 1) + '/' + videos.length + '</div>' : '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP DE PREZENTARE</div>')
+    + '<div id="fac-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playFacVideo()">'
+    + '<img src="https://img.youtube.com/vi/' + ytVideoId(v.youtube_url) + '/hqdefault.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>'
+    + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">'
+    + '<div style="width:52px;height:52px;border-radius:50%;background:rgba(232,20,42,.92);display:flex;align-items:center;justify-content:center;">'
+    + '<div style="width:0;height:0;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff;margin-left:3px;"></div></div></div></div>'
+    + '<div id="fac-yt-iframe-wrap" style="display:none;position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);">'
+    + '<iframe src="" frameborder="0" allow="autoplay;encrypted-media;fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;"></iframe></div>'
+    + standBtn + '</div>';
+}
+
+function escFacHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function playFacVideo() {
+  var v = _facVideosCurrent[selVidIdx];
+  if (!v) return;
+  var emb = ytEmbed(v.youtube_url);
+  if (!emb) return;
+  var iframeWrap = document.getElementById('fac-yt-iframe-wrap');
+  iframeWrap.querySelector('iframe').src = emb.replace('?rel=0', '?rel=0&autoplay=1');
+  document.getElementById('fac-yt-thumb-wrap').style.display = 'none';
+  iframeWrap.style.display = 'block';
+}
+
+function deschideStandVideo() {
+  var v = _facVideosCurrent[selVidIdx];
+  if (!v || !v.stand_id) return;
+  _returnToFacilitati = true;
+  _returnFacIdx = selFacIdx;
+  document.getElementById('facilitati-overlay').style.display = 'none';
+  document.getElementById('facilitati-overlay-backdrop').style.display = 'none';
+  document.getElementById('facilitati-overlay-topbar').style.display = 'none';
+  openOverlay(v.stand_id);
 }
 
 function closeFacilitatiOverlay() {
@@ -3273,27 +3484,8 @@ function closeFacilitatiOverlay() {
   document.getElementById('facilitati-overlay-topbar').style.display = 'none';
   document.documentElement.style.overflow = '';
   document.body.style.overflow = '';
-  document.getElementById('fac-yt-iframe').src = '';
-}
-
-function deschideStandulFacilitatii() {
-  var f = FACILITATI[selFacIdx];
-  if (!f || !f.stand_id) return;
-  _returnToFacilitati = true;
-  _returnFacIdx = selFacIdx;
-  document.getElementById('facilitati-overlay').style.display = 'none';
-  document.getElementById('facilitati-overlay-backdrop').style.display = 'none';
-  document.getElementById('facilitati-overlay-topbar').style.display = 'none';
-  document.getElementById('fac-yt-iframe').src = '';
-  openOverlay(f.stand_id);
-}
-
-function playFacilitateYT() {
-  var emb = ytEmbed(_currentFacYtUrl);
-  if (!emb) return;
-  document.getElementById('fac-yt-iframe').src = emb.replace('?rel=0', '?rel=0&autoplay=1');
-  document.getElementById('fac-yt-thumb-wrap').style.display = 'none';
-  document.getElementById('fac-yt-iframe-wrap').style.display = 'block';
+  var ifr = document.querySelector('#fac-video-current iframe');
+  if (ifr) ifr.src = '';
 }
 
 function pozitioneazaTopbarFacilitati() {
@@ -3706,8 +3898,60 @@ document.addEventListener('fullscreenchange', function () {
   document.addEventListener(ev, function () { document.dispatchEvent(new Event('fullscreenchange')); });
 });
 
-function openFS(src) { document.getElementById('fs-img').src = src; document.getElementById('fs-modal').style.display = 'flex'; _permiteRotire('fs-modal'); }
-function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _blocheazaPortret(); }
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+var _ovStandGallery = [];
+var _ovStandFotoIdx = 0;
+
+// Randează poza curentă din galeria standului + arată/ascunde săgețile și
+// contorul "1/3" din card, în funcție de câte poze are standul.
+function renderOvStandFoto() {
+  var stFoto = document.getElementById('ov-stand-foto');
+  var nav = document.getElementById('ov-stand-gallery-nav');
+  if (!stFoto) return;
+
+  if (_ovStandGallery.length) {
+    stFoto.className = 'foto-wrap';
+    stFoto.innerHTML = '';
+    var si = document.createElement('img'); si.src = _ovStandGallery[_ovStandFotoIdx]; si.loading = 'lazy';
+    var sh = document.createElement('div'); sh.className = 'zoom-hint'; sh.textContent = '🔍';
+    stFoto.appendChild(si); stFoto.appendChild(sh);
+    stFoto.onclick = function () { openFS(_ovStandGallery[_ovStandFotoIdx], _ovStandGallery, _ovStandFotoIdx); };
+  } else {
+    stFoto.className = 'foto-empty';
+    stFoto.innerHTML = '<span style="font-size:27px;">📷</span><span>Fără fotografie</span>';
+  }
+
+  if (nav) {
+    nav.style.visibility = _ovStandGallery.length > 1 ? 'visible' : 'hidden';
+    var idxEl = document.getElementById('ov-stand-foto-idx');
+    if (idxEl) idxEl.textContent = (_ovStandFotoIdx + 1) + '/' + _ovStandGallery.length;
+  }
+}
+
+// Săgețile din card (nu din fullscreen) — navighează galeria fără să deschidă nimic
+function navigheazaStandFoto(directie) {
+  if (!_ovStandGallery.length) return;
+  _ovStandFotoIdx = (_ovStandFotoIdx + directie + _ovStandGallery.length) % _ovStandGallery.length;
+  renderOvStandFoto();
+}
+
+function openFS(src, gallery, idx) {
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+  _permiteRotire('fs-modal');
+}
+
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; _blocheazaPortret(); }
 function openYT(url) { var emb = ytEmbed(url); if (!emb) return; document.getElementById('yt-iframe').src = emb.replace('?rel=0','?rel=0&autoplay=1'); document.getElementById('yt-modal').style.display = 'flex'; _permiteRotire('yt-modal'); }
 function closeYT() { document.getElementById('yt-iframe').src = ''; document.getElementById('yt-modal').style.display = 'none'; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeFS(); closeYT(); closeClaimModal(); } });
@@ -3735,23 +3979,34 @@ function renderSortList() {
   initSortListDrag();
 }
 
+// Sortare rapidă crescător/descrescător a listei de reordonare (pe lângă
+// tragerea manuală, care rămâne neschimbată) — sortează după numele standului,
+// numeric dacă e posibil (ex: 2, 3, ... 18bis alfabetic la coadă).
+function sortStandList(dir) {
+  ST.sort(function (a, b) {
+    var na = parseFloat(a.z), nb = parseFloat(b.z);
+    var cmp;
+    if (!isNaN(na) && !isNaN(nb)) cmp = na - nb;
+    else cmp = String(a.z).localeCompare(String(b.z), 'ro', { numeric: true, sensitivity: 'base' });
+    return dir === 'asc' ? cmp : -cmp;
+  });
+  ST.forEach(function (s, i) { s.nr = i + 1; });
+  renderSortList();
+  updatePills();
+}
+
 function initSortListDrag() {
   var container = document.getElementById('sort-list-items');
   if (!container) return;
   var rows = container.querySelectorAll('.sort-row');
+  var HOLD_MS = 350, MOVE_THRESHOLD = 10;
 
   rows.forEach(function(row) {
-    // Mouse
-    var allowMouseDrag = false;
+    // ── Mouse (desktop) — tragere de oriunde pe buton; pe desktop nu există
+    // conflict cu scroll-ul (rotița e independentă de click+drag), deci nu
+    // avem nevoie de mâner dedicat sau de hold. ──
     row.setAttribute('draggable', 'true');
-    row.addEventListener('mousedown', function(e) {
-      // dragstart nu ne dă niciodată sub-elementul exact apăsat (e.target e
-      // mereu rândul, care are draggable=true) — de-asta reținem aici, la
-      // mousedown, dacă apăsarea a pornit chiar din mâner.
-      allowMouseDrag = !!e.target.closest('.sort-row-handle');
-    });
     row.addEventListener('dragstart', function(e) {
-      if (!allowMouseDrag) { e.preventDefault(); return; }
       _sortDragSrcIdx = parseInt(row.dataset.idx);
       row.classList.add('dragging-item');
       e.dataTransfer.effectAllowed = 'move';
@@ -3776,42 +4031,66 @@ function initSortListDrag() {
       updatePills();
     });
 
-    // Touch
-    var touchStartY = 0, touchClone = null;
+    // ── Touch (mobil) — „ține apăsat ca să tragi”. O atingere scurtă sau un
+    // swipe rămân scroll normal al paginii — NU blocăm nimic până nu se
+    // confirmă hold-ul (350ms fără mișcare semnificativă). Abia din acel
+    // moment preluăm gestul și blocăm scroll-ul, ca să nu se mai întâmple
+    // amândouă deodată. ──
+    var holdTimer = null, holdConfirmed = false, touchStartX = 0, touchStartY = 0, touchClone = null;
+
+    function curataTouchDrag() {
+      clearTimeout(holdTimer);
+      if (touchClone && touchClone.parentNode) touchClone.parentNode.removeChild(touchClone);
+      touchClone = null;
+      row.classList.remove('dragging-item', 'hold-active');
+      container.querySelectorAll('.sort-row').forEach(function(r) { r.classList.remove('drag-over'); });
+      holdConfirmed = false;
+    }
+
     row.addEventListener('touchstart', function(e) {
-      if (!e.target.closest('.sort-row-handle')) return; // lasă scroll-ul normal dacă nu ai atins mânerul
-      _sortDragSrcIdx = parseInt(row.dataset.idx);
-      touchStartY = e.touches[0].clientY;
-      row.classList.add('dragging-item');
-      touchClone = row.cloneNode(true);
-      touchClone.style.cssText = 'position:fixed;opacity:.85;pointer-events:none;z-index:9999;width:' + row.offsetWidth + 'px;background:var(--zc-border);border-radius:8px;left:' + row.getBoundingClientRect().left + 'px;';
-      document.body.appendChild(touchClone);
-      e.preventDefault();
-    }, { passive: false });
+      var t = e.touches[0];
+      touchStartX = t.clientX; touchStartY = t.clientY;
+      row.classList.add('hold-active');
+      holdTimer = setTimeout(function() {
+        holdConfirmed = true;
+        _sortDragSrcIdx = parseInt(row.dataset.idx);
+        row.classList.add('dragging-item');
+        if (navigator.vibrate) navigator.vibrate(15);
+        var r = row.getBoundingClientRect();
+        touchClone = row.cloneNode(true);
+        touchClone.style.cssText = 'position:fixed;opacity:.92;pointer-events:none;z-index:9999;width:' + r.width + 'px;height:' + r.height + 'px;background:var(--zc-bg-panel);border:2px solid #38bdf8;border-radius:12px;left:' + r.left + 'px;top:' + r.top + 'px;box-shadow:0 10px 28px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        document.body.appendChild(touchClone);
+      }, HOLD_MS);
+    }, { passive: true });
 
     row.addEventListener('touchmove', function(e) {
-      if (!touchClone) return;
       var t = e.touches[0];
-      touchClone.style.top = (t.clientY - 24) + 'px';
+      if (!holdConfirmed) {
+        // Mișcare semnificativă înainte de hold = userul vrea să deruleze
+        // pagina, nu să tragă standul — anulăm hold-ul, lăsăm scroll-ul normal.
+        if (Math.abs(t.clientX - touchStartX) > MOVE_THRESHOLD || Math.abs(t.clientY - touchStartY) > MOVE_THRESHOLD) {
+          clearTimeout(holdTimer);
+          row.classList.remove('hold-active');
+        }
+        return;
+      }
+      // Hold confirmat — de-acum blocăm scroll-ul și controlăm noi gestul.
+      e.preventDefault();
+      touchClone.style.left = (t.clientX - touchClone.offsetWidth / 2) + 'px';
+      touchClone.style.top = (t.clientY - touchClone.offsetHeight / 2) + 'px';
       touchClone.style.display = 'none';
       var el = document.elementFromPoint(t.clientX, t.clientY);
       touchClone.style.display = '';
       container.querySelectorAll('.sort-row').forEach(function(r) { r.classList.remove('drag-over'); });
       var target = el ? el.closest('.sort-row') : null;
       if (target && target !== row) target.classList.add('drag-over');
-      e.preventDefault();
     }, { passive: false });
 
     row.addEventListener('touchend', function(e) {
-      if (!touchClone) return;
+      clearTimeout(holdTimer);
+      if (!holdConfirmed) { row.classList.remove('hold-active'); return; } // a fost doar un tap/scroll
       var t = e.changedTouches[0];
-      touchClone.style.display = 'none';
       var el = document.elementFromPoint(t.clientX, t.clientY);
-      touchClone.style.display = '';
-      document.body.removeChild(touchClone);
-      touchClone = null;
-      row.classList.remove('dragging-item');
-      container.querySelectorAll('.sort-row').forEach(function(r) { r.classList.remove('drag-over'); });
       var target = el ? el.closest('.sort-row') : null;
       if (target && target !== row) {
         var dstIdx = parseInt(target.dataset.idx);
@@ -3821,9 +4100,13 @@ function initSortListDrag() {
           ST.forEach(function(s, i) { s.nr = i + 1; });
           renderSortList();
           updatePills();
+          return; // renderSortList() reconstruiește rândurile — nu mai curăța rândul vechi (nu mai există în DOM)
         }
       }
+      curataTouchDrag();
     });
+
+    row.addEventListener('touchcancel', curataTouchDrag);
   });
 }
 
@@ -4410,7 +4693,7 @@ function startDrag(e, id) {
     <span>Acasă</span>
   </button>
   <button class="bn-btn" id="bn-capturi" onclick="openCapturiModalBalta()">
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6Z"/><circle cx="12" cy="16" r="1.4"/></svg>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12c-1.5-3-5-5-9-5C5 7 2 9.5 2 12s3 5 7 5c4 0 7.5-2 9-5Z"/><path d="M18 12l4-3v6l-4-3Z"/><circle cx="7" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>
     <span>Capturi</span>
   </button>
   <button class="bn-btn" id="bn-clasament" onclick="openClasamentModal()">
