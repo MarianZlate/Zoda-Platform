@@ -720,6 +720,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       <span style="font-size:22px;"></span>
       <div>
+        <a id="ib-parent-link" href="#" style="display:none;font-size:12.5px;font-weight:600;color:#38bdf8;text-decoration:none;margin-bottom:2px;">← <span id="ib-parent-nume"></span></a>
         <div class="ib-name-tagline-wrap">
           <div id="ib-name" style="font-weight:800;font-size:17px;color:var(--zc-text-primary);">—</div>
           <div id="ib-tagline" style="font-size:15px;font-style:italic;color:#60a5fa;font-weight:600;display:none;"></div>
@@ -809,6 +810,14 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <span id="einfo-status" style="font-size:13px;color:var(--zc-text-secondary);"></span>
       </div>
     </div>
+  </div>
+
+  <!-- Grid de bazine — vizibil DOAR pe o baltă-hub (are copii cu parent_balta_id = ea).
+       Ascunde #main-area (hartă/standuri/hall of fame/top10) și arată în loc
+       un card simplu per bazin, cu link către pagina lui (balta.html?id=...). -->
+  <div id="bazine-grid-section" style="display:none;padding:18px 0;">
+    <div style="font-size:17px;font-weight:700;color:var(--zc-text-strong);margin-bottom:12px;">🌊 Bazine</div>
+    <div id="bazine-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
   </div>
 
   <!-- Map + Sidebar + Top10: wrapper flex pe desktop -->
@@ -1567,12 +1576,15 @@ async function loadBalta(id) {
   }
   if (cached) CACHE.clear(cacheKey); // baltă unlisted — nu folosim cache, verificăm mereu accesul
 
-  // 1. Date baltă (cu retry automat — uneori prima cerere eșuează la cold start)
-  var bRes = await sb.from('balti').select('*').eq('id', id).single();
+  // 1. Date baltă, cu fallback automat pe telefon/whatsapp/facebook/tarife/
+  // regulament/lat/lng/adresa dacă e bazin (RPC get_balta_cu_fallback — vezi
+  // 01-schema-bazine.sql). Include și este_hub / parent_balta_id / parent_nume.
+  // (cu retry automat — uneori prima cerere eșuează la cold start)
+  var bRes = await sb.rpc('get_balta_cu_fallback', { p_id: id });
   if (bRes.error || !bRes.data) {
     // Retry o singură dată după scurtă pauză
     await new Promise(function(r) { setTimeout(r, 600); });
-    bRes = await sb.from('balti').select('*').eq('id', id).single();
+    bRes = await sb.rpc('get_balta_cu_fallback', { p_id: id });
   }
   if (bRes.error || !bRes.data) { throw new Error('Balta cu ID=' + id + ' nu există.'); }
   BALTA = bRes.data;
@@ -1717,7 +1729,7 @@ async function inregistreazaVizitaReala(id) {
 // Refresh baltă în background după ce cache-ul a servit UI-ul
 async function refreshBaltaInBackground(id, cacheKey) {
   try {
-    var bRes = await sb.from('balti').select('*').eq('id', id).single();
+    var bRes = await sb.rpc('get_balta_cu_fallback', { p_id: id });
     if (bRes.error || !bRes.data) return;
     var balta = bRes.data;
     var sRes = await sb.from('standuri').select('*').eq('balta_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true });
@@ -1793,6 +1805,41 @@ function actualizeazaSEO(b) {
   ldScript.textContent = JSON.stringify(ld);
 }
 
+// Grid simplu de carduri pentru pagina unei bălți-hub — un card per bazin
+// (poza cover + nume), click duce la balta.html?id=<bazin>. Folosește RPC-ul
+// get_bazine_baltii (vezi 01-schema-bazine.sql).
+async function renderBazineGrid(hubId) {
+  var section = document.getElementById('bazine-grid-section');
+  var grid = document.getElementById('bazine-grid');
+  if (!section || !grid) return;
+  section.style.display = 'block';
+  grid.innerHTML = '';
+  var res = await sb.rpc('get_bazine_baltii', { p_parent_id: hubId });
+  var bazine = (res && res.data) || [];
+  if (!bazine.length) {
+    grid.innerHTML = '<div style="color:var(--zc-text-secondary);font-size:14px;">Niciun bazin adăugat încă.</div>';
+    return;
+  }
+  // Poza de copertă a fiecărui bazin = rândul din 'poze' cu stand_id NULL (la
+  // fel ca harta unei bălți normale) — nu există coloană dedicată pe balti.
+  var bazinIds = bazine.map(function(bz) { return bz.id; });
+  var pozeRes = await sb.from('poze').select('*').in('balta_id', bazinIds).is('stand_id', null);
+  var pozeByBalta = {};
+  (pozeRes.data || []).forEach(function(p) { pozeByBalta[p.balta_id] = p.url; });
+  bazine.forEach(function(bz) {
+    var card = document.createElement('a');
+    card.href = 'balta.html?id=' + bz.id;
+    card.style.cssText = 'display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;overflow:hidden;text-decoration:none;color:inherit;';
+    var poza = pozeByBalta[bz.id] || '';
+    card.innerHTML =
+      (poza ? '<div style="width:100%;height:130px;background:url(\'' + poza + '\') center/cover;"></div>' : '<div style="width:100%;height:130px;background:var(--zc-bg);"></div>') +
+      '<div style="padding:12px;">' +
+        '<div style="font-weight:700;font-size:15px;color:var(--zc-text-strong);">' + (bz.nume || '') + '</div>' +
+      '</div>';
+    grid.appendChild(card);
+  });
+}
+
 function renderPage(hartaUrl) {
   var b = BALTA;
 
@@ -1813,6 +1860,25 @@ function renderPage(hartaUrl) {
   }
   document.getElementById('ib-loc').textContent = (b.adresa || b.judet || '');
   renderAmbasadorCredit(b.ambasador_zoda_id);
+
+  // Bazin cu baltă-mamă → breadcrumb "← Numele bălții" deasupra numelui bazinului.
+  var ibParentLink = document.getElementById('ib-parent-link');
+  if (b.parent_balta_id && b.parent_nume) {
+    document.getElementById('ib-parent-nume').textContent = b.parent_nume;
+    ibParentLink.href = 'balta.html?id=' + b.parent_balta_id;
+    ibParentLink.style.display = 'inline-block';
+  } else if (ibParentLink) {
+    ibParentLink.style.display = 'none';
+  }
+
+  // Baltă-hub (are bazine) → ascunde harta/standuri/hall of fame/top10 proprii
+  // și arată în loc gridul de bazine. O baltă normală sau un bazin nu trec pe
+  // aici (main-area rămâne vizibil ca azi).
+  if (b.este_hub) {
+    var mainArea = document.getElementById('main-area');
+    if (mainArea) mainArea.style.display = 'none';
+    renderBazineGrid(b.id);
+  }
 
   // Butoane contact
   if (b.telefon) {
