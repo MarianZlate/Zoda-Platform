@@ -1502,8 +1502,12 @@ function makeMarker(active, nivel, nume) {
 }
 
 function popHtml(b) {
+  const bazinBadge = b.parent_balta_id
+    ? `<div class="pop-meta" style="color:#38bdf8;font-weight:600;">🌊 Bazin al: ${escH(b.parent_nume)}</div>`
+    : '';
   return `
     <div class="pop-name">${escH(b.nume)}</div>
+    ${bazinBadge}
     <div class="pop-meta">📍 ${escH(b.judet)}</div>
     <div class="pop-row">
       <span class="pop-tag">${b.standuri} standuri</span>
@@ -1738,6 +1742,7 @@ function renderDropdownRasfoire() {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
         ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
       </div>
@@ -1793,6 +1798,7 @@ function onSearch(q) {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
       </div>
       <button class="dd-open" onclick="event.stopPropagation();__goToBalta(${b.id})">Deschide →</button>
@@ -2464,7 +2470,7 @@ async function loadBaltiFromSupabase() {
     return;
   }
   const { data, error } = await sb.from('balti')
-    .select('id, nume, judet, lat, lng, standuri, telefon, facebook, whatsapp, adresa, rec, vizibilitate, vizite, created_at, nivel_vizibilitate, tagline')
+    .select('id, nume, judet, lat, lng, standuri, telefon, facebook, whatsapp, adresa, rec, vizibilitate, vizite, created_at, nivel_vizibilitate, tagline, parent_balta_id, parent:parent_balta_id(nume)')
     .order('created_at', { ascending: false });
   if (error) { console.error('Eroare Supabase:', error); return; }
   BALTI = (data || []).map(b => ({
@@ -2475,6 +2481,8 @@ async function loadBaltiFromSupabase() {
     vizibilitate: b.vizibilitate || 'unlisted',
     nivel_vizibilitate: b.nivel_vizibilitate || 1,
     tagline: b.tagline || '',
+    parent_balta_id: b.parent_balta_id || null,
+    parent_nume: b.parent?.nume || '',
     vizite: b.vizite || 0, _marker: null,
   }));
   // Salvează în cache 30 minute
@@ -2491,7 +2499,7 @@ async function loadBaltiFromSupabase() {
 async function refreshBaltiInBackground() {
   try {
     const { data, error } = await sb.from('balti')
-      .select('id, nume, judet, lat, lng, standuri, telefon, facebook, whatsapp, adresa, rec, vizibilitate, vizite, created_at, nivel_vizibilitate, tagline')
+      .select('id, nume, judet, lat, lng, standuri, telefon, facebook, whatsapp, adresa, rec, vizibilitate, vizite, created_at, nivel_vizibilitate, tagline, parent_balta_id, parent:parent_balta_id(nume)')
       .order('created_at', { ascending: false });
     if (error || !data) return;
     const fresh = data.map(b => ({
@@ -2502,6 +2510,8 @@ async function refreshBaltiInBackground() {
       vizibilitate: b.vizibilitate || 'unlisted',
       nivel_vizibilitate: b.nivel_vizibilitate || 1,
       tagline: b.tagline || '',
+      parent_balta_id: b.parent_balta_id || null,
+      parent_nume: b.parent?.nume || '',
       vizite: b.vizite || 0, _marker: null,
     }));
     CACHE.set('balti_publice', fresh, 30);
@@ -2688,7 +2698,7 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span></a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span>${x.b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(x.b.parent_nume)}</div>` : ''}</a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
@@ -2718,7 +2728,7 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
     window.addEventListener('resize', pozitioneazaPublicBaltiDropdown);
   } else {
