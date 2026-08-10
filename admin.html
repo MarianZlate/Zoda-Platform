@@ -303,6 +303,8 @@ th,td{padding:8px 6px;}
 .se-drag-handle:active{cursor:grabbing;}
 .se-card.drag-over{border-color:#38bdf8;background:#071c26;}
 .se-card.dragging-item{opacity:.4;}
+.fac-video-row.drag-over{border-color:#38bdf8;background:#071c26;}
+.fac-video-row.dragging-item{opacity:.4;}
 .se-sort-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .se-sort-btn{background:#111827;border:1px solid #1e293b;color:#94a3b8;font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:5px;}
 .se-sort-btn:hover{border-color:#0c3a4d;color:#38bdf8;}
@@ -1934,6 +1936,7 @@ async function loadCapturi() {
       </div>
       <div class="captura-card-media">
         ${c.foto_url ? `<img src="${c.foto_url}" class="captura-foto-thumb" alt="captură" onclick="window.open('${c.foto_url}','_blank')" title="Click pentru a mări"/>` : '<div class="captura-foto-empty">📷</div>'}
+        ${c.foto_dovada_url ? `<div style="position:relative;"><img src="${c.foto_dovada_url}" class="captura-foto-thumb" alt="dovadă captură" onclick="window.open('${c.foto_dovada_url}','_blank')" title="Click pentru a mări — dovadă captură (cântar)"/><div style="position:absolute;bottom:2px;left:2px;right:2px;background:rgba(0,0,0,.7);color:#38bdf8;font-size:9.5px;font-weight:700;text-align:center;border-radius:4px;padding:1px 0;">⚖️ Dovadă</div></div>` : ''}
         ${c.video_url && !c.video_deleted ? `<div class="captura-video-btn" onclick="openVideoAdmin('${escHtml(c.video_url)}', ${c.id})">▶ Vezi videoclip dovadă</div>` : (c.video_url && c.video_deleted ? '<div style="font-size:12px;color:#334155;padding:8px;">Video șters</div>' : '')}
       </div>
       ${c.rejected_reason ? `<div style="background:#7f1d1d;border:1px solid #ef4444;border-radius:8px;padding:8px 12px;font-size:12px;color:#fca5a5;margin-top:8px;">Motiv respingere: ${escHtml(c.rejected_reason)}</div>` : ''}
@@ -3254,6 +3257,7 @@ async function uploadToR2(file, folder) {
 }
 
 let editBaltaId   = null;
+let _lastEditStanduri = [];
 let editBaltaData = null; // rândul din tabela balti
 let editVizStatus = 'public';
 let ebMap = null, ebMarker = null, ebCoords = null;
@@ -3287,6 +3291,10 @@ async function openEditBalta(id) {
 
   // 2b. Facilități
   const { data: facilitatiRows } = await sb.from('balta_facilitati').select('*').eq('balta_id', id);
+  const facIds = (facilitatiRows || []).map(f => f.id);
+  const { data: facVideoRows } = facIds.length
+    ? await sb.from('balta_facilitati_video').select('*').in('facilitate_id', facIds).order('ordine', { ascending: true })
+    : { data: [] };
 
   // 3. Poze (hartă + galerii standuri)
   const { data: poze } = await sb.from('poze').select('*').eq('balta_id', id);
@@ -3332,6 +3340,10 @@ async function openEditBalta(id) {
       ponton:         s.ponton         || false,
       stand_pamant:   s.stand_pamant   || false,
       stand_pietruit: s.stand_pietruit || false,
+      wc:         s.wc         || false,
+      iluminat:   s.iluminat   || false,
+      priza:      s.priza      || false,
+      wifi:       s.wifi       || false,
       di:         s.distanta   || '',
       la:         s.latime     || '',
       yt:         s.yt         || '',
@@ -3344,16 +3356,25 @@ async function openEditBalta(id) {
     facilitati: (() => {
       const map = {};
       (facilitatiRows || []).forEach(f => { map[f.tip] = f; });
+      (facVideoRows || []).forEach(v => {
+        const f = (facilitatiRows || []).find(x => x.id === v.facilitate_id);
+        if (!f) return;
+        const entry = map[f.tip];
+        if (!entry.videos) entry.videos = [];
+        entry.videos.push(v);
+      });
       return map;
     })(),
   };
 
   document.getElementById('edit-modal-title').textContent = '✏️ ' + b.nume;
   document.getElementById('edit-modal-sub').textContent   = '📍 ' + (b.judet || '') + ' · Modifică informațiile, standurile și media';
+  _lastEditStanduri = ext.standuri;
   document.getElementById('edit-body').innerHTML = buildEditBody(b, ext);
   document.getElementById('edit-save-btn').disabled = false;
   _deletedStandIds = [];
   initEditStandsDrag();
+  initFacVideosDrag();
   // Inițializăm harta de localizare cu poziția curentă a băltii (dacă există)
   setTimeout(() => initEbMap(b.lat || null, b.lng || null), 150);
 }
@@ -3508,7 +3529,10 @@ function buildEditBody(b, ext) {
 
   <!-- FACILITĂȚI -->
   <div class="edit-section">
-    <div class="edit-section-title"><span>FACILITĂȚI</span></div>
+    <div class="edit-section-title">
+      <span>FACILITĂȚI</span>
+      <button type="button" id="save-fac-btn" onclick="saveEditFacilitati()" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">💾 Adaugă Facilități</button>
+    </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
       ${['cazare','cabana','baie_toaleta','restaurant_terasa','loc_joaca'].map((tip, i) => {
         const label = { cazare: 'Cazare', cabana: 'Cabană', baie_toaleta: 'Baie/Toalete', restaurant_terasa: 'Restaurant/Terasă', loc_joaca: 'Loc de joacă' }[tip];
@@ -3518,11 +3542,16 @@ function buildEditBody(b, ext) {
     </div>
     ${['cazare','cabana','baie_toaleta','restaurant_terasa','loc_joaca'].map((tip, i) => {
       const f = ext.facilitati[tip] || {};
-      const standOptions = ext.standuri.map(s => `<option value="${s.id}" ${f.stand_id === s.id ? 'selected' : ''}>${escHtml(s.zona)}</option>`).join('');
+      const videos = f.videos && f.videos.length ? f.videos : [{}];
       return `<div class="fac-tab-body" id="fac-tab-body-${tip}" style="${i===0?'':'display:none;'}">
         <div class="fg"><label>DETALII</label><textarea id="fac-${tip}-detalii" rows="3" placeholder="Descriere, program, preț etc." style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;outline:none;font-family:inherit;resize:vertical;">${escHtml(f.detalii || '')}</textarea></div>
-        <div class="fg"><label><svg width="13" height="13" viewBox="0 0 576 512" style="flex-shrink:0;vertical-align:-1px;margin-right:5px;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>LINK YOUTUBE (opțional)</label><input type="url" id="fac-${tip}-yt" value="${escHtml(f.youtube_url || '')}" placeholder="https://youtube.com/watch?v=..."/></div>
-        <div class="fg"><label>STAND ASOCIAT (opțional)</label><select id="fac-${tip}-stand" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:9px 10px;color:#f1f5f9;font-size:14px;outline:none;"><option value="">— niciunul —</option>${standOptions}</select><div style="font-size:11px;color:#4b5563;margin-top:4px;">Dacă e legată de un stand anume, în overlay va apărea un buton „Vezi standul" către el.</div></div>
+        <div class="fg" style="display:flex;align-items:center;justify-content:space-between;">
+          <label style="margin:0;">VIDEOCLIPURI (opțional)</label>
+          <button type="button" onclick="addFacVideoRow('${tip}')" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;">+ Adaugă videoclip</button>
+        </div>
+        <div id="fac-${tip}-videos" class="fac-videos-wrap">
+          ${videos.map((v, vi) => buildFacVideoRow(tip, v, vi, ext.standuri)).join('')}
+        </div>
       </div>`;
     }).join('')}
   </div>
@@ -3575,13 +3604,17 @@ function buildStandEditCard(s) {
     <div class="se-card-body" id="se-body-${s.id}">
       <div class="fg"><label>ZONĂ / DESCRIERE</label><input type="text" id="se-zona-${s.id}" value="${escHtml(s.zona||'')}" oninput="document.getElementById('se-card-name-${s.id}').textContent = this.value.trim() || 'Stand ${s.nr}';" /></div>
       <div class="fg">
-        <label>TIP STAND</label>
+        <label>TIP STAND ȘI UTILITĂȚI</label>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-cabana-${s.id}" ${s.cabana ? 'checked' : ''}/> Cabană</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-foisor-${s.id}" ${s.foisor ? 'checked' : ''}/> Foișor</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-ponton-${s.id}" ${s.ponton ? 'checked' : ''}/> Ponton</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-standpamant-${s.id}" ${s.stand_pamant ? 'checked' : ''}/> Stand pământ</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-standpietruit-${s.id}" ${s.stand_pietruit ? 'checked' : ''}/> Stand pietruit</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-wc-${s.id}" ${s.wc ? 'checked' : ''}/> W.C.</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-iluminat-${s.id}" ${s.iluminat ? 'checked' : ''}/> Iluminat</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-priza-${s.id}" ${s.priza ? 'checked' : ''}/> Priză</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-wifi-${s.id}" ${s.wifi ? 'checked' : ''}/> Wifi</label>
         </div>
       </div>
       <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" id="se-di-${s.id}" value="${s.di||''}" /></div>
@@ -3624,13 +3657,50 @@ function buildStandEditCard(s) {
         <label>📸 GALERIE STAND</label>
         <div class="gal-edit-wrap" id="se-gal-${s.id}">
           ${gals}
-          <div class="gal-add-btn" onclick="addEditGalerie(${s.id})" title="Adaugă fotografie">
+          <div class="gal-add-btn" onclick="addEditGalerie(${s.id})" title="Adaugă fotografie" style="${(s.galerie || []).length >= 4 ? 'display:none;' : ''}">
             <span style="font-size:22px;">+</span><span>Adaugă foto</span>
           </div>
         </div>
       </div>
     </div>
   </div>`;
+}
+
+function buildFacVideoRow(tip, v, vi, standuri) {
+  const rowId = 'facvid-' + tip + '-' + vi + '-' + Math.random().toString(36).slice(2, 7);
+  const standOptions = standuri.map(s => `<option value="${s.id}" ${v.stand_id === s.id ? 'selected' : ''}>${escHtml(s.zona)}</option>`).join('');
+  return `<div class="fac-video-row" id="${rowId}" data-db-id="${v.id || ''}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:10px;margin-bottom:8px;">
+    <span class="fac-video-drag-handle" title="Trage pentru a reordona" draggable="true" onclick="event.stopPropagation()" style="flex-shrink:0;align-self:center;cursor:grab;color:#4b5563;font-size:16px;padding:0 2px;user-select:none;">⠿</span>
+    <div style="flex:1 1 220px;min-width:0;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#4b5563;margin-bottom:4px;"><svg width="12" height="12" viewBox="0 0 576 512" style="flex-shrink:0;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>LINK YOUTUBE</label>
+      <input type="url" class="fac-video-yt" value="${escHtml(v.youtube_url || '')}" placeholder="https://youtube.com/watch?v=..." style="width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"/>
+    </div>
+    <div style="flex:1 1 180px;min-width:0;">
+      <label style="display:block;font-size:11px;font-weight:700;color:#4b5563;margin-bottom:4px;">STAND ASOCIAT</label>
+      <select class="fac-video-stand" style="width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;"><option value="">— niciunul —</option>${standOptions}</select>
+    </div>
+    <button type="button" onclick="removeFacVideoRow('${tip}','${rowId}')" title="Șterge acest videoclip" style="flex-shrink:0;align-self:flex-end;background:none;border:1px solid #1e293b;color:#ef4444;font-size:12px;font-weight:700;padding:8px 10px;border-radius:7px;cursor:pointer;">✕</button>
+  </div>`;
+}
+
+function addFacVideoRow(tip) {
+  const wrap = document.getElementById('fac-' + tip + '-videos');
+  if (!wrap) return;
+  wrap.insertAdjacentHTML('beforeend', buildFacVideoRow(tip, {}, wrap.children.length, _lastEditStanduri));
+}
+
+function removeFacVideoRow(tip, rowId) {
+  const row = document.getElementById(rowId);
+  const wrap = document.getElementById('fac-' + tip + '-videos');
+  if (!row || !wrap) return;
+  // Păstrăm mereu cel puțin un rând gol în DOM, ca să existe unde adaugi
+  if (wrap.children.length <= 1) {
+    row.querySelector('.fac-video-yt').value = '';
+    row.querySelector('.fac-video-stand').value = '';
+    row.dataset.dbId = '';
+    return;
+  }
+  row.remove();
 }
 
 function switchFacTab(tip) {
@@ -3646,6 +3716,79 @@ function switchFacTab(tip) {
       body.style.display = 'none';
     }
   });
+}
+
+// Citește rândurile de videoclipuri din DOM pentru un tab de facilitate
+function readFacVideoRows(tip) {
+  const wrap = document.getElementById('fac-' + tip + '-videos');
+  if (!wrap) return [];
+  return Array.from(wrap.querySelectorAll('.fac-video-row')).map(row => {
+    const yt = row.querySelector('.fac-video-yt')?.value.trim() || '';
+    const standSel = row.querySelector('.fac-video-stand')?.value || '';
+    return {
+      dbId: row.dataset.dbId ? parseInt(row.dataset.dbId, 10) : null,
+      youtube_url: yt || null,
+      stand_id: standSel ? parseInt(standSel, 10) : null,
+    };
+  }).filter(v => v.youtube_url || v.stand_id || v.dbId);
+}
+
+// Sincronizează videoclipurile unei facilități (adaugă/actualizează/șterge) —
+// facilitateId trebuie să existe deja (rândul din balta_facilitati).
+async function syncFacilitateVideos(facilitateId, tip) {
+  const rows = readFacVideoRows(tip);
+  const { data: existing } = await sb.from('balta_facilitati_video').select('id').eq('facilitate_id', facilitateId);
+  const keptIds = rows.map(r => r.dbId).filter(Boolean);
+  const toDelete = (existing || []).filter(e => !keptIds.includes(e.id));
+  for (const e of toDelete) {
+    await sb.from('balta_facilitati_video').delete().eq('id', e.id);
+  }
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.dbId) {
+      await sb.from('balta_facilitati_video').update({ youtube_url: r.youtube_url, stand_id: r.stand_id, ordine: i }).eq('id', r.dbId);
+    } else {
+      await sb.from('balta_facilitati_video').insert({ facilitate_id: facilitateId, youtube_url: r.youtube_url, stand_id: r.stand_id, ordine: i });
+    }
+  }
+}
+
+// Salvează DOAR facilitățile (fără restul formularului), fără să închidă modalul —
+// ca să poți completa/adăuga mai multe facilități în aceeași sesiune de edit.
+async function saveEditFacilitati() {
+  if (!editBaltaId) return;
+  const btn = document.getElementById('save-fac-btn');
+  const btnLabel = '💾 Adaugă Facilități';
+  if (btn) { btn.disabled = true; btn.textContent = 'Se salvează...'; }
+
+  const FAC_LABEL = { cazare: 'Cazare', cabana: 'Cabană', baie_toaleta: 'Baie/Toalete', restaurant_terasa: 'Restaurant/Terasă', loc_joaca: 'Loc de joacă' };
+  const FAC_TIPURI = ['cazare','cabana','baie_toaleta','restaurant_terasa','loc_joaca'];
+  let ok = true;
+
+  for (let i = 0; i < FAC_TIPURI.length; i++) {
+    const tip = FAC_TIPURI[i];
+    const detalii = document.getElementById('fac-' + tip + '-detalii')?.value.trim() || '';
+    const videoRows = readFacVideoRows(tip);
+    const completat = !!(detalii || videoRows.length);
+
+    if (!completat) {
+      await sb.from('balta_facilitati').delete().eq('balta_id', editBaltaId).eq('tip', tip);
+    } else {
+      const { data: facRow, error: facErr } = await sb.from('balta_facilitati').upsert({
+        balta_id: editBaltaId, tip, detalii: detalii || null, ordine: i,
+      }, { onConflict: 'balta_id,tip' }).select('id').single();
+      if (facErr) { ok = false; showToast('⚠️ Facilitatea „' + FAC_LABEL[tip] + '" nu s-a salvat: ' + facErr.message, true); }
+      else await syncFacilitateVideos(facRow.id, tip);
+    }
+
+    // Actualizează bifa ✓ de pe tab-ul respectiv, fără să reconstruiască tot formularul
+    const tabBtn = document.getElementById('fac-tab-btn-' + tip);
+    if (tabBtn) tabBtn.textContent = FAC_LABEL[tip] + (completat ? ' ✓' : '');
+  }
+
+  invalidateCache(editBaltaId);
+  if (ok) showToast('✅ Facilitățile au fost salvate!');
+  if (btn) { btn.disabled = false; btn.textContent = btnLabel; }
 }
 
 function toggleEditStand(id) {
@@ -3681,6 +3824,46 @@ function sortEditStands(dir) {
     return dir === 'asc' ? cmp : -cmp;
   });
   cards.forEach(c => wrap.appendChild(c));
+}
+
+// Reordonare prin tragere (⠿) pentru videoclipurile fiecărei facilități —
+// aceeași tehnică ca la standuri, aplicată pe fiecare listă .fac-videos-wrap.
+function initFacVideosDrag() {
+  document.querySelectorAll('.fac-videos-wrap').forEach(wrap => {
+    let dragEl = null;
+
+    wrap.addEventListener('dragstart', function(e) {
+      const row = e.target.closest('.fac-video-row');
+      if (!row) return;
+      dragEl = row;
+      row.classList.add('dragging-item');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    wrap.addEventListener('dragend', function() {
+      if (dragEl) dragEl.classList.remove('dragging-item');
+      wrap.querySelectorAll('.fac-video-row').forEach(r => r.classList.remove('drag-over'));
+      dragEl = null;
+    });
+
+    wrap.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      const row = e.target.closest('.fac-video-row');
+      if (!row || row === dragEl) return;
+      wrap.querySelectorAll('.fac-video-row').forEach(r => r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+
+    wrap.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const row = e.target.closest('.fac-video-row');
+      if (!row || !dragEl || row === dragEl) return;
+      row.classList.remove('drag-over');
+      const rect = row.getBoundingClientRect();
+      const before = (e.clientY - rect.top) < rect.height / 2;
+      wrap.insertBefore(dragEl, before ? row : row.nextSibling);
+    });
+  });
 }
 
 function initEditStandsDrag() {
@@ -3732,6 +3915,12 @@ function addEditStand() {
 
 window._galFotoUploading = window._galFotoUploading || new Set();
 function addEditGalerie(standId) {
+  const wrapCheck = document.getElementById('se-gal-' + standId);
+  const pozeCurente = wrapCheck ? wrapCheck.querySelectorAll('.gal-thumb-edit').length : 0;
+  if (pozeCurente >= 4) {
+    showToast('⚠️ Poți încărca maximum 4 poze per stand. Șterge una ca să adaugi alta.', true);
+    return;
+  }
   // Creează un input file invizibil și îl triggăm
   const input = document.createElement('input');
   input.type = 'file';
@@ -3763,8 +3952,9 @@ function addEditGalerie(standId) {
       const url = await uploadToR2(resizedFile, 'standuri');
       loadDiv.className = 'gal-thumb-edit';
       loadDiv.style.cssText = '';
-      loadDiv.innerHTML = `<img src="${escHtml(url)}" loading="lazy"/><button class="gal-thumb-del" onclick="this.parentElement.remove()" title="Șterge">✕</button>`;
+      loadDiv.innerHTML = `<img src="${escHtml(url)}" loading="lazy"/><button class="gal-thumb-del" onclick="this.parentElement.remove();updateGalAddBtnVisibility(${standId});" title="Șterge">✕</button>`;
       loadDiv.dataset.url = url;
+      updateGalAddBtnVisibility(standId);
     } catch(e) {
       loadDiv.remove();
       showToast('❌ Eroare upload: ' + e.message, true);
@@ -3842,10 +4032,19 @@ function removeRecFoto(standId) {
   if(fi) fi.value = '';
 }
 
+function updateGalAddBtnVisibility(standId) {
+  const wrap = document.getElementById('se-gal-' + standId);
+  if (!wrap) return;
+  const addBtn = wrap.querySelector('.gal-add-btn');
+  const count = wrap.querySelectorAll('.gal-thumb-edit').length;
+  if (addBtn) addBtn.style.display = count >= 4 ? 'none' : '';
+}
+
 function delEditGalerie(standId, gi) {
   const wrap   = document.getElementById('se-gal-' + standId);
   const thumbs = wrap.querySelectorAll('.gal-thumb-edit');
   if(thumbs[gi]) thumbs[gi].remove();
+  updateGalAddBtnVisibility(standId);
 }
 
 function setEditViz(status) {
@@ -3928,9 +4127,18 @@ async function saveEditBalta() {
     const { data: profil } = await sb.from('user_profiles')
       .select('id, username').eq('zoda_id', newAdminZodaId).single();
     if (profil?.id) {
-      await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
-      // Notăm în toast că asocierea s-a făcut (util și când e același ZODA-ID)
-      showToast(`✅ ${profil.username || newAdminZodaId} asociat ca administrator al băltii.`);
+      // Nu retrogradăm niciodată un zoda_admin existent (inclusiv admin suprem)
+      // la balta_admin — upsert-ul de mai jos suprascrie coloana "rol" fără
+      // discriminare; fără verificarea asta, asocierea unui zoda_admin ca
+      // administrator de baltă îi anula silențios accesul la panoul de admin.
+      const { data: rolActual } = await sb.from('user_roles').select('rol').eq('id', profil.id).single();
+      if (rolActual?.rol === 'zoda_admin') {
+        showToast(`ℹ️ ${profil.username || newAdminZodaId} e deja Zoda Admin — rolul nu a fost schimbat (are oricum acces complet).`);
+      } else {
+        await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+        // Notăm în toast că asocierea s-a făcut (util și când e același ZODA-ID)
+        showToast(`✅ ${profil.username || newAdminZodaId} asociat ca administrator al băltii.`);
+      }
     } else {
       showToast(`⚠️ ZODA-ID "${newAdminZodaId}" nu a fost găsit în platformă — rolul nu a fost acordat.`, true);
       // Blocăm salvarea dacă ZODA-ID-ul e invalid
@@ -4018,6 +4226,10 @@ async function saveEditBalta() {
     const ponton         = document.getElementById('se-ponton-' + sid)?.checked || false;
     const standPamant    = document.getElementById('se-standpamant-' + sid)?.checked || false;
     const standPietruit  = document.getElementById('se-standpietruit-' + sid)?.checked || false;
+    const wc         = document.getElementById('se-wc-' + sid)?.checked || false;
+    const iluminat   = document.getElementById('se-iluminat-' + sid)?.checked || false;
+    const priza      = document.getElementById('se-priza-' + sid)?.checked || false;
+    const wifi       = document.getElementById('se-wifi-' + sid)?.checked || false;
     const _diVal = document.getElementById('se-di-' + sid)?.value;
     const _laVal = document.getElementById('se-la-' + sid)?.value;
     const di = (_diVal !== '' && _diVal != null) ? (parseInt(_diVal)   || null) : null;
@@ -4031,7 +4243,7 @@ async function saveEditBalta() {
     let standId;
     if(isNew) {
       const { data: newStand, error: newStandErr } = await sb.from('standuri').insert({
-        balta_id: editBaltaId, nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, distanta: di, latime: la, yt, sort_order: sortOrder
+        balta_id: editBaltaId, nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, wc, iluminat, priza, wifi, distanta: di, latime: la, yt, sort_order: sortOrder
       }).select('id').single();
       if(newStandErr) {
         showToast('❌ Standul „' + zona + '" nu s-a putut crea: ' + newStandErr.message, true);
@@ -4054,7 +4266,7 @@ async function saveEditBalta() {
       standId = parseInt(sid);
       // Update câmpuri de bază
       const { error: stErr } = await sb.from('standuri').update({
-        nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, distanta: di, latime: la, yt, sort_order: sortOrder
+        nume: zona, cabana, foisor, ponton, stand_pamant: standPamant, stand_pietruit: standPietruit, wc, iluminat, priza, wifi, distanta: di, latime: la, yt, sort_order: sortOrder
       }).eq('id', standId);
       if(stErr) {
         showToast('❌ Eroare stand ' + standId + ': ' + stErr.message, true);
@@ -4108,19 +4320,18 @@ async function saveEditBalta() {
   for (let i = 0; i < FAC_TIPURI.length; i++) {
     const tip = FAC_TIPURI[i];
     const detalii = document.getElementById('fac-' + tip + '-detalii')?.value.trim() || '';
-    const yt = document.getElementById('fac-' + tip + '-yt')?.value.trim() || '';
-    const standSel = document.getElementById('fac-' + tip + '-stand')?.value || '';
-    const standId = standSel ? parseInt(standSel, 10) : null;
+    const videoRows = readFacVideoRows(tip);
 
-    if (!detalii && !yt) {
+    if (!detalii && !videoRows.length) {
       // Golită — o ștergem dacă exista înainte
       await sb.from('balta_facilitati').delete().eq('balta_id', editBaltaId).eq('tip', tip);
       continue;
     }
-    const { error: facErr } = await sb.from('balta_facilitati').upsert({
-      balta_id: editBaltaId, tip, detalii: detalii || null, youtube_url: yt || null, stand_id: standId, ordine: i,
-    }, { onConflict: 'balta_id,tip' });
+    const { data: facRow, error: facErr } = await sb.from('balta_facilitati').upsert({
+      balta_id: editBaltaId, tip, detalii: detalii || null, ordine: i,
+    }, { onConflict: 'balta_id,tip' }).select('id').single();
     if (facErr) showToast('⚠️ Facilitatea „' + tip + '" nu s-a salvat: ' + facErr.message, true);
+    else await syncFacilitateVideos(facRow.id, tip);
   }
 
   showToast('✅ Balta "' + updates.nume + '" a fost actualizată!');
@@ -4350,14 +4561,22 @@ async function abSubmit() {
   if(baltaErr){showToast('⚠️ Eroare: '+baltaErr.message,true);submitBtn.disabled=false;submitBtn.textContent='✓ Salvează balta';return;}
   const baltaId=baltaSaved.id;
 
-  // Acordăm rol balta_admin dacă s-a specificat
+  // Acordăm rol balta_admin dacă s-a specificat — nu retrogradăm un zoda_admin
+  // existent (vezi și fix-ul identic din fluxul de editare balta, mai sus).
   const adminZodaId = document.getElementById('ab-admin-zoda-id')?.value.trim();
   if (adminZodaId) {
-    const { data: profil } = await sb.from('user_profiles').select('id').eq('zoda_id', adminZodaId).single();
-    if (profil?.id) await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+    const { data: profil } = await sb.from('user_profiles').select('id, username').eq('zoda_id', adminZodaId).single();
+    if (profil?.id) {
+      const { data: rolActual } = await sb.from('user_roles').select('rol').eq('id', profil.id).single();
+      if (rolActual?.rol === 'zoda_admin') {
+        showToast(`ℹ️ ${profil.username || adminZodaId} e deja Zoda Admin — rolul nu a fost schimbat.`);
+      } else {
+        await sb.from('user_roles').upsert({ id: profil.id, rol: 'balta_admin' }, { onConflict: 'id' });
+      }
+    }
   }
   if(standuriData.length>0) {
-    const { error: standInsErr } = await sb.from('standuri').insert(standuriData.map(s=>({balta_id:baltaId,nume:s.nume,cabana:s.cabana||false,foisor:s.foisor||false,ponton:s.ponton||false,stand_pamant:s.stand_pamant||false,stand_pietruit:s.stand_pietruit||false,distanta:s.distanta||null,latime:s.latime||null,yt:s.yt||'',rec_foto:s.foto||null})));
+    const { error: standInsErr } = await sb.from('standuri').insert(standuriData.map(s=>({balta_id:baltaId,nume:s.nume,cabana:s.cabana||false,foisor:s.foisor||false,ponton:s.ponton||false,stand_pamant:s.stand_pamant||false,stand_pietruit:s.stand_pietruit||false,wc:s.wc||false,iluminat:s.iluminat||false,priza:s.priza||false,wifi:s.wifi||false,distanta:s.distanta||null,latime:s.latime||null,yt:s.yt||'',rec_foto:s.foto||null})));
     if(standInsErr) showToast('⚠️ Standurile nu s-au salvat complet: '+standInsErr.message, true);
   }
   // Upload hartă
@@ -4601,13 +4820,17 @@ function addStand(){
   div.innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><div style="width:28px;height:28px;border-radius:50%;background:#0c3a4d;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0;">${nr}</div><input type="text" id="s${nr}-nume" value="Stand ${nr}" style="flex:1;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:6px 10px;color:#f1f5f9;font-size:15px;font-weight:700;outline:none;" placeholder="Denumire stand" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/><button class="stand-del" onclick="delStand(${nr})">✕</button></div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
     <div class="fg">
-      <label>TIP STAND</label>
+      <label>TIP STAND ȘI UTILITĂȚI</label>
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-cabana"/> Cabană</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-foisor"/> Foișor</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-ponton"/> Ponton</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-standpamant"/> Stand pământ</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-standpietruit"/> Stand pietruit</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-wc"/> W.C.</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-iluminat"/> Iluminat</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-priza"/> Priză</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-wifi"/> Wifi</label>
       </div>
     </div>
     <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" min="0" id="s${nr}-di" placeholder="ex: 50"/></div>
@@ -4618,7 +4841,7 @@ function addStand(){
   container.appendChild(div);
 }
 function delStand(nr){const el=document.getElementById('stand-'+nr);if(el)el.remove();}
-function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,distanta:parseInt(document.getElementById(pfx+'-di')?.value)||0,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
+function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,wc:document.getElementById(pfx+'-wc')?.checked||false,iluminat:document.getElementById(pfx+'-iluminat')?.checked||false,priza:document.getElementById(pfx+'-priza')?.checked||false,wifi:document.getElementById(pfx+'-wifi')?.checked||false,distanta:parseInt(document.getElementById(pfx+'-di')?.value)||0,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
 
 // ── HARTĂ CANVAS ADD-BALTA ────────────────────────────────────────────────────
 (function(){
