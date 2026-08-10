@@ -3298,6 +3298,13 @@ async function openEditBalta(id) {
   // 2. Standuri
   const { data: standuri } = await sb.from('standuri').select('*').eq('balta_id', id).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
 
+  // 2a. Bazine (dacă balta asta e hub) — pentru secțiunea de reordonare din edit-modal.
+  const { data: bazineRows } = await sb.from('balti')
+    .select('id, nume, bazin_ordine')
+    .eq('parent_balta_id', id)
+    .order('bazin_ordine', { ascending: true, nullsFirst: false })
+    .order('nume');
+
   // 2b. Facilități
   const { data: facilitatiRows } = await sb.from('balta_facilitati').select('*').eq('balta_id', id);
   const facIds = (facilitatiRows || []).map(f => f.id);
@@ -3340,6 +3347,7 @@ async function openEditBalta(id) {
     tarife:    b.tarife    || '',
     regulament:b.regulament|| '',
     harta_url: hartaUrl,
+    bazine: (bazineRows || []).map(bz => ({ id: bz.id, nume: bz.nume })),
     standuri: (standuri || []).map((s, i) => ({
       id:         s.id,
       nr:         i + 1,
@@ -3384,6 +3392,7 @@ async function openEditBalta(id) {
   _deletedStandIds = [];
   initEditStandsDrag();
   initFacVideosDrag();
+  initEditBazineDrag();
   populateParentBaltaSelect(b.id, b.parent_balta_id);
   // Inițializăm harta de localizare cu poziția curentă a băltii (dacă există)
   setTimeout(() => initEbMap(b.lat || null, b.lng || null), 150);
@@ -3596,6 +3605,26 @@ function buildEditBody(b, ext) {
       </div>`;
     }).join('')}
   </div>
+
+  ${(ext.bazine && ext.bazine.length) ? `
+  <!-- ORDINEA BAZINELOR (doar pe o baltă-hub) -->
+  <div class="edit-section">
+    <div class="edit-section-title">
+      <span>🌊 ORDINEA BAZINELOR (${ext.bazine.length})</span>
+    </div>
+    <div style="font-size:12px;color:#4b5563;margin-bottom:10px;">Ordinea de mai jos e cea în care apar bazinele pe pagina publică a hub-ului. Bazinele se adaugă/elimină din editarea fiecărei bălți individuale (câmpul „Bazin al bălții"), nu de aici.</div>
+    <div class="se-sort-bar">
+      <span style="font-size:12px;color:#334155;align-self:center;">Trage ⠿ ca să ordonezi manual</span>
+    </div>
+    <div id="edit-bazine-wrap">
+      ${ext.bazine.map(bz => `<div class="se-card" id="be-card-${bz.id}" style="padding:10px 14px;margin-bottom:8px;">
+        <div class="se-card-hdr" style="margin-bottom:0;cursor:default;">
+          <span class="se-drag-handle" title="Trage pentru a reordona" draggable="true">⠿</span>
+          <div class="se-card-name">${escHtml(bz.nume)}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>` : ''}
 
   <!-- STANDURI -->
   <div class="edit-section">
@@ -3904,6 +3933,46 @@ function initFacVideosDrag() {
       const before = (e.clientY - rect.top) < rect.height / 2;
       wrap.insertBefore(dragEl, before ? row : row.nextSibling);
     });
+  });
+}
+
+// Reordonare prin tragere (⠿) pentru lista de bazine ale unui hub — aceeași
+// tehnică ca la standuri/videoclipuri facilități, aplicată pe #edit-bazine-wrap.
+function initEditBazineDrag() {
+  const wrap = document.getElementById('edit-bazine-wrap');
+  if (!wrap) return;
+  let dragEl = null;
+
+  wrap.addEventListener('dragstart', function(e) {
+    const card = e.target.closest('.se-card');
+    if (!card) return;
+    dragEl = card;
+    card.classList.add('dragging-item');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  wrap.addEventListener('dragend', function() {
+    if (dragEl) dragEl.classList.remove('dragging-item');
+    wrap.querySelectorAll('.se-card').forEach(c => c.classList.remove('drag-over'));
+    dragEl = null;
+  });
+
+  wrap.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    const card = e.target.closest('.se-card');
+    if (!card || card === dragEl) return;
+    wrap.querySelectorAll('.se-card').forEach(c => c.classList.remove('drag-over'));
+    card.classList.add('drag-over');
+  });
+
+  wrap.addEventListener('drop', function(e) {
+    e.preventDefault();
+    const card = e.target.closest('.se-card');
+    if (!card || !dragEl || card === dragEl) return;
+    card.classList.remove('drag-over');
+    const rect = card.getBoundingClientRect();
+    const before = (e.clientY - rect.top) < rect.height / 2;
+    wrap.insertBefore(dragEl, before ? card : card.nextSibling);
   });
 }
 
@@ -4374,6 +4443,14 @@ async function saveEditBalta() {
     }, { onConflict: 'balta_id,tip' }).select('id').single();
     if (facErr) showToast('⚠️ Facilitatea „' + tip + '" nu s-a salvat: ' + facErr.message, true);
     else await syncFacilitateVideos(facRow.id, tip);
+  }
+
+  // Ordinea bazinelor (dacă balta asta e hub) — se salvează după ordinea curentă din DOM.
+  const bazineCards = document.querySelectorAll('#edit-bazine-wrap .se-card');
+  for (let i = 0; i < bazineCards.length; i++) {
+    const bazinId = bazineCards[i].id.replace('be-card-', '');
+    const { error: bzErr } = await sb.from('balti').update({ bazin_ordine: i }).eq('id', bazinId);
+    if (bzErr) showToast('⚠️ Ordinea unui bazin nu s-a salvat: ' + bzErr.message, true);
   }
 
   showToast('✅ Balta "' + updates.nume + '" a fost actualizată!');
