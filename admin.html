@@ -3410,6 +3410,12 @@ async function populateParentBaltaSelect(selfId, currentParentId) {
 function closeEditBalta() {
   document.getElementById('edit-modal').classList.remove('open');
   editBaltaId = null; editBaltaData = null;
+  // Harta Leaflet (ebMap) e legată de div-ul #eb-map din edit-body, care se
+  // distruge la fiecare openEditBalta() (edit-body.innerHTML rescris). Fără
+  // acest reset, ebMap rămâne atașată unui element scos din DOM, iar la
+  // următoarea deschidere harta nu se mai randează (invalidateSize() pe hartă moartă).
+  if (ebMap) { ebMap.remove(); ebMap = null; }
+  ebMarker = null;
 }
 
 function buildEditBody(b, ext) {
