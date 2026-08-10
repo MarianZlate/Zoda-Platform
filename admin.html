@@ -3375,8 +3375,27 @@ async function openEditBalta(id) {
   _deletedStandIds = [];
   initEditStandsDrag();
   initFacVideosDrag();
+  populateParentBaltaSelect(b.id, b.parent_balta_id);
   // Inițializăm harta de localizare cu poziția curentă a băltii (dacă există)
   setTimeout(() => initEbMap(b.lat || null, b.lng || null), 150);
+}
+
+// Populează selectul "Bazin al bălții" din edit-modal — exclude balta curentă
+// și orice baltă care e deja ea însăși bazin (nu permitem sub-bazine, un
+// singur nivel de nesting).
+async function populateParentBaltaSelect(selfId, currentParentId) {
+  const sel = document.getElementById('e-parent-balta');
+  if (!sel) return;
+  const { data } = await sb.from('balti').select('id, nume, parent_balta_id').order('nume');
+  (data || [])
+    .filter(row => row.id !== selfId && !row.parent_balta_id)
+    .forEach(row => {
+      const opt = document.createElement('option');
+      opt.value = row.id;
+      opt.textContent = row.nume;
+      if (row.id === currentParentId) opt.selected = true;
+      sel.appendChild(opt);
+    });
 }
 
 function closeEditBalta() {
@@ -3417,6 +3436,13 @@ function buildEditBody(b, ext) {
     <div class="fg"><label>📋 REGULAMENT</label><textarea id="e-regulament" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.regulament||'')}</textarea></div>
     <div class="fg"><label>ADMINISTRATOR BALTĂ (ZODA-ID)</label><input type="text" id="e-admin-zoda-id" value="${escHtml(b.admin_zoda_id||'')}" placeholder="ex: ZODA-1042" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Setând acest câmp, utilizatorul cu ZODA-ID-ul respectiv primește rolul de administrator al acestei bălți și poate trimite cereri de capturi.</div></div>
     <div class="fg"><label>🎥 AMBASADOR (ZODA-ID)</label><input type="text" id="e-ambasador-zoda-id" value="${escHtml(b.ambasador_zoda_id||'')}" placeholder="ex: ZODA-1077" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Persoana care documentează fizic balta (foto, video, detalii standuri). Apare creditată public pe pagina băltii. Nu are drepturi de administrare — orice modificare trimisă de el așteaptă aprobarea ta în tab-ul „Ambasadori".</div></div>
+    <div class="fg">
+      <label>🌊 BAZIN AL BĂLȚII</label>
+      <select id="e-parent-balta" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+        <option value="">— Nu e bazin (baltă normală / hub) —</option>
+      </select>
+      <div style="font-size:11px;color:#4b5563;margin-top:4px;">Dacă balta asta e de fapt un bazin dintr-o baltă mai mare cu bazine multiple, selectează balta-mamă aici. Contactul/waze/maps se vor prelua automat de la baltă-mamă dacă nu le completezi separat mai sus.</div>
+    </div>
     </div>
   </div>
 
@@ -4103,6 +4129,7 @@ async function saveEditBalta() {
     tagline:        document.getElementById('eb-tagline')?.value.trim().slice(0, 140) || null,
     lat:            ebCoords ? ebCoords.lat : b.lat,
     lng:            ebCoords ? ebCoords.lng : b.lng,
+    parent_balta_id: document.getElementById('e-parent-balta')?.value ? +document.getElementById('e-parent-balta').value : null,
   };
 
   // Acordăm/confirmăm rolul balta_admin ori de câte ori admin_zoda_id e setat
