@@ -911,6 +911,15 @@ th,td{padding:8px 6px;}
       <!-- PAS 1: Informații -->
       <div class="ab-pane active" id="pane-1">
         <div class="fg"><label>NUMELE BALTII *</label><input type="text" id="ab-nume" placeholder="ex: Balta Ileana Naipu"/></div>
+        <div class="fg">
+          <label>🌊 BAZIN AL BĂLȚII</label>
+          <select id="ab-parent-balta" onchange="abOnParentChange()" style="width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:16px;outline:none;">
+            <option value="">— Nu, e o baltă de sine stătătoare —</option>
+          </select>
+          <div id="ab-parent-note" style="display:none;font-size:12px;color:#38bdf8;margin-top:5px;line-height:1.6;">
+            Contactul și locația se preiau automat de la balta-mamă — nu mai trebuie completate separat mai jos.
+          </div>
+        </div>
         <div class="fg" style="position:relative;">
           <label>JUDEȚ *</label>
           <input type="text" id="ab-judet-search" placeholder="Tastează sau selectează județul..." autocomplete="off"
@@ -3375,8 +3384,27 @@ async function openEditBalta(id) {
   _deletedStandIds = [];
   initEditStandsDrag();
   initFacVideosDrag();
+  populateParentBaltaSelect(b.id, b.parent_balta_id);
   // Inițializăm harta de localizare cu poziția curentă a băltii (dacă există)
   setTimeout(() => initEbMap(b.lat || null, b.lng || null), 150);
+}
+
+// Populează selectul "Bazin al bălții" din edit-modal — exclude balta curentă
+// și orice baltă care e deja ea însăși bazin (nu permitem sub-bazine, un
+// singur nivel de nesting).
+async function populateParentBaltaSelect(selfId, currentParentId) {
+  const sel = document.getElementById('e-parent-balta');
+  if (!sel) return;
+  const { data } = await sb.from('balti').select('id, nume, parent_balta_id').order('nume');
+  (data || [])
+    .filter(row => row.id !== selfId && !row.parent_balta_id)
+    .forEach(row => {
+      const opt = document.createElement('option');
+      opt.value = row.id;
+      opt.textContent = row.nume;
+      if (row.id === currentParentId) opt.selected = true;
+      sel.appendChild(opt);
+    });
 }
 
 function closeEditBalta() {
@@ -3417,6 +3445,13 @@ function buildEditBody(b, ext) {
     <div class="fg"><label>📋 REGULAMENT</label><textarea id="e-regulament" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.regulament||'')}</textarea></div>
     <div class="fg"><label>ADMINISTRATOR BALTĂ (ZODA-ID)</label><input type="text" id="e-admin-zoda-id" value="${escHtml(b.admin_zoda_id||'')}" placeholder="ex: ZODA-1042" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Setând acest câmp, utilizatorul cu ZODA-ID-ul respectiv primește rolul de administrator al acestei bălți și poate trimite cereri de capturi.</div></div>
     <div class="fg"><label>🎥 AMBASADOR (ZODA-ID)</label><input type="text" id="e-ambasador-zoda-id" value="${escHtml(b.ambasador_zoda_id||'')}" placeholder="ex: ZODA-1077" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Persoana care documentează fizic balta (foto, video, detalii standuri). Apare creditată public pe pagina băltii. Nu are drepturi de administrare — orice modificare trimisă de el așteaptă aprobarea ta în tab-ul „Ambasadori".</div></div>
+    <div class="fg">
+      <label>🌊 BAZIN AL BĂLȚII</label>
+      <select id="e-parent-balta" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+        <option value="">— Nu e bazin (baltă normală / hub) —</option>
+      </select>
+      <div style="font-size:11px;color:#4b5563;margin-top:4px;">Dacă balta asta e de fapt un bazin dintr-o baltă mai mare cu bazine multiple, selectează balta-mamă aici. Contactul/waze/maps se vor prelua automat de la baltă-mamă dacă nu le completezi separat mai sus.</div>
+    </div>
     </div>
   </div>
 
@@ -4103,6 +4138,7 @@ async function saveEditBalta() {
     tagline:        document.getElementById('eb-tagline')?.value.trim().slice(0, 140) || null,
     lat:            ebCoords ? ebCoords.lat : b.lat,
     lng:            ebCoords ? ebCoords.lng : b.lng,
+    parent_balta_id: document.getElementById('e-parent-balta')?.value ? +document.getElementById('e-parent-balta').value : null,
   };
 
   // Acordăm/confirmăm rolul balta_admin ori de câte ori admin_zoda_id e setat
@@ -4468,6 +4504,7 @@ async function saveEditBalta() {
 // ════════════════════════════════════════════════════════════════════════════════
 
 let abStep = 1, abMap = null, abMarker = null, abCoords = null, abStandCount = 0;
+let abParentBaltaId = null, abParentInherited = false;
 const DRAFT_KEY = 'zoda_balta_draft';
 
 const JUDETE_COORDS = {
@@ -4483,12 +4520,18 @@ let judetFocusIdx = -1;
 
 function openAddBalta(prefillNume) {
   abStep = 1; abCoords = null; abStandCount = 0;
+  abParentBaltaId = null; abParentInherited = false;
   window._hartaFile = null; window._hartaUrl = null;
   hartaRemove();
   document.getElementById('stands-container').innerHTML = '';
   ['ab-nume','ab-adresa','ab-tel','ab-fb','ab-wa','ab-drum-yt','ab-tarife','ab-regulament'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value = '';
+    const el = document.getElementById(id); if(el) { el.value = ''; el.disabled = false; }
   });
+  const abParentSel = document.getElementById('ab-parent-balta');
+  if (abParentSel) abParentSel.value = '';
+  const abParentNote = document.getElementById('ab-parent-note');
+  if (abParentNote) abParentNote.style.display = 'none';
+  populateAbParentBaltaSelect();
   if (prefillNume) { const n = document.getElementById('ab-nume'); if (n) n.value = prefillNume; }
   const js = document.getElementById('ab-judet-search'); if(js) js.value = '';
   const jh = document.getElementById('ab-judet'); if(jh) jh.value = '';
@@ -4501,6 +4544,69 @@ function openAddBalta(prefillNume) {
   document.getElementById('ab-modal').classList.add('open');
   setTimeout(() => initAbMap(), 100);
   checkDraft();
+}
+
+// Populează selectul "Bazin al bălții" — exclude balta care e deja bazin.
+async function populateAbParentBaltaSelect() {
+  const sel = document.getElementById('ab-parent-balta');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Nu, e o baltă de sine stătătoare —</option>';
+  const { data } = await sb.from('balti').select('id, nume, parent_balta_id').order('nume');
+  (data || [])
+    .filter(row => !row.parent_balta_id)
+    .forEach(row => {
+      const opt = document.createElement('option');
+      opt.value = row.id;
+      opt.textContent = row.nume;
+      sel.appendChild(opt);
+    });
+}
+
+// Preia automat contact + locație de la balta-mamă selectată (aceeași locație
+// fizică — bazine). Câmpurile devin needitabile; la salvare (abSubmit) se
+// trimit goale intenționat, ca sursa unică de adevăr să rămână balta-mamă.
+async function abOnParentChange() {
+  const sel = document.getElementById('ab-parent-balta');
+  const val = sel.value;
+  const inputs = ['ab-tel','ab-adresa','ab-fb','ab-wa','ab-tarife','ab-regulament'].map(id => document.getElementById(id));
+  const note = document.getElementById('ab-parent-note');
+
+  if (!val) {
+    abParentBaltaId = null;
+    abParentInherited = false;
+    inputs.forEach(el => { if (el) el.disabled = false; });
+    if (note) note.style.display = 'none';
+    return;
+  }
+
+  abParentBaltaId = +val;
+  const { data: parent } = await sb.from('balti')
+    .select('nume, telefon, adresa, facebook, whatsapp, tarife, regulament, lat, lng')
+    .eq('id', abParentBaltaId).single();
+  if (!parent) return;
+
+  abParentInherited = true;
+  document.getElementById('ab-tel').value = parent.telefon || '';
+  document.getElementById('ab-adresa').value = parent.adresa || '';
+  document.getElementById('ab-fb').value = parent.facebook || '';
+  document.getElementById('ab-wa').value = parent.whatsapp || '';
+  document.getElementById('ab-tarife').value = parent.tarife || '';
+  document.getElementById('ab-regulament').value = parent.regulament || '';
+  inputs.forEach(el => { if (el) el.disabled = true; });
+  if (note) note.style.display = 'block';
+
+  if (parent.lat && parent.lng) {
+    abCoords = { lat: parent.lat, lng: parent.lng };
+    document.getElementById('ab-coord-display').textContent =
+      '✓ Preluată de la ' + parent.nume + ': ' + abCoords.lat.toFixed(5) + '°N, ' + abCoords.lng.toFixed(5) + '°E';
+    document.getElementById('ab-coord-display').style.color = '#38bdf8';
+    document.getElementById('ab-coord-clear').style.display = 'inline';
+    if (abMap) {
+      if (abMarker) abMap.removeLayer(abMarker);
+      abMarker = L.marker([abCoords.lat, abCoords.lng], { icon: pinIcon() }).addTo(abMap);
+      abMap.flyTo([abCoords.lat, abCoords.lng], 14, { duration: 1 });
+    }
+  }
 }
 
 function closeAddBalta() {
@@ -4547,16 +4653,17 @@ async function abSubmit() {
   }
   const {data:baltaSaved, error:baltaErr} = await sb.from('balti').insert({
     nume, judet:document.getElementById('ab-judet').value||'—',
-    adresa:document.getElementById('ab-adresa').value.trim(),
-    telefon:document.getElementById('ab-tel').value.trim()||'—',
-    facebook:document.getElementById('ab-fb').value.trim(),
-    whatsapp:document.getElementById('ab-wa').value.trim(),
-    tarife:document.getElementById('ab-tarife').value.trim(),
-    regulament:document.getElementById('ab-regulament').value.trim(),
+    adresa:abParentInherited ? '' : document.getElementById('ab-adresa').value.trim(),
+    telefon:abParentInherited ? '' : (document.getElementById('ab-tel').value.trim()||'—'),
+    facebook:abParentInherited ? '' : document.getElementById('ab-fb').value.trim(),
+    whatsapp:abParentInherited ? '' : document.getElementById('ab-wa').value.trim(),
+    tarife:abParentInherited ? '' : document.getElementById('ab-tarife').value.trim(),
+    regulament:abParentInherited ? '' : document.getElementById('ab-regulament').value.trim(),
     drum_yt:document.getElementById('ab-drum-yt').value.trim()||'',
     admin_zoda_id:document.getElementById('ab-admin-zoda-id')?.value.trim()||null,
     lat:abCoords?abCoords.lat:null, lng:abCoords?abCoords.lng:null,
     standuri:standuriData.length, rec:'—', vizibilitate:'unlisted',
+    parent_balta_id: abParentBaltaId || null,
   }).select().single();
   if(baltaErr){showToast('⚠️ Eroare: '+baltaErr.message,true);submitBtn.disabled=false;submitBtn.textContent='✓ Salvează balta';return;}
   const baltaId=baltaSaved.id;
@@ -4654,6 +4761,12 @@ function initAbMap(){
   });
   const jud=document.getElementById('ab-judet').value;
   if(jud&&JUDETE_COORDS[jud])abMap.flyTo(JUDETE_COORDS[jud],11,{duration:1});
+  // Locație deja preluată de la o baltă-mamă (abOnParentChange, apelat înainte
+  // ca harta să existe) — plasăm marker-ul acum.
+  if(abCoords){
+    abMarker=L.marker([abCoords.lat,abCoords.lng],{icon:pinIcon()}).addTo(abMap);
+    abMap.flyTo([abCoords.lat,abCoords.lng],14,{duration:0});
+  }
 }
 function pinIcon(){return L.divIcon({className:'',html:`<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8));display:block;"><path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="#f59e0b"/><circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/><text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white">📍</text></svg>`,iconSize:[30,40],iconAnchor:[15,40]});}
 
