@@ -1182,6 +1182,14 @@ function switchTab(tab) {
 // ── MODERARE GLOBALĂ (zoda_admin) — raportări/blocări/banuri, cross-baltă ──
 var MODG_TAB = 'raportari';
 
+// Construiește link-ul direct spre comentariul raportat (balta.html citește
+// aceste query-params și deschide tab-ul/overlay-ul potrivit, cu comentariul evidențiat).
+function modLink(r) {
+  var url = 'balta.html?id=' + r.balta_id + '&mod_tip=' + r.comentariu_tip + '&mod_id=' + r.comentariu_id;
+  if (r.stand_id) url += '&mod_stand=' + r.stand_id;
+  return url;
+}
+
 function switchModerareGlobalaTab(tab) {
   MODG_TAB = tab;
   document.getElementById('modg-tab-raportari').classList.toggle('active', tab === 'raportari');
@@ -1213,7 +1221,7 @@ async function loadRaportariGlobale() {
         <div style="font-size:14px;color:#f1f5f9;margin-top:6px;white-space:pre-wrap;word-break:break-word;">${escH(r.continut || '(comentariu șters)')}</div>
         <div style="font-size:12px;color:#64748b;margin-top:6px;">De la: <strong>${escH(numeAutor)}</strong> · Raportat de: ${escH(r.raportat_de_username || '—')}${r.motiv ? ' · Motiv: ' + escH(r.motiv) : ''} · ${new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
         <div style="margin-top:8px;">
-          <a href="balta.html?id=${r.balta_id}" target="_blank" style="font-size:12px;color:#38bdf8;text-decoration:none;font-weight:700;">↗ Vezi balta</a>
+          <a href="${modLink(r)}" target="_blank" style="font-size:12px;color:#38bdf8;text-decoration:none;font-weight:700;">🎯 Moderează comentariul</a>
         </div>
       </div>`;
     }).join('');
