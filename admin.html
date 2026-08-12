@@ -472,6 +472,7 @@ th,td{padding:8px 6px;}
     <button class="tab" onclick="switchTab('statistici')">📊 Statistici</button>
     <button class="tab" onclick="switchTab('settings')">⚙️ Setări platformă</button>
     <button class="tab" onclick="switchTab('followup')">📋 Bălți Follow-up</button>
+    <button class="tab" onclick="switchTab('moderare')" style="position:relative;">🛡️ Moderare<span id="moderare-pending-badge" class="tab-badge" style="display:none;"></span></button>
   </div>
 
   <!-- BALTI PANEL -->
@@ -772,6 +773,21 @@ th,td{padding:8px 6px;}
     <div id="followup-list" style="display:flex;flex-direction:column;gap:10px;">
       <div class="empty-state">Se încarcă...</div>
     </div>
+  </div>
+
+  <!-- PANEL MODERARE — vedere globală cross-baltă, doar pentru zoda_admin -->
+  <div id="panel-moderare" style="display:none;">
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span>🛡️ Moderare — vedere globală (toate bălțile)</span>
+    </div>
+    <div class="tabs" style="margin-bottom:14px;">
+      <button class="tab active" onclick="switchModerareGlobalaTab('raportari')" id="modg-tab-raportari">🚩 Raportări nerezolvate</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('blocari')" id="modg-tab-blocari">🚫 Blocări active</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('banuri')" id="modg-tab-banuri">⛔ Pescari banați</button>
+    </div>
+    <div id="modg-panel-raportari"></div>
+    <div id="modg-panel-blocari" style="display:none;"></div>
+    <div id="modg-panel-banuri" style="display:none;"></div>
   </div>
 
 </div>
@@ -1139,7 +1155,7 @@ function closeConfirm() {
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare'][i]===tab));
   const pB = document.getElementById('panel-balti');      if(pB) pB.style.display      = tab==='balti'      ? 'block' : 'none';
   const pST= document.getElementById('panel-statistici'); if(pST) pST.style.display    = tab==='statistici' ? 'block' : 'none';
   const pA = document.getElementById('panel-aprobari');   if(pA) pA.style.display      = tab==='aprobari'   ? 'block' : 'none';
@@ -1150,6 +1166,7 @@ function switchTab(tab) {
   const pR = document.getElementById('panel-reclame');    if(pR) pR.style.display      = tab==='reclame'    ? 'block' : 'none';
   const pM = document.getElementById('panel-mesaje');     if(pM) pM.style.display      = tab==='mesaje'     ? 'block' : 'none';
   const pFU= document.getElementById('panel-followup');   if(pFU) pFU.style.display    = tab==='followup'   ? 'block' : 'none';
+  const pMD= document.getElementById('panel-moderare');   if(pMD) pMD.style.display    = tab==='moderare'   ? 'block' : 'none';
   if(tab==='statistici') { setStatsInterval(30); }
   if(tab==='aprobari') loadAprobari();
   if(tab==='users')    loadUsers();
@@ -1159,6 +1176,99 @@ function switchTab(tab) {
   if(tab==='reclame')  loadReclame();
   if(tab==='mesaje')   loadMesaje();
   if(tab==='followup') loadFollowup();
+  if(tab==='moderare') switchModerareGlobalaTab('raportari');
+}
+
+// ── MODERARE GLOBALĂ (zoda_admin) — raportări/blocări/banuri, cross-baltă ──
+var MODG_TAB = 'raportari';
+
+function switchModerareGlobalaTab(tab) {
+  MODG_TAB = tab;
+  document.getElementById('modg-tab-raportari').classList.toggle('active', tab === 'raportari');
+  document.getElementById('modg-tab-blocari').classList.toggle('active', tab === 'blocari');
+  document.getElementById('modg-tab-banuri').classList.toggle('active', tab === 'banuri');
+  document.getElementById('modg-panel-raportari').style.display = tab === 'raportari' ? 'block' : 'none';
+  document.getElementById('modg-panel-blocari').style.display = tab === 'blocari' ? 'block' : 'none';
+  document.getElementById('modg-panel-banuri').style.display = tab === 'banuri' ? 'block' : 'none';
+  if (tab === 'raportari') loadRaportariGlobale();
+  else if (tab === 'blocari') loadBlocariGlobale();
+  else loadBanuriGlobale();
+}
+
+async function loadRaportariGlobale() {
+  var panel = document.getElementById('modg-panel-raportari');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_raportari_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Nicio raportare nerezolvată momentan.</div>'; return; }
+    const tipLabel = { balta: '💬 Comentariu baltă', captura: '📸 Comentariu captură', stand: '❓ Q&A stand' };
+    panel.innerHTML = data.map(r => {
+      const numeAutor = r.autor_username || r.autor_zoda_id || 'Utilizator șters';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">${tipLabel[r.comentariu_tip] || r.comentariu_tip} · 📍 ${escH(r.balta_nume || '—')}</span>
+          <span style="font-size:11px;color:#f59e0b;font-weight:700;">⏳ Nerezolvat</span>
+        </div>
+        <div style="font-size:14px;color:#f1f5f9;margin-top:6px;white-space:pre-wrap;word-break:break-word;">${escH(r.continut || '(comentariu șters)')}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;">De la: <strong>${escH(numeAutor)}</strong> · Raportat de: ${escH(r.raportat_de_username || '—')}${r.motiv ? ' · Motiv: ' + escH(r.motiv) : ''} · ${new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
+        <div style="margin-top:8px;">
+          <a href="balta.html?id=${r.balta_id}" target="_blank" style="font-size:12px;color:#38bdf8;text-decoration:none;font-weight:700;">↗ Vezi balta</a>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function loadBlocariGlobale() {
+  var panel = document.getElementById('modg-panel-blocari');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_blocari_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Nicio blocare momentan.</div>'; return; }
+    const motivLabels = { spam: 'Spam', limbaj_agresiv: 'Limbaj agresiv', dezinformare: 'Dezinformare', altul: 'Altul' };
+    panel.innerHTML = data.map(b => {
+      const nume = b.pescar_username || b.pescar_zoda_id || 'Utilizator șters';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;${b.activ ? '' : 'opacity:.55;'}">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <strong style="font-size:14px;color:#f1f5f9;">${escH(nume)}</strong>
+          <span style="font-size:11px;font-weight:700;color:${b.activ ? '#ef4444' : '#64748b'};">${b.activ ? '🚫 Activ' : 'Retras'}</span>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">📍 ${escH(b.balta_nume || '—')} · Motiv: ${motivLabels[b.motiv] || b.motiv}${b.detalii ? ' — ' + escH(b.detalii) : ''}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">Blocat de ${escH(b.blocat_de_username || '—')} · ${new Date(b.created_at).toLocaleDateString('ro-RO')}${b.folosit_pentru_ban ? ' · a contat la un strike de ban platformă' : ''}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function loadBanuriGlobale() {
+  var panel = document.getElementById('modg-panel-banuri');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_banuri_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Niciun pescar banat momentan.</div>'; return; }
+    panel.innerHTML = data.map(b => {
+      const nume = b.pescar_username || b.pescar_zoda_id || 'Utilizator șters';
+      const nivelLabel = b.nivel === 1 ? '30 zile' : b.nivel === 2 ? '90 zile' : 'Permanent';
+      const expira = b.nivel === 3 ? 'Fără expirare' : (b.banat_pana_la ? 'Expiră: ' + new Date(b.banat_pana_la).toLocaleDateString('ro-RO') : '—');
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <strong style="font-size:14px;color:#f1f5f9;">${escH(nume)}</strong>
+          <span style="font-size:11px;font-weight:700;color:#ef4444;">⛔ ${nivelLabel}</span>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${escH(b.motiv_ultim || '—')}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">${expira}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
 }
 
 // ── BĂLȚI FOLLOW-UP ──────────────────────────────────────────────────────────
