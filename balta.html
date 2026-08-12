@@ -720,6 +720,9 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
   <!-- Info bar -->
   <div class="info-bar">
+    <button id="btn-inima-balta" onclick="toggleInimaBalta()" title="Apreciază balta" style="position:absolute;top:12px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;">
+      <span id="inima-icon-balta">🤍</span> <span id="inima-count-balta">0</span>
+    </button>
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       <span style="font-size:22px;"></span>
       <div>
@@ -1116,13 +1119,10 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
   </div><!-- /#rc-top10 -->
 
-  <!-- COMENTARII BALTĂ (Q&A + discuții libere + reacție inimă) -->
+  <!-- COMENTARII BALTĂ (Q&A + discuții libere) -->
   <div class="t10c" id="comentarii-balta-card" style="margin-top:16px;width:100%;box-sizing:border-box;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--zc-border);flex-wrap:wrap;gap:10px;">
       <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">💬 Comentarii</div>
-      <button id="btn-inima-balta" onclick="toggleInimaBalta()" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:13px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;">
-        <span id="inima-icon-balta">🤍</span> <span id="inima-count-balta">0</span> aprecieri
-      </button>
     </div>
 
     <div style="display:flex;border-bottom:1px solid var(--zc-border);">
