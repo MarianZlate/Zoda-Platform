@@ -1270,9 +1270,9 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 </div>
 
 <!-- MODAL CLASAMENT — Hall of Fame / Top 10 Lunar ale acestei bălți.
-     #cl-body-hof/#cl-body-lunar sunt containere goale; pe mobil, JS mută
-     #top10-card și #top10-lunar-card (deja existente în #rc-top10) aici, ca
-     să nu se dubleze conținutul — pe desktop rămân în #rc-top10 ca înainte. -->
+     #cl-body-hof/#cl-body-lunar sunt containere goale; JS mută aici
+     #top10-card și #top10-lunar-card (definite mai jos, în #rc-top10 doar ca
+     locație inițială în HTML) — mereu în modal, pe mobil ȘI pe desktop. -->
 <div id="clasament-modal">
   <div class="hof-modal-inner">
     <div class="hof-modal-hdr">
@@ -2074,8 +2074,8 @@ function renderPage(hartaUrl) {
   loadFacilitati(BALTA.id);
   // Comentarii & reacție inimă
   loadComentariiBalta();
-  // Meniu de jos (mobil) — plasează #top10-card/#top10-lunar-card în #rc-top10
-  // sau în modalul Clasament, în funcție de lățimea ecranului curent.
+  // Meniu de jos — plasează #top10-card/#top10-lunar-card în modalul Clasament
+  // (mereu, pe mobil ȘI pe desktop — vezi reparentTop10ForBreakpoint()).
   reparentTop10ForBreakpoint();
 
   // Afișează pagina
@@ -2887,34 +2887,22 @@ function openAuthFromBalta() {
 // ═══ MENIU DE JOS + MODALURI CLASAMENT/CAPTURI ═════════════════════════════
 
 // Mută #top10-card/#top10-lunar-card (deja existente, cu funcțiile lor
-// loadHallOfFame()/loadTop10Lunar() neschimbate) fie în #rc-top10 (desktop —
-// vizibile mereu, ca înainte), fie în modalul Clasament (mobil — vizibile
-// doar la deschiderea modalului, ca să nu se dubleze conținutul pe pagină).
+// loadHallOfFame()/loadTop10Lunar() neschimbate) mereu în modalul Clasament —
+// pe mobil ȘI pe desktop — ca să nu mai apară inline pe pagina bălții.
 // Element mutat, nu recreat — vezi regula #2 din REDESIGN-REFERINTA.md.
-var TOP10_IN_MODAL = null; // null = neinițializat, true = în modal, false = în #rc-top10
+var TOP10_IN_MODAL = null; // null = neinițializat, true = deja mutat în modal
 function reparentTop10ForBreakpoint() {
   var card = document.getElementById('top10-card');
   var lunarCard = document.getElementById('top10-lunar-card');
-  var rc = document.getElementById('rc-top10');
   var clHof = document.getElementById('cl-body-hof');
   var clLunar = document.getElementById('cl-body-lunar');
-  if (!card || !lunarCard || !rc || !clHof || !clLunar) return;
-  var mobil = window.innerWidth <= 768;
-  if (mobil && TOP10_IN_MODAL !== true) {
+  if (!card || !lunarCard || !clHof || !clLunar) return;
+  if (TOP10_IN_MODAL !== true) {
     clHof.appendChild(card);
     clLunar.appendChild(lunarCard);
     TOP10_IN_MODAL = true;
-  } else if (!mobil && TOP10_IN_MODAL !== false) {
-    rc.appendChild(card);
-    rc.appendChild(lunarCard);
-    TOP10_IN_MODAL = false;
   }
 }
-var _top10ResizeTimer = null;
-window.addEventListener('resize', function () {
-  clearTimeout(_top10ResizeTimer);
-  _top10ResizeTimer = setTimeout(reparentTop10ForBreakpoint, 200);
-});
 
 // La deschidere, adăugăm o intrare în istoric — astfel butonul "înapoi" al
 // telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
