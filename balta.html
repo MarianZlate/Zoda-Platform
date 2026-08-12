@@ -2240,13 +2240,23 @@ async function loadComentariiBalta() {
 }
 
 // Verificare ușoară de rol, independentă de ?edit=1 (care controlează doar
-// edit-bar-ul de editare a bălții) — folosită pentru butoanele de moderare
-// inline din secțiunile de comentarii, disponibile la navigare normală.
+// edit-bar-ul de editare a bălții) — CAN_EDIT/IS_ZODA_ADMIN sunt folosite de
+// butoanele de moderare din secțiunile de comentarii, disponibile la navigare
+// normală, nu doar când pagina e deschisă special în mod editare.
 async function checkZodaAdminFlag() {
-  if (IS_ZODA_ADMIN || !BALTA_USER) return;
+  if (CAN_EDIT || !BALTA_USER) return;
   try {
     var { data } = await sb.from('user_roles').select('rol').eq('id', BALTA_USER.id).single();
-    if (data?.rol === 'zoda_admin') IS_ZODA_ADMIN = true;
+    var rol = data?.rol;
+    if (rol === 'zoda_admin') {
+      IS_ZODA_ADMIN = true;
+      CAN_EDIT = true;
+    } else if (rol === 'balta_admin') {
+      var pRes = await sb.from('user_profiles').select('zoda_id').eq('id', BALTA_USER.id).single();
+      if (pRes.data?.zoda_id && BALTA && pRes.data.zoda_id === BALTA.admin_zoda_id) {
+        CAN_EDIT = true;
+      }
+    }
   } catch(e) {}
 }
 
