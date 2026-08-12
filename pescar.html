@@ -494,7 +494,17 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
   </div>
 </div>
 
-<!-- MODAL REALIZĂRI — top 10 lunar + hall of fame (active + trecute) -->
+<!-- MODAL REALIZĂRI — top 10 lunar + hall of fame (active + trecute) --><!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ. -->
+<div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div id="zoda-confirm-msg" style="font-size:14px;color:var(--zc-text-primary);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
+      <button id="zoda-confirm-ok" style="background:#ef4444;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Confirmă</button>
+    </div>
+  </div>
+</div>
+
 <div id="realizari-modal">
   <div class="hof-modal-inner">
     <div class="hof-modal-hdr">
@@ -724,6 +734,32 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
+function zodaConfirm(mesaj) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('zoda-confirm-modal');
+    var msgEl = document.getElementById('zoda-confirm-msg');
+    var okBtn = document.getElementById('zoda-confirm-ok');
+    var cancelBtn = document.getElementById('zoda-confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm(mesaj)); return; }
+    msgEl.textContent = mesaj;
+    modal.style.display = 'flex';
+    function cleanup(rezultat) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(rezultat);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === modal) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
 }
 
 // ── DISTRIBUIE PROFIL ────────────────────────────────────────────────────────
@@ -1489,7 +1525,7 @@ async function salveazaEditarePescarComentariu(capturaId, id) {
 }
 
 async function stergePescarComentariuUI(capturaId, id) {
-  if (!confirm('Ștergi acest comentariu?')) return;
+  if (!(await zodaConfirm('Ștergi acest comentariu?'))) return;
   try {
     await sb.rpc('sterge_comentariu_propriu', { p_tip: 'captura', p_id: id });
     await loadPescarComentarii(capturaId);
@@ -1511,7 +1547,7 @@ async function modereazaPescarComentariuUI(capturaId, id, actiune) {
     ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
     reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
   };
-  if (!confirm(mesaje[actiune])) return;
+  if (!(await zodaConfirm(mesaje[actiune]))) return;
   try {
     await sb.rpc('modereaza_comentariu_admin', { p_tip: 'captura', p_id: id, p_actiune: actiune });
     await loadPescarComentarii(capturaId);
