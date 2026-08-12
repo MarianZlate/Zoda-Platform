@@ -1323,6 +1323,7 @@ var WA_FALLBACK_DIGITS = ''; // cifrele telefonului, cand e introdus complet cu 
 var WORKER_R2_UPLOAD = 'https://zoda-r2-upload.marianzlate90.workers.dev';
 var CAN_EDIT = false; // true daca userul curent (zoda_admin sau balta_admin al acestei balti) poate edita
 var IS_ZODA_ADMIN = false; // true doar pentru zoda_admin — moderare inline pe comentariile oricui
+var EDIT_MODE_URL = new URLSearchParams(location.search).get('edit') === '1'; // true doar cu ?edit=1 — separat de CAN_EDIT, care acum e adevărat și la navigare normală (pt. moderare comentarii)
 var IS_AMBASADOR = false; // true daca userul curent e ambasadorul acestei balti (doar poze/video/detalii stand, cu aprobare)
 var ST = [];          // standuri cu pozitii + poze
 var CAPTURES = [];    // capturi (viitor: tabela captures)
@@ -3520,7 +3521,7 @@ async function openOverlay(id) {
   }
 
   var editBtn = document.getElementById('ov-edit-btn');
-  if (editBtn) editBtn.style.display = CAN_EDIT ? 'inline-flex' : 'none';
+  if (editBtn) editBtn.style.display = (CAN_EDIT && EDIT_MODE_URL) ? 'inline-flex' : 'none';
   var editSection = document.getElementById('ov-edit-section');
   if (editSection) editSection.style.display = 'none';
 
