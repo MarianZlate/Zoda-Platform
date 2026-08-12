@@ -2612,7 +2612,13 @@ function pinScale() {
   else base = 0.67;
   // Pe mobil, harta e mult mai îngustă — același procent de distanță între
   // standuri înseamnă mult mai puțini pixeli reali, deci micșorăm suplimentar.
-  if (window.innerWidth <= 768) base = Math.max(0.43, base * 0.55);
+  if (window.innerWidth <= 768) {
+    base = Math.max(0.43, base * 0.55);
+  } else {
+    // Pe desktop harta e mult mai lată — pin-urile erau prea mici / greu de văzut,
+    // le mărim (doar desktop, mobilul rămâne neschimbat mai sus).
+    base = base * 1.5;
+  }
   return base;
 }
 
