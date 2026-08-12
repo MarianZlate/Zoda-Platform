@@ -840,6 +840,18 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
         <div id="pins-layer"></div>
       </div>
       <div id="stand-overlay-backdrop" onclick="closeOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1999;"></div>
+
+      <!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ,
+           care blochează thread-ul browserului și poate rupe automatizări/interacțiuni. -->
+      <div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+        <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+          <div id="zoda-confirm-msg" style="font-size:14px;color:var(--zc-text-primary);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;">
+            <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
+            <button id="zoda-confirm-ok" style="background:#ef4444;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Confirmă</button>
+          </div>
+        </div>
+      </div>
       <div id="stand-overlay-topbar" style="display:none;position:fixed;z-index:2001;height:34px;">
         <button id="ov-edit-btn" onclick="toggleOverlayEdit()" style="display:none;position:absolute;left:50%;top:0;transform:translateX(-50%);background:var(--zc-bg-tint);border:1px solid rgba(56,189,248,.4);color:#38bdf8;font-size:12.9px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;">✏️ Editează</button>
         <button class="xbtn" onclick="closeOverlay()" style="position:absolute;right:0;top:0;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:50%;width:32px;height:32px;font-size:18px;">✕</button>
@@ -2210,6 +2222,33 @@ function escH(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ peste
+// tot în secțiunile de comentarii/moderare. Returnează o Promise<boolean>.
+function zodaConfirm(mesaj) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('zoda-confirm-modal');
+    var msgEl = document.getElementById('zoda-confirm-msg');
+    var okBtn = document.getElementById('zoda-confirm-ok');
+    var cancelBtn = document.getElementById('zoda-confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm(mesaj)); return; }
+    msgEl.textContent = mesaj;
+    modal.style.display = 'flex';
+    function cleanup(rezultat) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(rezultat);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === modal) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
+}
+
 // ─── COMENTARII BALTĂ (Q&A + discuții libere + inimă) ───────────────────────
 var CB_TAB = 'discutie';
 var CB_CACHE = { qa: [], discutie: [] };
@@ -2411,7 +2450,7 @@ async function mutaComentariuBaltaUI(id, categorieNoua) {
   var mesaj = categorieNoua === 'discutie'
     ? 'Muți acest comentariu (și toate răspunsurile) din Q&A în Discuții libere?'
     : 'Muți acest comentariu (și toate răspunsurile) din Discuții libere în Q&A?';
-  if (!confirm(mesaj)) return;
+  if (!(await zodaConfirm(mesaj))) return;
   try {
     await sb.rpc('muta_comentariu_categorie', { p_comentariu_id: id, p_categorie_noua: categorieNoua });
     await Promise.all([loadComentariiBaltaTab('qa'), loadComentariiBaltaTab('discutie')]);
@@ -2425,7 +2464,7 @@ async function modereazaComentariuBaltaUI(id, actiune) {
     ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
     reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
   };
-  if (!confirm(mesaje[actiune])) return;
+  if (!(await zodaConfirm(mesaje[actiune]))) return;
   try {
     await sb.rpc('modereaza_comentariu_admin', { p_tip: 'balta', p_id: id, p_actiune: actiune });
     await Promise.all([loadComentariiBaltaTab('qa'), loadComentariiBaltaTab('discutie')]);
@@ -2456,7 +2495,7 @@ async function salveazaEditareBalta(id) {
 }
 
 async function stergeComentariuBaltaUI(id) {
-  if (!confirm('Ștergi acest comentariu?')) return;
+  if (!(await zodaConfirm('Ștergi acest comentariu?'))) return;
   try {
     await sb.rpc('sterge_comentariu_propriu', { p_tip: 'balta', p_id: id });
     await loadComentariiBaltaTab(CB_TAB);
@@ -2762,7 +2801,7 @@ async function salveazaEditareOv(sub, id) {
 }
 
 async function stergeComentariuOvUI(sub, id) {
-  if (!confirm('Ștergi acest comentariu?')) return;
+  if (!(await zodaConfirm('Ștergi acest comentariu?'))) return;
   try {
     await sb.rpc('sterge_comentariu_propriu', { p_tip: ovcTipDb(sub), p_id: id });
     await loadOvcComentarii(sub);
@@ -2785,7 +2824,7 @@ async function modereazaComentariuOvUI(sub, id, actiune) {
     ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
     reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
   };
-  if (!confirm(mesaje[actiune])) return;
+  if (!(await zodaConfirm(mesaje[actiune]))) return;
   try {
     await sb.rpc('modereaza_comentariu_admin', { p_tip: ovcTipDb(sub), p_id: id, p_actiune: actiune });
     await loadOvcComentarii(sub);
