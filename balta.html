@@ -935,6 +935,29 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
           <span id="ov-edit-status" style="font-size:12.9px;color:var(--zc-text-secondary);"></span>
         </div>
       </div>
+
+      <!-- COMENTARII STAND: captură (Like/Super/WOW/Felicitări) + Q&A stand (Confirm/Info depășit) -->
+      <div id="ov-comentarii-section" style="border-top:1px solid var(--zc-border);">
+        <div style="display:flex;border-bottom:1px solid var(--zc-border);">
+          <button class="ovc-tab" id="ovc-tab-captura" onclick="setOvTabComentarii('captura')" style="flex:1;background:none;border:none;padding:10px 6px;font-weight:700;font-size:12px;color:var(--zc-text-strong);cursor:pointer;border-bottom:2px solid #38bdf8;">📸 Comentarii captură</button>
+          <button class="ovc-tab" id="ovc-tab-qa" onclick="setOvTabComentarii('qa')" style="flex:1;background:none;border:none;padding:10px 6px;font-weight:700;font-size:12px;color:var(--zc-text-secondary-2);cursor:pointer;border-bottom:2px solid transparent;">❓ Q&amp;A stand</button>
+        </div>
+
+        <div id="ovc-panel-captura" style="padding:12px 10px;">
+          <div id="ovc-captura-noRecord" style="display:none;text-align:center;color:var(--zc-text-muted);font-size:12px;padding:14px 0;">Niciun record încă la acest stand — comentariile apar după prima captură aprobată.</div>
+          <div id="ovc-captura-content">
+            <div id="ovc-reactii-captura" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"></div>
+            <div id="ovc-compose-captura" style="margin-bottom:12px;"></div>
+            <div id="ovc-list-captura"></div>
+          </div>
+        </div>
+
+        <div id="ovc-panel-qa" style="display:none;padding:12px 10px;">
+          <div id="ovc-reactii-stand" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"></div>
+          <div id="ovc-compose-qa" style="margin-bottom:12px;"></div>
+          <div id="ovc-list-qa"></div>
+        </div>
+      </div><!-- /#ov-comentarii-section -->
     </div>
     </div><!-- /#map-wrap -->
 
@@ -1089,6 +1112,27 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     </div>
 
   </div><!-- /#rc-top10 -->
+
+  <!-- COMENTARII BALTĂ (Q&A + discuții libere + reacție inimă) -->
+  <div class="t10c" id="comentarii-balta-card" style="margin-top:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--zc-border);flex-wrap:wrap;gap:10px;">
+      <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">💬 Comentarii</div>
+      <button id="btn-inima-balta" onclick="toggleInimaBalta()" style="display:flex;align-items:center;gap:6px;background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:13px;font-weight:700;padding:7px 12px;border-radius:20px;cursor:pointer;">
+        <span id="inima-icon-balta">🤍</span> <span id="inima-count-balta">0</span> aprecieri
+      </button>
+    </div>
+
+    <div style="display:flex;border-bottom:1px solid var(--zc-border);">
+      <button class="cb-tab" id="cb-tab-qa" onclick="setTabComentariiBalta('qa')" style="flex:1;background:none;border:none;padding:12px 8px;font-weight:700;font-size:13px;color:var(--zc-text-strong);cursor:pointer;border-bottom:2px solid #38bdf8;">❓ Întrebări &amp; Răspunsuri</button>
+      <button class="cb-tab" id="cb-tab-discutie" onclick="setTabComentariiBalta('discutie')" style="flex:1;background:none;border:none;padding:12px 8px;font-weight:700;font-size:13px;color:var(--zc-text-secondary-2);cursor:pointer;border-bottom:2px solid transparent;">💭 Discuții libere</button>
+    </div>
+
+    <div style="padding:14px 16px;">
+      <div id="cb-compose" style="margin-bottom:16px;"></div>
+      <div id="cb-list-qa"></div>
+      <div id="cb-list-discutie" style="display:none;"></div>
+    </div>
+  </div><!-- /#comentarii-balta-card -->
 
   </div><!-- /#main-area -->
 
@@ -2028,6 +2072,8 @@ function renderPage(hartaUrl) {
   loadTop10Lunar(BALTA.id);
   // Facilități
   loadFacilitati(BALTA.id);
+  // Comentarii & reacție inimă
+  loadComentariiBalta();
   // Meniu de jos (mobil) — plasează #top10-card/#top10-lunar-card în #rc-top10
   // sau în modalul Clasament, în funcție de lățimea ecranului curent.
   reparentTop10ForBreakpoint();
@@ -2156,6 +2202,528 @@ function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
 
 function escH(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── COMENTARII BALTĂ (Q&A + discuții libere + inimă) ───────────────────────
+var CB_TAB = 'qa';
+var CB_CACHE = { qa: [], discutie: [] };
+var CB_CA_BALTA = false; // toggle "răspund ca baltă" (doar CAN_EDIT)
+
+function formatDataRelativa(iso) {
+  var diffMs = Date.now() - new Date(iso).getTime();
+  var min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'acum';
+  if (min < 60) return 'acum ' + min + ' min';
+  var ore = Math.floor(min / 60);
+  if (ore < 24) return 'acum ' + ore + 'h';
+  var zile = Math.floor(ore / 24);
+  if (zile < 30) return 'acum ' + zile + 'z';
+  return new Date(iso).toLocaleDateString('ro-RO');
+}
+
+async function loadComentariiBalta() {
+  if (!BALTA || !BALTA.id) return;
+  try {
+    await Promise.all([
+      loadComentariiBaltaTab('qa'),
+      loadComentariiBaltaTab('discutie'),
+      loadInimaBalta()
+    ]);
+  } catch(e) {}
+  renderComposeBalta();
+  renderListaComentariiBalta();
+}
+
+async function loadComentariiBaltaTab(categorie) {
+  var { data, error } = await sb.rpc('citeste_comentarii_balta', { p_balta_id: BALTA.id, p_categorie: categorie });
+  if (!error) CB_CACHE[categorie] = data || [];
+}
+
+async function loadInimaBalta() {
+  var { data } = await sb.rpc('citeste_reactie_balta', { p_balta_id: BALTA.id });
+  var row = (data && data[0]) || { total: 0, am_reactionat: false };
+  var elCount = document.getElementById('inima-count-balta');
+  var elIcon = document.getElementById('inima-icon-balta');
+  if (elCount) elCount.textContent = row.total;
+  if (elIcon) elIcon.textContent = row.am_reactionat ? '❤️' : '🤍';
+}
+
+async function toggleInimaBalta() {
+  if (!BALTA_USER) { openAuthFromBalta(); return; }
+  try {
+    await sb.rpc('reactioneaza_balta', { p_balta_id: BALTA.id });
+    await loadInimaBalta();
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+function setTabComentariiBalta(tab) {
+  CB_TAB = tab;
+  var tabQa = document.getElementById('cb-tab-qa'), tabD = document.getElementById('cb-tab-discutie');
+  tabQa.style.borderBottomColor = tab === 'qa' ? '#38bdf8' : 'transparent';
+  tabQa.style.color = tab === 'qa' ? 'var(--zc-text-strong)' : 'var(--zc-text-secondary-2)';
+  tabD.style.borderBottomColor = tab === 'discutie' ? '#38bdf8' : 'transparent';
+  tabD.style.color = tab === 'discutie' ? 'var(--zc-text-strong)' : 'var(--zc-text-secondary-2)';
+  document.getElementById('cb-list-qa').style.display = tab === 'qa' ? 'block' : 'none';
+  document.getElementById('cb-list-discutie').style.display = tab === 'discutie' ? 'block' : 'none';
+  renderComposeBalta();
+}
+
+function renderComposeBalta() {
+  var el = document.getElementById('cb-compose');
+  if (!el) return;
+  if (!BALTA_USER) {
+    el.innerHTML = '<div style="background:var(--zc-bg-tint);border-radius:10px;padding:12px;text-align:center;font-size:13px;color:var(--zc-text-strong);">'
+      + 'Autentifică-te pentru a comenta. <button onclick="openAuthFromBalta()" style="background:none;border:none;color:#38bdf8;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Creează cont gratuit</button></div>';
+    return;
+  }
+  var toggleHtml = CAN_EDIT
+    ? '<div style="display:flex;gap:14px;margin-bottom:8px;font-size:12px;color:var(--zc-text-secondary-2);">'
+      + '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="cb-ca-cine" ' + (!CB_CA_BALTA ? 'checked' : '') + ' onchange="CB_CA_BALTA=false"> Cont personal</label>'
+      + '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="cb-ca-cine" ' + (CB_CA_BALTA ? 'checked' : '') + ' onchange="CB_CA_BALTA=true"> 🏊 Răspund din partea bălții</label>'
+      + '</div>'
+    : '';
+  var placeholder = CB_TAB === 'qa' ? 'Pune o întrebare despre baltă...' : 'Scrie un comentariu...';
+  el.innerHTML = toggleHtml
+    + '<textarea id="cb-input" placeholder="' + placeholder + '" maxlength="2000" style="width:100%;min-height:64px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:10px;color:var(--zc-text-primary);font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:6px;">'
+    + '<button onclick="trimiteComentariuBalta()" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Trimite</button></div>';
+}
+
+async function trimiteComentariuBalta(parinteId) {
+  var inputId = parinteId ? ('cb-reply-input-' + parinteId) : 'cb-input';
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('adauga_comentariu_balta', {
+      p_balta_id: BALTA.id,
+      p_categorie: CB_TAB,
+      p_continut: text,
+      p_parinte_id: parinteId || null,
+      p_ca_balta: CB_CA_BALTA
+    });
+    input.value = '';
+    await loadComentariiBaltaTab(CB_TAB);
+    renderListaComentariiBalta();
+  } catch(e) {
+    alert(e.message || 'Eroare la trimiterea comentariului.');
+  }
+}
+
+function toggleReplyBoxBalta(id) {
+  var box = document.getElementById('cb-reply-box-' + id);
+  if (!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function voteazaBalta(id, valoare) {
+  if (!BALTA_USER) { openAuthFromBalta(); return; }
+  try {
+    await sb.rpc('voteaza_comentariu', { p_tip: 'balta', p_id: id, p_valoare: valoare });
+    await loadComentariiBaltaTab(CB_TAB);
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare la vot.'); }
+}
+
+async function marcheazaOficialBalta(id, valoare) {
+  try {
+    await sb.rpc('marcheaza_raspuns_oficial', { p_comentariu_id: id, p_valoare: valoare });
+    await loadComentariiBaltaTab('qa');
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+function editeazaComentariuBaltaUI(id) {
+  var textEl = document.getElementById('cb-text-' + id);
+  if (!textEl) return;
+  var textActual = textEl.textContent;
+  textEl.innerHTML = '<textarea id="cb-edit-' + id + '" maxlength="2000" style="width:100%;min-height:56px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:8px;color:var(--zc-text-primary);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(textActual) + '</textarea>'
+    + '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">'
+    + '<button onclick="salveazaEditareBalta(' + id + ')" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;">Salvează</button>'
+    + '<button onclick="loadComentariiBaltaTab(\'' + CB_TAB + '\').then(renderListaComentariiBalta)" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;">Anulează</button></div>';
+}
+
+async function salveazaEditareBalta(id) {
+  var input = document.getElementById('cb-edit-' + id);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('editeaza_comentariu', { p_tip: 'balta', p_id: id, p_continut_nou: text });
+    await loadComentariiBaltaTab(CB_TAB);
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare la editare.'); }
+}
+
+async function stergeComentariuBaltaUI(id) {
+  if (!confirm('Ștergi acest comentariu?')) return;
+  try {
+    await sb.rpc('sterge_comentariu_propriu', { p_tip: 'balta', p_id: id });
+    await loadComentariiBaltaTab(CB_TAB);
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+async function raporteazaComentariuBaltaUI(id) {
+  var motiv = prompt('De ce raportezi acest comentariu? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_comentariu', { p_tip: 'balta', p_id: id, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către administratorul bălții.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+function aratComentariuAscunsBalta(id) {
+  var cache = CB_CACHE[CB_TAB] || [];
+  var c = cache.find(function(x) { return x.id === id; });
+  if (c) c._fortatVizibil = true;
+  renderListaComentariiBalta();
+}
+
+function renderListaComentariiBalta() {
+  ['qa', 'discutie'].forEach(function(cat) {
+    var listEl = document.getElementById('cb-list-' + cat);
+    if (!listEl) return;
+    var rows = CB_CACHE[cat] || [];
+    var top = rows.filter(function(r) { return !r.parinte_id; });
+    var repliesByParent = {};
+    rows.forEach(function(r) {
+      if (r.parinte_id) (repliesByParent[r.parinte_id] = repliesByParent[r.parinte_id] || []).push(r);
+    });
+    if (cat === 'discutie') {
+      top.sort(function(a, b) { return (b.scor - a.scor) || (new Date(a.created_at) - new Date(b.created_at)); });
+    }
+    listEl.innerHTML = top.length
+      ? top.map(function(c) { return renderComentariuBaltaHtml(c, repliesByParent[c.id] || [], cat); }).join('')
+      : '<div style="text-align:center;color:var(--zc-text-muted);font-size:13px;padding:20px 0;">' + (cat === 'qa' ? 'Nicio întrebare încă. Fii primul care întreabă ceva!' : 'Niciun comentariu încă. Fii primul care scrie ceva!') + '</div>';
+  });
+}
+
+function renderComentariuBaltaHtml(c, replies, categorie) {
+  if (c.ascuns_auto && !c._fortatVizibil) {
+    return '<div id="cb-c-' + c.id + '" style="padding:10px 0;border-bottom:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-muted);">'
+      + 'Comentariu ascuns (multe voturi negative). <button onclick="aratComentariuAscunsBalta(' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
+  }
+  var esteSters = !c.autor_id;
+  var nume = c.autor_username || c.autor_zoda_id || 'Utilizator șters';
+  var numeHtml = esteSters
+    ? '<span style="color:var(--zc-text-muted);font-weight:700;">Utilizator șters</span>'
+    : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" style="color:var(--zc-text-strong);font-weight:700;text-decoration:none;">' + escH(nume) + '</a>';
+  var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">🏊 Baltă</span>' : '';
+  var badgeOficial = c.raspuns_oficial ? ' <span style="background:#0c3a4d;color:#38bdf8;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">✓ Răspuns oficial</span>' : '';
+  var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:11px;">(editat)</span>' : '';
+  var esteAutorPropriu = BALTA_USER && c.autor_id === BALTA_USER.id;
+  var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
+  var votUp = c.vot_propriu === 1, votDown = c.vot_propriu === -1;
+
+  var butoane = [];
+  butoane.push('<button onclick="voteazaBalta(' + c.id + ',1)" style="background:none;border:none;cursor:pointer;color:' + (votUp ? '#38bdf8' : 'var(--zc-text-muted)') + ';font-weight:700;">▲</button>');
+  butoane.push('<span style="color:var(--zc-text-secondary-2);font-weight:700;">' + c.scor + '</span>');
+  butoane.push('<button onclick="voteazaBalta(' + c.id + ',-1)" style="background:none;border:none;cursor:pointer;color:' + (votDown ? '#ef4444' : 'var(--zc-text-muted)') + ';font-weight:700;">▼</button>');
+  if (BALTA_USER) butoane.push('<button onclick="toggleReplyBoxBalta(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Răspunde</button>');
+  if (CAN_EDIT && categorie === 'qa') {
+    butoane.push(c.raspuns_oficial
+      ? '<button onclick="marcheazaOficialBalta(' + c.id + ',false)" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Anulează oficial</button>'
+      : '<button onclick="marcheazaOficialBalta(' + c.id + ',true)" style="background:none;border:none;color:#38bdf8;cursor:pointer;">Marchează oficial</button>');
+  }
+  if (potEdita) butoane.push('<button onclick="editeazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Editează</button>');
+  if (esteAutorPropriu) butoane.push('<button onclick="stergeComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Șterge</button>');
+  if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Raportează</button>');
+
+  var replyBox = BALTA_USER
+    ? '<div id="cb-reply-box-' + c.id + '" style="display:none;margin-top:8px;padding-left:16px;border-left:2px solid var(--zc-border);">'
+      + '<textarea id="cb-reply-input-' + c.id + '" placeholder="Scrie un răspuns..." maxlength="2000" style="width:100%;min-height:50px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:8px;color:var(--zc-text-primary);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:4px;"><button onclick="trimiteComentariuBalta(' + c.id + ')" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Răspunde</button></div></div>'
+    : '';
+
+  var repliesHtml = replies.length
+    ? '<div style="margin-top:8px;padding-left:16px;border-left:2px solid var(--zc-border);">' + replies.map(function(r) { return renderComentariuBaltaHtml(r, [], categorie); }).join('') + '</div>'
+    : '';
+
+  return '<div id="cb-c-' + c.id + '" style="padding:12px 0;border-bottom:1px solid var(--zc-border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">'
+    + '<div>' + numeHtml + badgeBalta + badgeOficial + '</div>'
+    + '<div style="color:var(--zc-text-muted);font-size:11px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
+    + '<div id="cb-text-' + c.id + '" style="font-size:14px;color:var(--zc-text-strong);margin-top:4px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
+    + replyBox + repliesHtml + '</div>';
+}
+
+// ─── COMENTARII OVERLAY STAND (captură: Like/Super/WOW/Felicitări + Q&A stand: Confirm/Info depășit) ───
+// Overlay-ul afișează DOAR recordul standului (cea mai mare captură aprobată), fără id direct
+// spre captura originală (standuri.rec_* sunt câmpuri denormalizate, fără FK) — de-aia rezolvăm
+// id-ul real al capturii-record printr-un query separat, la fiecare deschidere de overlay.
+var OV_STAND_ID = null;
+var OV_CAPTURA_ID = null;
+var OV_SUB_TAB = 'captura';
+var OVC_CACHE = { captura: [], qa: [] };
+var OVC_CA_BALTA = false;
+
+async function loadComentariiOverlay(standId) {
+  OV_STAND_ID = standId;
+  OV_CAPTURA_ID = await resolveRecordCapturaId(standId);
+  var noRec = document.getElementById('ovc-captura-noRecord');
+  var content = document.getElementById('ovc-captura-content');
+  if (!OV_CAPTURA_ID) {
+    if (noRec) noRec.style.display = 'block';
+    if (content) content.style.display = 'none';
+    OVC_CACHE.captura = [];
+  } else {
+    if (noRec) noRec.style.display = 'none';
+    if (content) content.style.display = 'block';
+    await Promise.all([loadOvcComentarii('captura'), loadOvcReactiiCaptura()]);
+  }
+  await Promise.all([loadOvcComentarii('qa'), loadOvcReactiiStand()]);
+  setOvTabComentarii('captura');
+}
+
+async function resolveRecordCapturaId(standId) {
+  try {
+    var { data } = await sb.from('capturi').select('id')
+      .eq('stand_id', standId).eq('status', 'approved').eq('sters', false)
+      .order('kg', { ascending: false }).limit(1).maybeSingle();
+    return data ? data.id : null;
+  } catch(e) { return null; }
+}
+
+async function loadOvcComentarii(sub) {
+  if (sub === 'captura') {
+    if (!OV_CAPTURA_ID) { OVC_CACHE.captura = []; return; }
+    var { data, error } = await sb.rpc('citeste_comentarii_captura', { p_captura_id: OV_CAPTURA_ID });
+    if (!error) OVC_CACHE.captura = data || [];
+  } else {
+    var { data, error } = await sb.rpc('citeste_comentarii_stand', { p_stand_id: OV_STAND_ID });
+    if (!error) OVC_CACHE.qa = data || [];
+  }
+}
+
+async function loadOvcReactiiCaptura() {
+  if (!OV_CAPTURA_ID) return;
+  var { data } = await sb.rpc('citeste_reactii_captura', { p_captura_id: OV_CAPTURA_ID });
+  renderOvcReactiiCaptura(data || []);
+}
+
+function renderOvcReactiiCaptura(rows) {
+  var labels = { like: '👍 Like', super: '🔥 Super', wow: '😮 WOW', felicitari: '🎉 Felicitări' };
+  var el = document.getElementById('ovc-reactii-captura');
+  if (!el) return;
+  el.innerHTML = ['like', 'super', 'wow', 'felicitari'].map(function(tip) {
+    var row = rows.find(function(r) { return r.tip === tip; }) || { total: 0, am_reactionat: false };
+    return '<button onclick="toggleReactieCapturaOv(\'' + tip + '\')" style="background:' + (row.am_reactionat ? 'var(--zc-bg-tint)' : 'var(--zc-bg)') + ';border:1px solid ' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-border)') + ';color:' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-text-secondary-2)') + ';font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;">' + labels[tip] + ' <span>' + row.total + '</span></button>';
+  }).join('');
+}
+
+async function toggleReactieCapturaOv(tip) {
+  if (!BALTA_USER) { openAuthFromBalta(); return; }
+  if (!OV_CAPTURA_ID) return;
+  try {
+    await sb.rpc('reactioneaza_captura', { p_captura_id: OV_CAPTURA_ID, p_tip: tip });
+    await loadOvcReactiiCaptura();
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function loadOvcReactiiStand() {
+  var { data } = await sb.rpc('citeste_reactie_stand', { p_stand_id: OV_STAND_ID });
+  var row = (data && data[0]) || { confirm_count: 0, info_depasit_count: 0, pozitia_mea: null };
+  renderOvcReactiiStand(row);
+}
+
+function renderOvcReactiiStand(row) {
+  var el = document.getElementById('ovc-reactii-stand');
+  if (!el) return;
+  var confirmActiv = row.pozitia_mea === 'confirm';
+  var infoActiv = row.pozitia_mea === 'info_depasit';
+  el.innerHTML =
+    '<button onclick="setReactieStandOv(\'confirm\')" style="background:' + (confirmActiv ? 'var(--zc-bg-tint)' : 'var(--zc-bg)') + ';border:1px solid ' + (confirmActiv ? '#22c55e' : 'var(--zc-border)') + ';color:' + (confirmActiv ? '#22c55e' : 'var(--zc-text-secondary-2)') + ';font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;">✅ Confirm <span>' + row.confirm_count + '</span></button>'
+    + '<button onclick="setReactieStandOv(\'info_depasit\')" style="background:' + (infoActiv ? 'var(--zc-bg-tint)' : 'var(--zc-bg)') + ';border:1px solid ' + (infoActiv ? '#f59e0b' : 'var(--zc-border)') + ';color:' + (infoActiv ? '#f59e0b' : 'var(--zc-text-secondary-2)') + ';font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;">⚠️ Info depășit <span>' + row.info_depasit_count + '</span></button>';
+}
+
+async function setReactieStandOv(tip) {
+  if (!BALTA_USER) { openAuthFromBalta(); return; }
+  try {
+    await sb.rpc('reactioneaza_stand', { p_stand_id: OV_STAND_ID, p_tip: tip });
+    await loadOvcReactiiStand();
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+function setOvTabComentarii(sub) {
+  OV_SUB_TAB = sub;
+  var tabC = document.getElementById('ovc-tab-captura'), tabQ = document.getElementById('ovc-tab-qa');
+  if (tabC) { tabC.style.borderBottomColor = sub === 'captura' ? '#38bdf8' : 'transparent'; tabC.style.color = sub === 'captura' ? 'var(--zc-text-strong)' : 'var(--zc-text-secondary-2)'; }
+  if (tabQ) { tabQ.style.borderBottomColor = sub === 'qa' ? '#38bdf8' : 'transparent'; tabQ.style.color = sub === 'qa' ? 'var(--zc-text-strong)' : 'var(--zc-text-secondary-2)'; }
+  var panC = document.getElementById('ovc-panel-captura'), panQ = document.getElementById('ovc-panel-qa');
+  if (panC) panC.style.display = sub === 'captura' ? 'block' : 'none';
+  if (panQ) panQ.style.display = sub === 'qa' ? 'block' : 'none';
+  renderOvcCompose(sub);
+  renderOvcLista(sub);
+}
+
+function renderOvcCompose(sub) {
+  var el = document.getElementById(sub === 'captura' ? 'ovc-compose-captura' : 'ovc-compose-qa');
+  if (!el) return;
+  if (sub === 'captura' && !OV_CAPTURA_ID) { el.innerHTML = ''; return; }
+  if (!BALTA_USER) {
+    el.innerHTML = '<div style="background:var(--zc-bg-tint);border-radius:10px;padding:10px;text-align:center;font-size:12px;color:var(--zc-text-strong);">Autentifică-te pentru a comenta. <button onclick="openAuthFromBalta()" style="background:none;border:none;color:#38bdf8;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Creează cont</button></div>';
+    return;
+  }
+  var toggleHtml = CAN_EDIT
+    ? '<div style="display:flex;gap:12px;margin-bottom:6px;font-size:11px;color:var(--zc-text-secondary-2);">'
+      + '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="ovc-ca-cine-' + sub + '" ' + (!OVC_CA_BALTA ? 'checked' : '') + ' onchange="OVC_CA_BALTA=false"> Cont personal</label>'
+      + '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="radio" name="ovc-ca-cine-' + sub + '" ' + (OVC_CA_BALTA ? 'checked' : '') + ' onchange="OVC_CA_BALTA=true"> 🏊 Din partea bălții</label></div>'
+    : '';
+  var placeholder = sub === 'captura' ? 'Comentează la această captură...' : 'Întreabă ceva despre acest stand...';
+  el.innerHTML = toggleHtml
+    + '<textarea id="ovc-input-' + sub + '" placeholder="' + placeholder + '" maxlength="2000" style="width:100%;min-height:52px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:8px;color:var(--zc-text-primary);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:5px;"><button onclick="trimiteComentariuOv(\'' + sub + '\')" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Trimite</button></div>';
+}
+
+async function trimiteComentariuOv(sub, parinteId) {
+  var inputId = parinteId ? ('ovc-reply-input-' + sub + '-' + parinteId) : ('ovc-input-' + sub);
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    if (sub === 'captura') {
+      if (!OV_CAPTURA_ID) return;
+      await sb.rpc('adauga_comentariu_captura', { p_captura_id: OV_CAPTURA_ID, p_continut: text, p_parinte_id: parinteId || null, p_ca_balta: OVC_CA_BALTA });
+    } else {
+      await sb.rpc('adauga_comentariu_stand', { p_stand_id: OV_STAND_ID, p_continut: text, p_parinte_id: parinteId || null, p_ca_balta: OVC_CA_BALTA });
+    }
+    input.value = '';
+    await loadOvcComentarii(sub);
+    renderOvcLista(sub);
+  } catch(e) { alert(e.message || 'Eroare la trimiterea comentariului.'); }
+}
+
+function toggleReplyBoxOv(sub, id) {
+  var box = document.getElementById('ovc-reply-box-' + sub + '-' + id);
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function voteazaOv(sub, id, valoare) {
+  if (!BALTA_USER) { openAuthFromBalta(); return; }
+  try {
+    await sb.rpc('voteaza_comentariu', { p_tip: sub, p_id: id, p_valoare: valoare });
+    await loadOvcComentarii(sub);
+    renderOvcLista(sub);
+  } catch(e) { alert(e.message || 'Eroare la vot.'); }
+}
+
+async function marcheazaOficialOv(id, valoare) {
+  try {
+    await sb.rpc('marcheaza_raspuns_oficial_stand', { p_comentariu_id: id, p_valoare: valoare });
+    await loadOvcComentarii('qa');
+    renderOvcLista('qa');
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+function editeazaComentariuOvUI(sub, id) {
+  var textEl = document.getElementById('ovc-text-' + sub + '-' + id);
+  if (!textEl) return;
+  var textActual = textEl.textContent;
+  textEl.innerHTML = '<textarea id="ovc-edit-' + sub + '-' + id + '" maxlength="2000" style="width:100%;min-height:48px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(textActual) + '</textarea>'
+    + '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">'
+    + '<button onclick="salveazaEditareOv(\'' + sub + '\',' + id + ')" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Salvează</button>'
+    + '<button onclick="loadOvcComentarii(\'' + sub + '\').then(function(){renderOvcLista(\'' + sub + '\');})" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Anulează</button></div>';
+}
+
+async function salveazaEditareOv(sub, id) {
+  var input = document.getElementById('ovc-edit-' + sub + '-' + id);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('editeaza_comentariu', { p_tip: sub, p_id: id, p_continut_nou: text });
+    await loadOvcComentarii(sub);
+    renderOvcLista(sub);
+  } catch(e) { alert(e.message || 'Eroare la editare.'); }
+}
+
+async function stergeComentariuOvUI(sub, id) {
+  if (!confirm('Ștergi acest comentariu?')) return;
+  try {
+    await sb.rpc('sterge_comentariu_propriu', { p_tip: sub, p_id: id });
+    await loadOvcComentarii(sub);
+    renderOvcLista(sub);
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+async function raporteazaComentariuOvUI(sub, id) {
+  var motiv = prompt('De ce raportezi acest comentariu? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_comentariu', { p_tip: sub, p_id: id, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către administratorul bălții.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+function aratComentariuAscunsOv(sub, id) {
+  var c = (OVC_CACHE[sub] || []).find(function(x) { return x.id === id; });
+  if (c) c._fortatVizibil = true;
+  renderOvcLista(sub);
+}
+
+function renderOvcLista(sub) {
+  var listEl = document.getElementById('ovc-list-' + sub);
+  if (!listEl) return;
+  var rows = OVC_CACHE[sub] || [];
+  var top = rows.filter(function(r) { return !r.parinte_id; });
+  var repliesByParent = {};
+  rows.forEach(function(r) { if (r.parinte_id) (repliesByParent[r.parinte_id] = repliesByParent[r.parinte_id] || []).push(r); });
+  listEl.innerHTML = top.length
+    ? top.map(function(c) { return renderComentariuOvHtml(c, repliesByParent[c.id] || [], sub); }).join('')
+    : '<div style="text-align:center;color:var(--zc-text-muted);font-size:12px;padding:14px 0;">' + (sub === 'captura' ? 'Niciun comentariu încă la această captură.' : 'Nicio întrebare încă despre acest stand.') + '</div>';
+}
+
+function renderComentariuOvHtml(c, replies, sub) {
+  if (c.ascuns_auto && !c._fortatVizibil) {
+    return '<div id="ovc-c-' + sub + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);">Comentariu ascuns (multe voturi negative). <button onclick="aratComentariuAscunsOv(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
+  }
+  var esteSters = !c.autor_id;
+  var nume = c.autor_username || c.autor_zoda_id || 'Utilizator șters';
+  var numeHtml = esteSters
+    ? '<span style="color:var(--zc-text-muted);font-weight:700;">Utilizator șters</span>'
+    : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" style="color:var(--zc-text-strong);font-weight:700;font-size:12px;text-decoration:none;">' + escH(nume) + '</a>';
+  var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🏊</span>' : '';
+  var badgeOficial = (sub === 'qa' && c.raspuns_oficial) ? ' <span style="background:#0c3a4d;color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">✓ Oficial</span>' : '';
+  var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:10px;">(editat)</span>' : '';
+  var esteAutorPropriu = BALTA_USER && c.autor_id === BALTA_USER.id;
+  var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
+  var votUp = c.vot_propriu === 1, votDown = c.vot_propriu === -1;
+
+  var butoane = [];
+  butoane.push('<button onclick="voteazaOv(\'' + sub + '\',' + c.id + ',1)" style="background:none;border:none;cursor:pointer;color:' + (votUp ? '#38bdf8' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▲</button>');
+  butoane.push('<span style="color:var(--zc-text-secondary-2);font-weight:700;font-size:11px;">' + c.scor + '</span>');
+  butoane.push('<button onclick="voteazaOv(\'' + sub + '\',' + c.id + ',-1)" style="background:none;border:none;cursor:pointer;color:' + (votDown ? '#ef4444' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▼</button>');
+  if (BALTA_USER) butoane.push('<button onclick="toggleReplyBoxOv(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Răspunde</button>');
+  if (CAN_EDIT && sub === 'qa') {
+    butoane.push(c.raspuns_oficial
+      ? '<button onclick="marcheazaOficialOv(' + c.id + ',false)" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Anulează oficial</button>'
+      : '<button onclick="marcheazaOficialOv(' + c.id + ',true)" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:11px;">Marchează oficial</button>');
+  }
+  if (potEdita) butoane.push('<button onclick="editeazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Editează</button>');
+  if (esteAutorPropriu) butoane.push('<button onclick="stergeComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+  if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+
+  var replyBox = BALTA_USER
+    ? '<div id="ovc-reply-box-' + sub + '-' + c.id + '" style="display:none;margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">'
+      + '<textarea id="ovc-reply-input-' + sub + '-' + c.id + '" placeholder="Scrie un răspuns..." maxlength="2000" style="width:100%;min-height:44px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:4px;"><button onclick="trimiteComentariuOv(\'' + sub + '\',' + c.id + ')" style="background:var(--zc-cta-2);border:none;color:#fff;font-weight:700;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;">Răspunde</button></div></div>'
+    : '';
+
+  var repliesHtml = replies.length
+    ? '<div style="margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">' + replies.map(function(r) { return renderComentariuOvHtml(r, [], sub); }).join('') + '</div>'
+    : '';
+
+  return '<div id="ovc-c-' + sub + '-' + c.id + '" style="padding:10px 0;border-bottom:1px solid var(--zc-border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;flex-wrap:wrap;">'
+    + '<div>' + numeHtml + badgeBalta + badgeOficial + '</div>'
+    + '<div style="color:var(--zc-text-muted);font-size:10px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
+    + '<div id="ovc-text-' + sub + '-' + c.id + '" style="font-size:13px;color:var(--zc-text-strong);margin-top:3px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
+    + replyBox + repliesHtml + '</div>';
 }
 
 // ─── TOP 10 LUNAR ──────────────────────────────────────────────────────────
@@ -2882,6 +3450,7 @@ function openOverlay(id) {
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
   requestAnimationFrame(pozitioneazaTopbarOverlay);
+  loadComentariiOverlay(id);
 }
 
 // ── EDITARE DETALII STAND (zonă, adâncime, distanță, lățime, poze) ──────────
