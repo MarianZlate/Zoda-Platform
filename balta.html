@@ -1322,6 +1322,7 @@ var BALTA = null;     // row din tabela balti
 var WA_FALLBACK_DIGITS = ''; // cifrele telefonului, cand e introdus complet cu indicativ, folosite ca fallback pt WhatsApp/Tarife
 var WORKER_R2_UPLOAD = 'https://zoda-r2-upload.marianzlate90.workers.dev';
 var CAN_EDIT = false; // true daca userul curent (zoda_admin sau balta_admin al acestei balti) poate edita
+var IS_ZODA_ADMIN = false; // true doar pentru zoda_admin — moderare inline pe comentariile oricui
 var IS_AMBASADOR = false; // true daca userul curent e ambasadorul acestei balti (doar poze/video/detalii stand, cu aprobare)
 var ST = [];          // standuri cu pozitii + poze
 var CAPTURES = [];    // capturi (viitor: tabela captures)
@@ -1572,6 +1573,7 @@ async function checkAdminAndShowBar() {
   var canEdit = false;
   if (rol === 'zoda_admin') {
     canEdit = true;
+    IS_ZODA_ADMIN = true;
   } else if (rol === 'balta_admin') {
     var pRes = await sb.from('user_profiles').select('zoda_id').eq('id', user.id).single();
     if (pRes.data?.zoda_id && pRes.data.zoda_id === BALTA.admin_zoda_id) {
@@ -2230,10 +2232,22 @@ async function loadComentariiBalta() {
     await Promise.all([
       loadComentariiBaltaTab('qa'),
       loadComentariiBaltaTab('discutie'),
-      loadInimaBalta()
+      loadInimaBalta(),
+      checkZodaAdminFlag()
     ]);
   } catch(e) {}
   setTabComentariiBalta('discutie');
+}
+
+// Verificare ușoară de rol, independentă de ?edit=1 (care controlează doar
+// edit-bar-ul de editare a bălții) — folosită pentru butoanele de moderare
+// inline din secțiunile de comentarii, disponibile la navigare normală.
+async function checkZodaAdminFlag() {
+  if (IS_ZODA_ADMIN || !BALTA_USER) return;
+  try {
+    var { data } = await sb.from('user_roles').select('rol').eq('id', BALTA_USER.id).single();
+    if (data?.rol === 'zoda_admin') IS_ZODA_ADMIN = true;
+  } catch(e) {}
 }
 
 async function loadComentariiBaltaTab(categorie) {
@@ -2355,6 +2369,20 @@ async function mutaComentariuBaltaUI(id, categorieNoua) {
   } catch(e) { alert(e.message || 'Eroare la mutare.'); }
 }
 
+async function modereazaComentariuBaltaUI(id, actiune) {
+  var mesaje = {
+    sterge: 'Ștergi acest comentariu (și toate răspunsurile), ca administrator? Acțiunea afectează contul autorului, indiferent cine este.',
+    ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
+    reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
+  };
+  if (!confirm(mesaje[actiune])) return;
+  try {
+    await sb.rpc('modereaza_comentariu_admin', { p_tip: 'balta', p_id: id, p_actiune: actiune });
+    await Promise.all([loadComentariiBaltaTab('qa'), loadComentariiBaltaTab('discutie')]);
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare la moderare.'); }
+}
+
 function editeazaComentariuBaltaUI(id) {
   var textEl = document.getElementById('cb-text-' + id);
   if (!textEl) return;
@@ -2422,6 +2450,10 @@ function renderListaComentariiBalta() {
 }
 
 function renderComentariuBaltaHtml(c, replies, categorie) {
+  if (c.ascuns_admin && !IS_ZODA_ADMIN) {
+    // ascundere strictă de moderator — fără opțiune de "arată oricum" pentru useri normali
+    return '<div id="cb-c-' + c.id + '" style="padding:10px 0;border-bottom:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-muted);font-style:italic;">Comentariu ascuns de moderator.</div>';
+  }
   if (c.ascuns_auto && !c._fortatVizibil) {
     return '<div id="cb-c-' + c.id + '" style="padding:10px 0;border-bottom:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-muted);">'
       + 'Comentariu ascuns (multe voturi negative). <button onclick="aratComentariuAscunsBalta(' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
@@ -2433,6 +2465,7 @@ function renderComentariuBaltaHtml(c, replies, categorie) {
     : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" style="color:var(--zc-text-strong);font-weight:700;text-decoration:none;">' + escH(nume) + '</a>';
   var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">🏊 Baltă</span>' : '';
   var badgeOficial = c.raspuns_oficial ? ' <span style="background:#0c3a4d;color:#38bdf8;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">✓ Răspuns oficial</span>' : '';
+  var badgeAscunsAdmin = (c.ascuns_admin && IS_ZODA_ADMIN) ? ' <span style="background:#4c1d1d;color:#f87171;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;">🙈 Ascuns (doar tu vezi)</span>' : '';
   var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:11px;">(editat)</span>' : '';
   var esteAutorPropriu = BALTA_USER && c.autor_id === BALTA_USER.id;
   var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
@@ -2449,12 +2482,18 @@ function renderComentariuBaltaHtml(c, replies, categorie) {
       : '<button onclick="marcheazaOficialBalta(' + c.id + ',true)" style="background:none;border:none;color:#38bdf8;cursor:pointer;">Marchează oficial</button>');
   }
   if (potEdita) butoane.push('<button onclick="editeazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Editează</button>');
-  if (esteAutorPropriu) butoane.push('<button onclick="stergeComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Șterge</button>');
+  if (esteAutorPropriu && !IS_ZODA_ADMIN) butoane.push('<button onclick="stergeComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Șterge</button>');
   if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Raportează</button>');
   if (CAN_EDIT && !c.parinte_id) {
     butoane.push(categorie === 'qa'
       ? '<button onclick="mutaComentariuBaltaUI(' + c.id + ',\'discutie\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;">↷ Mută în Discuții</button>'
       : '<button onclick="mutaComentariuBaltaUI(' + c.id + ',\'qa\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;">↷ Mută în Q&amp;A</button>');
+  }
+  if (IS_ZODA_ADMIN) {
+    butoane.push(c.ascuns_admin
+      ? '<button onclick="modereazaComentariuBaltaUI(' + c.id + ',\'reafiseaza\')" style="background:none;border:none;color:#4ade80;cursor:pointer;">👁️ Reafișează</button>'
+      : '<button onclick="modereazaComentariuBaltaUI(' + c.id + ',\'ascunde\')" style="background:none;border:none;color:#f59e0b;cursor:pointer;">🙈 Ascunde (admin)</button>');
+    butoane.push('<button onclick="modereazaComentariuBaltaUI(' + c.id + ',\'sterge\')" style="background:none;border:none;color:#ef4444;cursor:pointer;">🗑️ Șterge (admin)</button>');
   }
 
   var replyBox = BALTA_USER
@@ -2469,7 +2508,7 @@ function renderComentariuBaltaHtml(c, replies, categorie) {
 
   return '<div id="cb-c-' + c.id + '" style="padding:12px 0;border-bottom:1px solid var(--zc-border);">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">'
-    + '<div>' + numeHtml + badgeBalta + badgeOficial + '</div>'
+    + '<div>' + numeHtml + badgeBalta + badgeOficial + badgeAscunsAdmin + '</div>'
     + '<div style="color:var(--zc-text-muted);font-size:11px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
     + '<div id="cb-text-' + c.id + '" style="font-size:14px;color:var(--zc-text-strong);margin-top:4px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
     + '<div style="display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
@@ -2690,6 +2729,20 @@ async function raporteazaComentariuOvUI(sub, id) {
   } catch(e) { alert(e.message || 'Eroare la raportare.'); }
 }
 
+async function modereazaComentariuOvUI(sub, id, actiune) {
+  var mesaje = {
+    sterge: 'Ștergi acest comentariu (și toate răspunsurile), ca administrator? Acțiunea afectează contul autorului, indiferent cine este.',
+    ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
+    reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
+  };
+  if (!confirm(mesaje[actiune])) return;
+  try {
+    await sb.rpc('modereaza_comentariu_admin', { p_tip: ovcTipDb(sub), p_id: id, p_actiune: actiune });
+    await loadOvcComentarii(sub);
+    renderOvcLista(sub);
+  } catch(e) { alert(e.message || 'Eroare la moderare.'); }
+}
+
 function aratComentariuAscunsOv(sub, id) {
   var c = (OVC_CACHE[sub] || []).find(function(x) { return x.id === id; });
   if (c) c._fortatVizibil = true;
@@ -2709,6 +2762,9 @@ function renderOvcLista(sub) {
 }
 
 function renderComentariuOvHtml(c, replies, sub) {
+  if (c.ascuns_admin && !IS_ZODA_ADMIN) {
+    return '<div id="ovc-c-' + sub + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);font-style:italic;">Comentariu ascuns de moderator.</div>';
+  }
   if (c.ascuns_auto && !c._fortatVizibil) {
     return '<div id="ovc-c-' + sub + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);">Comentariu ascuns (multe voturi negative). <button onclick="aratComentariuAscunsOv(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
   }
@@ -2719,6 +2775,7 @@ function renderComentariuOvHtml(c, replies, sub) {
     : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" style="color:var(--zc-text-strong);font-weight:700;font-size:12px;text-decoration:none;">' + escH(nume) + '</a>';
   var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🏊</span>' : '';
   var badgeOficial = (sub === 'qa' && c.raspuns_oficial) ? ' <span style="background:#0c3a4d;color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">✓ Oficial</span>' : '';
+  var badgeAscunsAdmin = (c.ascuns_admin && IS_ZODA_ADMIN) ? ' <span style="background:#4c1d1d;color:#f87171;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🙈 Ascuns</span>' : '';
   var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:10px;">(editat)</span>' : '';
   var esteAutorPropriu = BALTA_USER && c.autor_id === BALTA_USER.id;
   var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
@@ -2735,8 +2792,14 @@ function renderComentariuOvHtml(c, replies, sub) {
       : '<button onclick="marcheazaOficialOv(' + c.id + ',true)" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:11px;">Marchează oficial</button>');
   }
   if (potEdita) butoane.push('<button onclick="editeazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Editează</button>');
-  if (esteAutorPropriu) butoane.push('<button onclick="stergeComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+  if (esteAutorPropriu && !IS_ZODA_ADMIN) butoane.push('<button onclick="stergeComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
   if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+  if (IS_ZODA_ADMIN) {
+    butoane.push(c.ascuns_admin
+      ? '<button onclick="modereazaComentariuOvUI(\'' + sub + '\',' + c.id + ',\'reafiseaza\')" style="background:none;border:none;color:#4ade80;cursor:pointer;font-size:11px;">👁️ Reafișează</button>'
+      : '<button onclick="modereazaComentariuOvUI(\'' + sub + '\',' + c.id + ',\'ascunde\')" style="background:none;border:none;color:#f59e0b;cursor:pointer;font-size:11px;">🙈 Ascunde</button>');
+    butoane.push('<button onclick="modereazaComentariuOvUI(\'' + sub + '\',' + c.id + ',\'sterge\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;">🗑️ Șterge (admin)</button>');
+  }
 
   var replyBox = BALTA_USER
     ? '<div id="ovc-reply-box-' + sub + '-' + c.id + '" style="display:none;margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">'
@@ -2750,7 +2813,7 @@ function renderComentariuOvHtml(c, replies, sub) {
 
   return '<div id="ovc-c-' + sub + '-' + c.id + '" style="padding:10px 0;border-bottom:1px solid var(--zc-border);">'
     + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;flex-wrap:wrap;">'
-    + '<div>' + numeHtml + badgeBalta + badgeOficial + '</div>'
+    + '<div>' + numeHtml + badgeBalta + badgeOficial + badgeAscunsAdmin + '</div>'
     + '<div style="color:var(--zc-text-muted);font-size:10px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
     + '<div id="ovc-text-' + sub + '-' + c.id + '" style="font-size:13px;color:var(--zc-text-strong);margin-top:3px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
     + '<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
