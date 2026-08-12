@@ -279,7 +279,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .spnr{font-size:16px;font-weight:900;color:#38bdf8;}
 .xbtn{background:transparent;border:none;color:var(--zc-text-muted);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;}
 .xbtn:hover{color:var(--zc-text-primary);}
-.sec-lbl{font-size:10px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.07em;margin-bottom:6px;}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.07em;margin-bottom:6px;min-height:24px;display:flex;align-items:flex-start;}
 .foto-wrap{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1/1;cursor:zoom-in;background:var(--zc-bg);display:block;}
 .foto-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
 .zoom-hint{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);border-radius:4px;padding:2px 5px;font-size:10px;color:var(--zc-text-secondary-2);pointer-events:none;}
@@ -2460,6 +2460,11 @@ var OV_SUB_TAB = 'captura';
 var OVC_CACHE = { captura: [], qa: [] };
 var OVC_CA_BALTA = false;
 
+// Sub-tab-urile UI se numesc 'captura'/'qa', dar RPC-urile generice (voteaza_comentariu,
+// editeaza_comentariu, sterge_comentariu_propriu, raporteaza_comentariu) folosesc
+// p_tip din DB, care e 'captura'/'stand' (nu 'qa') — conversia se face aici, o singură dată.
+function ovcTipDb(sub) { return sub === 'qa' ? 'stand' : 'captura'; }
+
 async function loadComentariiOverlay(standId) {
   OV_STAND_ID = standId;
   OV_CAPTURA_ID = await resolveRecordCapturaId(standId);
@@ -2605,7 +2610,7 @@ function toggleReplyBoxOv(sub, id) {
 async function voteazaOv(sub, id, valoare) {
   if (!BALTA_USER) { openAuthFromBalta(); return; }
   try {
-    await sb.rpc('voteaza_comentariu', { p_tip: sub, p_id: id, p_valoare: valoare });
+    await sb.rpc('voteaza_comentariu', { p_tip: ovcTipDb(sub), p_id: id, p_valoare: valoare });
     await loadOvcComentarii(sub);
     renderOvcLista(sub);
   } catch(e) { alert(e.message || 'Eroare la vot.'); }
@@ -2635,7 +2640,7 @@ async function salveazaEditareOv(sub, id) {
   var text = (input.value || '').trim();
   if (!text) return;
   try {
-    await sb.rpc('editeaza_comentariu', { p_tip: sub, p_id: id, p_continut_nou: text });
+    await sb.rpc('editeaza_comentariu', { p_tip: ovcTipDb(sub), p_id: id, p_continut_nou: text });
     await loadOvcComentarii(sub);
     renderOvcLista(sub);
   } catch(e) { alert(e.message || 'Eroare la editare.'); }
@@ -2644,7 +2649,7 @@ async function salveazaEditareOv(sub, id) {
 async function stergeComentariuOvUI(sub, id) {
   if (!confirm('Ștergi acest comentariu?')) return;
   try {
-    await sb.rpc('sterge_comentariu_propriu', { p_tip: sub, p_id: id });
+    await sb.rpc('sterge_comentariu_propriu', { p_tip: ovcTipDb(sub), p_id: id });
     await loadOvcComentarii(sub);
     renderOvcLista(sub);
   } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
@@ -2654,7 +2659,7 @@ async function raporteazaComentariuOvUI(sub, id) {
   var motiv = prompt('De ce raportezi acest comentariu? (opțional)');
   if (motiv === null) return;
   try {
-    await sb.rpc('raporteaza_comentariu', { p_tip: sub, p_id: id, p_motiv: motiv || null });
+    await sb.rpc('raporteaza_comentariu', { p_tip: ovcTipDb(sub), p_id: id, p_motiv: motiv || null });
     alert('Mulțumim, am trimis raportarea către administratorul bălții.');
   } catch(e) { alert(e.message || 'Eroare la raportare.'); }
 }
