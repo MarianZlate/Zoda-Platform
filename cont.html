@@ -1065,6 +1065,17 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
   </div>
 </div>
 
+<!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ. -->
+<div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--panel, #111827);border:1px solid var(--border, #1e293b);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div id="zoda-confirm-msg" style="font-size:14px;color:var(--text, #f1f5f9);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--border, #1e293b);color:var(--text-dim, #94a3b8);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
+      <button id="zoda-confirm-ok" style="background:#ef4444;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Confirmă</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MODERARE — raportări + blocări, per baltă (balta_admin) -->
 <div id="moderare-modal">
   <div class="hof-modal-inner">
@@ -1835,6 +1846,32 @@ function escH(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
+function zodaConfirm(mesaj) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('zoda-confirm-modal');
+    var msgEl = document.getElementById('zoda-confirm-msg');
+    var okBtn = document.getElementById('zoda-confirm-ok');
+    var cancelBtn = document.getElementById('zoda-confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm(mesaj)); return; }
+    msgEl.textContent = mesaj;
+    modal.style.display = 'flex';
+    function cleanup(rezultat) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(rezultat);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === modal) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
+}
+
 // ── BALTA ADMIN ───────────────────────────────────────────────────────────────
 // ── URMĂRIRI (widget de gestionare: bălți + pescari urmăriți) ────────────────
 var _urmaririIncarcate = false;
@@ -2208,7 +2245,7 @@ async function confirmaBlocarePescar(pescarId, raportareId) {
   var motivInput = document.querySelector('input[name="mod-motiv-' + raportareId + '"]:checked');
   var motiv = motivInput ? motivInput.value : 'altul';
   var detalii = document.getElementById('mod-detalii-' + raportareId)?.value.trim() || null;
-  if (!confirm('Sigur blochezi acest pescar din secțiunile de comentarii ale bălții?')) return;
+  if (!(await zodaConfirm('Sigur blochezi acest pescar din secțiunile de comentarii ale bălții?'))) return;
   try {
     await sb.rpc('blocheaza_pescar', { p_balta_id: MOD_BALTA_ID, p_pescar_id: pescarId, p_motiv: motiv, p_detalii: detalii });
     await loadRaportariModerare();
@@ -2254,7 +2291,7 @@ function renderBlocariModerare() {
 }
 
 async function retrageBlocarePescar(blocareId) {
-  if (!confirm('Retragi această blocare? Pescarul va putea comenta din nou la această baltă.')) return;
+  if (!(await zodaConfirm('Retragi această blocare? Pescarul va putea comenta din nou la această baltă.'))) return;
   try {
     await sb.rpc('retrage_blocare', { p_blocare_id: blocareId });
     await loadBlocariModerare();
