@@ -816,6 +816,11 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
        Ascunde #main-area (hartă/standuri/hall of fame/top10) și arată în loc
        un card simplu per bazin, cu link către pagina lui (balta.html?id=...). -->
   <div id="bazine-grid-section" style="display:none;padding:18px 0;">
+    <!-- Harta bălții-mamă (dacă a fost încărcată) — doar imagine statică, fără
+         pini/standuri interactive, fiindcă standurile aparțin bazinelor, nu hub-ului. -->
+    <div id="hub-harta-wrap" style="display:none;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:0 0 32px rgba(56,189,248,.25),0 0 8px rgba(56,189,248,.15);">
+      <img id="hub-harta-img" src="" alt="Harta" style="display:block;width:100%;max-height:420px;object-fit:contain;background:var(--zc-bg-tint);"/>
+    </div>
     <div style="font-size:17px;font-weight:700;color:var(--zc-text-strong);margin-bottom:12px;">🌊 Bazine</div>
     <div id="bazine-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;"></div>
   </div>
@@ -1877,6 +1882,17 @@ function renderPage(hartaUrl) {
   if (b.este_hub) {
     var mainArea = document.getElementById('main-area');
     if (mainArea) mainArea.style.display = 'none';
+    // Harta proprie a bălții-mamă (dacă a fost încărcată) — afișată deasupra
+    // gridului de bazine, ca imagine statică (fără pini, hub-ul nu are standuri proprii).
+    var hubHartaWrap = document.getElementById('hub-harta-wrap');
+    if (hubHartaWrap) {
+      if (hartaUrl) {
+        document.getElementById('hub-harta-img').src = hartaUrl;
+        hubHartaWrap.style.display = 'block';
+      } else {
+        hubHartaWrap.style.display = 'none';
+      }
+    }
     renderBazineGrid(b.id);
   }
 
@@ -2596,7 +2612,13 @@ function pinScale() {
   else base = 0.67;
   // Pe mobil, harta e mult mai îngustă — același procent de distanță între
   // standuri înseamnă mult mai puțini pixeli reali, deci micșorăm suplimentar.
-  if (window.innerWidth <= 768) base = Math.max(0.43, base * 0.55);
+  if (window.innerWidth <= 768) {
+    base = Math.max(0.43, base * 0.55);
+  } else {
+    // Pe desktop harta e mult mai lată — pin-urile erau prea mici / greu de văzut,
+    // le mărim (doar desktop, mobilul rămâne neschimbat mai sus).
+    base = base * 1.5;
+  }
   return base;
 }
 
