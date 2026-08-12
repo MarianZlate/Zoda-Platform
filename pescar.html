@@ -641,6 +641,23 @@ function fmtDate(str) {
   return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function openAuthFromPescar() {
+  sessionStorage.setItem('zoda_open_auth', 'register');
+  window.location.href = 'index.html';
+}
+
+function formatDataRelativa(iso) {
+  var diffMs = Date.now() - new Date(iso).getTime();
+  var min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'acum';
+  if (min < 60) return 'acum ' + min + ' min';
+  var ore = Math.floor(min / 60);
+  if (ore < 24) return 'acum ' + ore + 'h';
+  var zile = Math.floor(ore / 24);
+  if (zile < 30) return 'acum ' + zile + 'z';
+  return new Date(iso).toLocaleDateString('ro-RO');
+}
+
 function switchRecorduriTab(tab) {
   document.getElementById('recorduri-active-list').style.display  = tab === 'active'  ? 'block' : 'none';
   document.getElementById('recorduri-trecute-list').style.display = tab === 'trecute' ? 'block' : 'none';
@@ -742,6 +759,8 @@ function shareProfile() {
 // ── URMĂREȘTE PESCAR ─────────────────────────────────────────────────────────
 var URMARESC_PESCAR_CURENT = false;
 var PESCAR_VIZUALIZAT_ZODA_ID = null;
+var PC_USER = null; // userul logat care vizualizează profilul (null = vizitator) — folosit de secțiunea de comentarii captură
+var PC_IS_ZODA_ADMIN = false; // moderare inline pe comentariile oricui
 
 async function initButonUrmarirePescar(zodaId) {
   const btn = document.getElementById('btn-urmareste-pescar');
@@ -902,10 +921,14 @@ async function boot() {
     isLoggedIn = !!session?.user;
     sessionUser = session?.user || null;
   } catch(e) { isLoggedIn = false; }
+  PC_USER = sessionUser;
 
   if (isLoggedIn && sessionUser) {
     sb.from('user_roles').select('rol').eq('id', sessionUser.id).single()
-      .then(({ data }) => verificaAcorduriPendinte(sessionUser, data?.rol || 'user'));
+      .then(({ data }) => {
+        verificaAcorduriPendinte(sessionUser, data?.rol || 'user');
+        if (data?.rol === 'zoda_admin') PC_IS_ZODA_ADMIN = true;
+      });
   }
 
   if (!isLoggedIn) {
@@ -994,7 +1017,7 @@ async function loadPescarData(zodaId) {
   // 5. Top 10 lunar istoric — ordonăm după pozitie, apoi sortăm în JS după dată
   const { data: top10Istoric } = await sb
     .from('top10_lunar_istoric')
-    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
+    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(id, foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('zoda_id', zodaId)
     .order('pozitie', { ascending: true });
 
@@ -1049,7 +1072,19 @@ async function loadPescarData(zodaId) {
   renderHero(profile, steleData);
   renderStatsRapide(capturiPublice || [], recorduriActive || []);
   renderRecordPersonal(recorduriActive || []);
-  renderRecorduri(steleLogRaw || [], recorduriActive || [], standuriTrecuteMap);
+
+  // Rezolvă captura_id reală a recordului activ pe fiecare stand — standuri.rec_*
+  // sunt câmpuri denormalizate fără FK spre capturi (același caz ca în overlay-ul
+  // de stand din balta.html), deci luăm cea mai mare captură aprobată de la acel stand.
+  const recorduriCapturaIdMap = {};
+  await Promise.all((recorduriActive || []).map(async (s) => {
+    const { data: topCaptura } = await sb.from('capturi').select('id')
+      .eq('stand_id', s.id).eq('status', 'approved').eq('sters', false)
+      .order('kg', { ascending: false }).limit(1).maybeSingle();
+    if (topCaptura) recorduriCapturaIdMap[s.id] = topCaptura.id;
+  }));
+
+  renderRecorduri(steleLogRaw || [], recorduriActive || [], standuriTrecuteMap, recorduriCapturaIdMap);
   renderTopuri(steleLogRaw || [], top10Sortat, hofActiveMap, hofBaltaIds);
   initButonUrmarirePescar(zodaId);
 
@@ -1131,7 +1166,7 @@ function renderRecordPersonal(recorduriActive) {
 // explicite: click pe card (oriunde) → deschide poza; click pe numele
 // bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, comentariiId } = opts;
   const cardClick = buildFotoClickCaptura(photoUrl, photoDovadaUrl);
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
@@ -1139,6 +1174,10 @@ function crCardHtml(opts) {
   const baltaClick = baltaLink ? `event.stopPropagation();savePescarState();window.location.href='${baltaLink}'` : 'event.stopPropagation()';
   const baltaHtml = baltaText
     ? `<div class="cr-meta-line"><span class="cr-balta-link" onclick="${baltaClick}">📍 ${baltaText}</span></div>`
+    : '';
+  const comentariiHtml = comentariiId != null
+    ? `<button class="pc-toggle-btn" onclick="event.stopPropagation();togglePescarComentarii(${comentariiId})" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;margin-top:6px;">💬 Comentarii</button>
+       <div id="pc-panel-${comentariiId}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--zc-border);" onclick="event.stopPropagation()"></div>`
     : '';
   const inner = `
     <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
@@ -1150,12 +1189,13 @@ function crCardHtml(opts) {
       ${metaHtml}
       ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
+      ${comentariiHtml}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
   return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
 }
 
-function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
+function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap, recorduriCapturaIdMap) {
   const activeList  = document.getElementById('recorduri-active-list');
   const trecuteList = document.getElementById('recorduri-trecute-list');
   const activeStandIds = new Set((recorduriActive).map(s => String(s.id)));
@@ -1173,6 +1213,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
       baltaText: escH(s.balti?.nume || '—'),
       baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
+      comentariiId: (recorduriCapturaIdMap || {})[s.id] || null,
     });
   });
 
@@ -1251,6 +1292,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaText: escH(baltaNume),
         baltaLink: `balta.html?id=${t.balta_id}`,
         dateText: capt.data_captura || '',
+        comentariiId: capt.id || null,
       });
     });
 
@@ -1270,6 +1312,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaText: escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : ''),
         baltaLink: `balta.html?id=${baltaId}`,
         dateText: p.data_captura || '',
+        comentariiId: p.capturaId || null,
       });
     });
   });
@@ -1292,6 +1335,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaLink: null,
         dateText: capt.data_captura || '',
         trecut: true,
+        comentariiId: capt.id || null,
       });
     });
 
@@ -1322,6 +1366,215 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
   trecuteList.innerHTML = trecuteHtml;
   document.getElementById('realizari-active-empty').style.display  = activeHtml  ? 'none' : 'block';
   document.getElementById('realizari-trecute-empty').style.display = trecuteHtml ? 'none' : 'block';
+}
+
+// ─── COMENTARII CAPTURĂ (profil public pescar) ──────────────────────────────
+// Panou inline, per card (nu modal separat) — se încarcă lazy, doar la prima
+// deschidere. Fără toggle "răspund ca baltă" aici (spre deosebire de overlay-ul
+// de stand din balta.html, unde CAN_EDIT e deja calculat) — un vizitator care
+// e balta_admin undeva poate oricum răspunde din contul personal.
+var PC_CACHE = {};      // captura_id -> array comentarii
+var PC_LOADED = {};     // captura_id -> bool (deja încărcat o dată)
+var PC_REACTII_CACHE = {}; // captura_id -> array reacții (pt. re-randare locală, fără refetch)
+
+function togglePescarComentarii(capturaId) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  var deschis = panel.style.display !== 'none';
+  if (deschis) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  if (!PC_LOADED[capturaId]) {
+    PC_LOADED[capturaId] = true;
+    loadPescarComentarii(capturaId);
+  }
+}
+
+async function loadPescarComentarii(capturaId) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  panel.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:12px;padding:8px 0;">Se încarcă...</div>';
+  var [{ data: comentarii }, { data: reactii }] = await Promise.all([
+    sb.rpc('citeste_comentarii_captura', { p_captura_id: capturaId }),
+    sb.rpc('citeste_reactii_captura', { p_captura_id: capturaId })
+  ]);
+  PC_CACHE[capturaId] = comentarii || [];
+  PC_REACTII_CACHE[capturaId] = reactii || [];
+  renderPescarComentariiPanel(capturaId, reactii || []);
+}
+
+function renderPescarComentariiPanel(capturaId, reactii) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  var labels = { like: '👍 Like', super: '🔥 Super', wow: '😮 WOW', felicitari: '🎉 Felicitări' };
+  var reactiiHtml = ['like', 'super', 'wow', 'felicitari'].map(function(tip) {
+    var row = reactii.find(function(r) { return r.tip === tip; }) || { total: 0, am_reactionat: false };
+    return '<button onclick="togglePescarReactie(' + capturaId + ',\'' + tip + '\')" style="background:' + (row.am_reactionat ? 'var(--zc-bg-tint)' : 'var(--zc-bg)') + ';border:1px solid ' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-border)') + ';color:' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-text-secondary-2)') + ';font-size:11px;font-weight:700;padding:5px 9px;border-radius:18px;cursor:pointer;">' + labels[tip] + ' <span>' + row.total + '</span></button>';
+  }).join('');
+
+  var composeHtml;
+  if (!PC_USER) {
+    composeHtml = '<div style="background:var(--zc-bg-tint);border-radius:8px;padding:8px;text-align:center;font-size:11px;color:var(--zc-text-strong);margin-top:8px;">Autentifică-te pentru a comenta. <button onclick="openAuthFromPescar()" style="background:none;border:none;color:#38bdf8;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Creează cont</button></div>';
+  } else {
+    composeHtml = '<div style="margin-top:8px;">'
+      + '<textarea id="pc-input-' + capturaId + '" placeholder="Comentează la această captură..." maxlength="2000" style="width:100%;min-height:48px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:8px;color:var(--zc-text-primary);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:5px;"><button onclick="trimitePescarComentariu(' + capturaId + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Trimite</button></div></div>';
+  }
+
+  var rows = PC_CACHE[capturaId] || [];
+  var top = rows.filter(function(r) { return !r.parinte_id; });
+  var repliesByParent = {};
+  rows.forEach(function(r) { if (r.parinte_id) (repliesByParent[r.parinte_id] = repliesByParent[r.parinte_id] || []).push(r); });
+  var listaHtml = top.length
+    ? top.map(function(c) { return renderPescarComentariuHtml(capturaId, c, repliesByParent[c.id] || []); }).join('')
+    : '<div style="text-align:center;color:var(--zc-text-muted);font-size:12px;padding:10px 0;">Niciun comentariu încă la această captură.</div>';
+
+  panel.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + reactiiHtml + '</div>' + composeHtml + '<div style="margin-top:8px;">' + listaHtml + '</div>';
+}
+
+async function togglePescarReactie(capturaId, tip) {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  try {
+    await sb.rpc('reactioneaza_captura', { p_captura_id: capturaId, p_tip: tip });
+    var { data: reactii } = await sb.rpc('citeste_reactii_captura', { p_captura_id: capturaId });
+    PC_REACTII_CACHE[capturaId] = reactii || [];
+    renderPescarComentariiPanel(capturaId, reactii || []);
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function trimitePescarComentariu(capturaId, parinteId) {
+  var inputId = parinteId ? ('pc-reply-input-' + capturaId + '-' + parinteId) : ('pc-input-' + capturaId);
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('adauga_comentariu_captura', { p_captura_id: capturaId, p_continut: text, p_parinte_id: parinteId || null, p_ca_balta: false });
+    input.value = '';
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la trimiterea comentariului.'); }
+}
+
+function togglePescarReplyBox(capturaId, id) {
+  var box = document.getElementById('pc-reply-box-' + capturaId + '-' + id);
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function votePescarComentariu(capturaId, id, valoare) {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  try {
+    await sb.rpc('voteaza_comentariu', { p_tip: 'captura', p_id: id, p_valoare: valoare });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la vot.'); }
+}
+
+function editeazaPescarComentariuUI(capturaId, id) {
+  var textEl = document.getElementById('pc-text-' + capturaId + '-' + id);
+  if (!textEl) return;
+  var textActual = textEl.textContent;
+  textEl.innerHTML = '<textarea id="pc-edit-' + capturaId + '-' + id + '" maxlength="2000" style="width:100%;min-height:44px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(textActual) + '</textarea>'
+    + '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">'
+    + '<button onclick="salveazaEditarePescarComentariu(' + capturaId + ',' + id + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Salvează</button>'
+    + '<button onclick="loadPescarComentarii(' + capturaId + ')" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Anulează</button></div>';
+}
+
+async function salveazaEditarePescarComentariu(capturaId, id) {
+  var input = document.getElementById('pc-edit-' + capturaId + '-' + id);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('editeaza_comentariu', { p_tip: 'captura', p_id: id, p_continut_nou: text });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la editare.'); }
+}
+
+async function stergePescarComentariuUI(capturaId, id) {
+  if (!confirm('Ștergi acest comentariu?')) return;
+  try {
+    await sb.rpc('sterge_comentariu_propriu', { p_tip: 'captura', p_id: id });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+async function raporteazaPescarComentariuUI(capturaId, id) {
+  var motiv = prompt('De ce raportezi acest comentariu? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_comentariu', { p_tip: 'captura', p_id: id, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către administratorul bălții.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+async function modereazaPescarComentariuUI(capturaId, id, actiune) {
+  var mesaje = {
+    sterge: 'Ștergi acest comentariu (și toate răspunsurile), ca administrator? Acțiunea afectează contul autorului, indiferent cine este.',
+    ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
+    reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
+  };
+  if (!confirm(mesaje[actiune])) return;
+  try {
+    await sb.rpc('modereaza_comentariu_admin', { p_tip: 'captura', p_id: id, p_actiune: actiune });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la moderare.'); }
+}
+
+function aratPescarComentariuAscuns(capturaId, id) {
+  var c = (PC_CACHE[capturaId] || []).find(function(x) { return x.id === id; });
+  if (c) c._fortatVizibil = true;
+  renderPescarComentariiPanel(capturaId, PC_REACTII_CACHE[capturaId] || []);
+}
+
+function renderPescarComentariuHtml(capturaId, c, replies) {
+  if (c.ascuns_admin && !PC_IS_ZODA_ADMIN) {
+    return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);font-style:italic;">Comentariu ascuns de moderator.</div>';
+  }
+  if (c.ascuns_auto && !c._fortatVizibil) {
+    return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);">Comentariu ascuns (multe voturi negative). <button onclick="aratPescarComentariuAscuns(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
+  }
+  var esteSters = !c.autor_id;
+  var nume = c.autor_username || c.autor_zoda_id || 'Utilizator șters';
+  var numeHtml = esteSters
+    ? '<span style="color:var(--zc-text-muted);font-weight:700;">Utilizator șters</span>'
+    : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" onclick="event.stopPropagation()" style="color:var(--zc-text-strong);font-weight:700;font-size:12px;text-decoration:none;">' + escH(nume) + '</a>';
+  var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🏊</span>' : '';
+  var badgeAscunsAdmin = (c.ascuns_admin && PC_IS_ZODA_ADMIN) ? ' <span style="background:#4c1d1d;color:#f87171;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🙈 Ascuns</span>' : '';
+  var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:10px;">(editat)</span>' : '';
+  var esteAutorPropriu = PC_USER && c.autor_id === PC_USER.id;
+  var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
+  var votUp = c.vot_propriu === 1, votDown = c.vot_propriu === -1;
+
+  var butoane = [];
+  butoane.push('<button onclick="votePescarComentariu(' + capturaId + ',' + c.id + ',1)" style="background:none;border:none;cursor:pointer;color:' + (votUp ? '#38bdf8' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▲</button>');
+  butoane.push('<span style="color:var(--zc-text-secondary-2);font-weight:700;font-size:11px;">' + c.scor + '</span>');
+  butoane.push('<button onclick="votePescarComentariu(' + capturaId + ',' + c.id + ',-1)" style="background:none;border:none;cursor:pointer;color:' + (votDown ? '#ef4444' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▼</button>');
+  if (PC_USER) butoane.push('<button onclick="togglePescarReplyBox(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Răspunde</button>');
+  if (potEdita) butoane.push('<button onclick="editeazaPescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Editează</button>');
+  if (esteAutorPropriu && !PC_IS_ZODA_ADMIN) butoane.push('<button onclick="stergePescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+  if (PC_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaPescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+  if (PC_IS_ZODA_ADMIN) {
+    butoane.push(c.ascuns_admin
+      ? '<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'reafiseaza\')" style="background:none;border:none;color:#4ade80;cursor:pointer;font-size:11px;">👁️ Reafișează</button>'
+      : '<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'ascunde\')" style="background:none;border:none;color:#f59e0b;cursor:pointer;font-size:11px;">🙈 Ascunde</button>');
+    butoane.push('<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'sterge\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;">🗑️ Șterge (admin)</button>');
+  }
+
+  var replyBox = PC_USER
+    ? '<div id="pc-reply-box-' + capturaId + '-' + c.id + '" style="display:none;margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">'
+      + '<textarea id="pc-reply-input-' + capturaId + '-' + c.id + '" placeholder="Scrie un răspuns..." maxlength="2000" style="width:100%;min-height:42px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:4px;"><button onclick="trimitePescarComentariu(' + capturaId + ',' + c.id + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;">Răspunde</button></div></div>'
+    : '';
+
+  var repliesHtml = replies.length
+    ? '<div style="margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">' + replies.map(function(r) { return renderPescarComentariuHtml(capturaId, r, []); }).join('') + '</div>'
+    : '';
+
+  return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;flex-wrap:wrap;">'
+    + '<div>' + numeHtml + badgeBalta + badgeAscunsAdmin + '</div>'
+    + '<div style="color:var(--zc-text-muted);font-size:10px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
+    + '<div id="pc-text-' + capturaId + '-' + c.id + '" style="font-size:13px;color:var(--zc-text-strong);margin-top:3px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
+    + replyBox + repliesHtml + '</div>';
 }
 
 function showError(msg) {
