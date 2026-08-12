@@ -2078,7 +2078,7 @@ function renderPage(hartaUrl) {
   // Facilități
   loadFacilitati(BALTA.id);
   // Comentarii & reacție inimă
-  loadComentariiBalta();
+  loadComentariiBalta().then(navigheazaSprelComentariuModerat);
   // Meniu de jos — plasează #top10-card/#top10-lunar-card în modalul Clasament
   // (mereu, pe mobil ȘI pe desktop — vezi reparentTop10ForBreakpoint()).
   reparentTop10ForBreakpoint();
@@ -2258,6 +2258,45 @@ async function checkZodaAdminFlag() {
       }
     }
   } catch(e) {}
+}
+
+// Navigare directă de la un raport din panoul de moderare (admin.html/cont.html)
+// spre comentariul raportat — citește ?mod_tip=&mod_id=&mod_stand= din URL,
+// deschide tab-ul/overlay-ul potrivit și evidențiază comentariul.
+async function navigheazaSprelComentariuModerat() {
+  var params = new URLSearchParams(location.search);
+  var modTip = params.get('mod_tip');
+  var modIdRaw = params.get('mod_id');
+  if (!modTip || !modIdRaw) return;
+  var modId = parseInt(modIdRaw, 10);
+  if (!modId) return;
+
+  if (modTip === 'balta') {
+    var tab = (CB_CACHE.qa || []).some(function(c) { return c.id === modId; }) ? 'qa' : 'discutie';
+    setTabComentariiBalta(tab);
+    scrollSiEvidentiazaComentariu('cb-c-' + modId);
+    return;
+  }
+
+  if (modTip === 'captura' || modTip === 'stand') {
+    var modStand = parseInt(params.get('mod_stand'), 10);
+    if (!modStand) return;
+    await openOverlay(modStand);
+    var sub = modTip === 'captura' ? 'captura' : 'qa';
+    setOvTabComentarii(sub);
+    scrollSiEvidentiazaComentariu('ovc-c-' + sub + '-' + modId);
+  }
+}
+
+function scrollSiEvidentiazaComentariu(elId) {
+  setTimeout(function() {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.transition = 'background-color .5s';
+    el.style.backgroundColor = 'rgba(56,189,248,.18)';
+    setTimeout(function() { el.style.backgroundColor = ''; }, 2500);
+  }, 150);
 }
 
 async function loadComentariiBaltaTab(categorie) {
@@ -3457,7 +3496,7 @@ function navigheazaRecFoto(directie) {
   renderOvRecFoto();
 }
 
-function openOverlay(id) {
+async function openOverlay(id) {
   selId = id;
   renderPins();
   updatePills();
@@ -3542,7 +3581,7 @@ function openOverlay(id) {
   document.documentElement.style.overflow = 'hidden';
   document.body.style.overflow = 'hidden';
   requestAnimationFrame(pozitioneazaTopbarOverlay);
-  loadComentariiOverlay(id);
+  return loadComentariiOverlay(id);
 }
 
 // ── EDITARE DETALII STAND (zonă, adâncime, distanță, lățime, poze) ──────────
