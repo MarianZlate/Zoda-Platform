@@ -720,8 +720,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
   <!-- Info bar -->
   <div class="info-bar">
-    <button id="btn-inima-balta" onclick="toggleInimaBalta()" title="Apreciază balta" style="position:absolute;top:12px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;">
-      <span id="inima-icon-balta">🤍</span> <span id="inima-count-balta">0</span>
+    <button id="btn-inima-balta" onclick="toggleInimaBalta()" title="Apreciază balta" style="position:absolute;top:12px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;">
+      <span id="inima-icon-balta">🤍</span> <span id="inima-label-balta">Apreciază</span> <span id="inima-count-balta">0</span>
     </button>
     <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       <span style="font-size:22px;"></span>
@@ -1132,8 +1132,8 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 
     <div style="padding:14px 16px;">
       <div id="cb-compose" style="margin-bottom:16px;"></div>
-      <div id="cb-list-qa"></div>
-      <div id="cb-list-discutie" style="display:none;"></div>
+      <div id="cb-list-qa" style="max-height:900px;overflow-y:auto;"></div>
+      <div id="cb-list-discutie" style="display:none;max-height:900px;overflow-y:auto;"></div>
     </div>
   </div><!-- /#comentarii-balta-card -->
 
@@ -2208,7 +2208,7 @@ function escH(str) {
 }
 
 // ─── COMENTARII BALTĂ (Q&A + discuții libere + inimă) ───────────────────────
-var CB_TAB = 'qa';
+var CB_TAB = 'discutie';
 var CB_CACHE = { qa: [], discutie: [] };
 var CB_CA_BALTA = false; // toggle "răspund ca baltă" (doar CAN_EDIT)
 
@@ -2233,8 +2233,7 @@ async function loadComentariiBalta() {
       loadInimaBalta()
     ]);
   } catch(e) {}
-  renderComposeBalta();
-  renderListaComentariiBalta();
+  setTabComentariiBalta('discutie');
 }
 
 async function loadComentariiBaltaTab(categorie) {
@@ -2247,8 +2246,15 @@ async function loadInimaBalta() {
   var row = (data && data[0]) || { total: 0, am_reactionat: false };
   var elCount = document.getElementById('inima-count-balta');
   var elIcon = document.getElementById('inima-icon-balta');
+  var elLabel = document.getElementById('inima-label-balta');
+  var elBtn = document.getElementById('btn-inima-balta');
   if (elCount) elCount.textContent = row.total;
   if (elIcon) elIcon.textContent = row.am_reactionat ? '❤️' : '🤍';
+  if (elLabel) elLabel.textContent = row.am_reactionat ? 'Apreciat' : 'Apreciază';
+  if (elBtn) {
+    elBtn.style.borderColor = row.am_reactionat ? '#ef4444' : 'var(--zc-border)';
+    elBtn.style.color = row.am_reactionat ? '#ef4444' : 'var(--zc-text-strong)';
+  }
 }
 
 async function toggleInimaBalta() {
@@ -2335,6 +2341,18 @@ async function marcheazaOficialBalta(id, valoare) {
     await loadComentariiBaltaTab('qa');
     renderListaComentariiBalta();
   } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function mutaComentariuBaltaUI(id, categorieNoua) {
+  var mesaj = categorieNoua === 'discutie'
+    ? 'Muți acest comentariu (și toate răspunsurile) din Q&A în Discuții libere?'
+    : 'Muți acest comentariu (și toate răspunsurile) din Discuții libere în Q&A?';
+  if (!confirm(mesaj)) return;
+  try {
+    await sb.rpc('muta_comentariu_categorie', { p_comentariu_id: id, p_categorie_noua: categorieNoua });
+    await Promise.all([loadComentariiBaltaTab('qa'), loadComentariiBaltaTab('discutie')]);
+    renderListaComentariiBalta();
+  } catch(e) { alert(e.message || 'Eroare la mutare.'); }
 }
 
 function editeazaComentariuBaltaUI(id) {
@@ -2433,6 +2451,11 @@ function renderComentariuBaltaHtml(c, replies, categorie) {
   if (potEdita) butoane.push('<button onclick="editeazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Editează</button>');
   if (esteAutorPropriu) butoane.push('<button onclick="stergeComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Șterge</button>');
   if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuBaltaUI(' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;">Raportează</button>');
+  if (CAN_EDIT && !c.parinte_id) {
+    butoane.push(categorie === 'qa'
+      ? '<button onclick="mutaComentariuBaltaUI(' + c.id + ',\'discutie\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;">↷ Mută în Discuții</button>'
+      : '<button onclick="mutaComentariuBaltaUI(' + c.id + ',\'qa\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;">↷ Mută în Q&amp;A</button>');
+  }
 
   var replyBox = BALTA_USER
     ? '<div id="cb-reply-box-' + c.id + '" style="display:none;margin-top:8px;padding-left:16px;border-left:2px solid var(--zc-border);">'
