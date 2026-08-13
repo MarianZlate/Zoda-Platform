@@ -782,6 +782,16 @@ th,td{padding:8px 6px;}
     </div>
 
     <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCanaleChatUI()">
+        <strong style="color:#f1f5f9;font-size:14px;">🗂️ Canale chat live (denumire + pornit/oprit)</strong>
+        <span id="canale-chat-toggle-icon">▼</span>
+      </div>
+      <div id="canale-chat-body" style="display:none;margin-top:12px;">
+        <div id="canale-chat-list"></div>
+      </div>
+    </div>
+
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCuvinteInterziseUI()">
         <strong style="color:#f1f5f9;font-size:14px;">⚙️ Listă cuvinte interzise (filtru chat + comentarii, RO + EN)</strong>
         <span id="cuvinte-toggle-icon">▼</span>
@@ -1275,6 +1285,54 @@ async function marcheazaRaportChatRezolvatUI(raportareId, valoare) {
 }
 
 // ── LISTĂ CUVINTE INTERZISE (filtru chat + comentarii) ──────────────────────
+// ── CANALE CHAT (denumire + pornit/oprit) ────────────────────────────────────
+var _canaleChatIncarcate = false;
+
+function toggleCanaleChatUI() {
+  var body = document.getElementById('canale-chat-body');
+  var icon = document.getElementById('canale-chat-toggle-icon');
+  var deschis = body.style.display !== 'none';
+  body.style.display = deschis ? 'none' : 'block';
+  icon.textContent = deschis ? '▼' : '▲';
+  if (!deschis && !_canaleChatIncarcate) {
+    _canaleChatIncarcate = true;
+    loadCanaleChatUI();
+  }
+}
+
+async function loadCanaleChatUI() {
+  var el = document.getElementById('canale-chat-list');
+  el.innerHTML = '<div class="empty-state" style="padding:8px;">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_canale_chat_admin');
+    if (error) throw error;
+    if (!data || !data.length) { el.innerHTML = '<div class="empty-state" style="padding:8px;">Niciun canal.</div>'; return; }
+    el.innerHTML = data.map(c => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1e293b;flex-wrap:wrap;">
+        <span style="font-size:16px;">${c.emoji || ''}</span>
+        <input id="canal-nume-${c.id}" type="text" value="${escH(c.nume)}" style="flex:1;min-width:140px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:${c.activ ? '#4ade80' : '#64748b'};font-weight:700;cursor:pointer;white-space:nowrap;">
+          <input id="canal-activ-${c.id}" type="checkbox" ${c.activ ? 'checked' : ''} style="width:16px;height:16px;cursor:pointer;"/>
+          ${c.activ ? 'Pornit' : 'Oprit'}
+        </label>
+        <button onclick="salveazaCanalChatUI(${c.id})" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Salvează</button>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state" style="color:#ef4444;padding:8px;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function salveazaCanalChatUI(id) {
+  var nume = document.getElementById('canal-nume-' + id).value.trim();
+  var activ = document.getElementById('canal-activ-' + id).checked;
+  if (!nume) { showToast('Numele canalului nu poate fi gol.', true); return; }
+  try {
+    await sb.rpc('actualizeaza_canal_chat', { p_id: id, p_nume: nume, p_activ: activ });
+    showToast('Canal actualizat.');
+    await loadCanaleChatUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
 var _cuvinteInterziseIncarcate = false;
 
 function toggleCuvinteInterziseUI() {
