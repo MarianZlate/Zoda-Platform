@@ -1784,7 +1784,7 @@ function renderDropdownRasfoire() {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
-        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:var(--zc-text-secondary);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
         ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
       </div>
@@ -1840,7 +1840,7 @@ function onSearch(q) {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
-        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:var(--zc-text-secondary);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
       </div>
       <button class="dd-open" onclick="event.stopPropagation();__goToBalta(${b.id})">Deschide →</button>
@@ -2927,7 +2927,7 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span>${x.b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(x.b.parent_nume)}</div>` : ''}</a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span>${x.b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(x.b.parent_nume)}</div>` : ''}</a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
@@ -2957,7 +2957,7 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
     window.addEventListener('resize', pozitioneazaPublicBaltiDropdown);
   } else {
