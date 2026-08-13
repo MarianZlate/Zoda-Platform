@@ -1477,7 +1477,7 @@ function showToast(msg, isErr = false) {
 }
 
 // ── ACORDURI PENDINTE — Termeni actualizați / responsabilități balta_admin ──
-const TERMS_VERSION = '1.1';
+const TERMS_VERSION = '1.2';
 const BALTA_ADMIN_ACK_VERSION = '1.0';
 let _acordPendinteTip = null;
 function verificaAcorduriPendinte(user, role) {
@@ -1619,6 +1619,15 @@ function notifUrl(n) {
   const meta = n.meta || {};
   if (n.tip === 'captura_respinsa' && meta.captura_id) return `cont.html?captura_respinsa=${meta.captura_id}`;
   if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) return `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
+  // Notificări de comentarii/reacții — duc direct la comentariul exact (sau
+  // la tab-ul potrivit din overlay, dacă notificarea nu ține de un comentariu
+  // anume, ex. o reacție la captură).
+  if (meta.balta_id && meta.comentariu_tip) {
+    let url = `balta.html?id=${meta.balta_id}&mod_tip=${meta.comentariu_tip}`;
+    if (meta.comentariu_id) url += `&mod_id=${meta.comentariu_id}`;
+    if (meta.stand_id) url += `&mod_stand=${meta.stand_id}`;
+    return url;
+  }
   if (meta.balta_id) return `balta.html?id=${meta.balta_id}`;
   return null;
 }
@@ -4224,6 +4233,10 @@ document.addEventListener('keydown', function(e) {
   <button class="bn-btn" id="bn-realizari" onclick="bnGoRealizariCont()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.4L22 9.3l-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 7.1-1z"/></svg>
     <span>Realizări</span>
+  </button>
+  <button class="bn-btn" id="bn-chat" onclick="sessionStorage.setItem('zoda_open_chat','1'); window.location.href='index.html';">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span>Chat</span>
   </button>
   <button class="bn-btn active" id="bn-cont" onclick="bnGoContCont()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
