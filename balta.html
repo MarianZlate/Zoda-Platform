@@ -559,11 +559,14 @@ html[data-theme="light"] .logo-img-light{display:block;}
   #map-yt-thumb-wrap,#map-yt-iframe-wrap{max-width:calc(72vh * 16 / 9);margin:0 auto;}
 
   /* STAND OVERLAY — desktop: mult mai lat decât pe mobil, dar folosește
-     aceeași ancorare top/bottom (nu centrare cu vh), pentru același motiv. */
+     aceeași ancorare top/bottom (nu centrare cu vh), pentru același motiv.
+     Header-ul (#hdr-in, 52px) și dock-ul de jos (.bn-btn) au reguli DESKTOP
+     separate, neafectate de reducerea de 15% aplicată doar pe mobil — deci
+     ancorele de-aici rămân la valorile lor originale, nu cele reduse. */
   #stand-overlay{
     position:fixed;
-    top:calc(58px + env(safe-area-inset-top));
-    bottom:calc(68px + env(safe-area-inset-bottom));
+    top:calc(64px + env(safe-area-inset-top));
+    bottom:calc(74px + env(safe-area-inset-bottom));
     left:50%;transform:translateX(-50%);
     width:780px;max-width:92vw;
     height:auto;max-height:none;overflow-y:auto;}
