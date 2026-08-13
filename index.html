@@ -436,8 +436,8 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-modal-list{overflow-y:auto;
   /* mobil: spațiu jos ca ultimele rânduri să nu fie ascunse sub #bottom-nav,
      care plutește deasupra modalului full-page (vezi z-index-ul lui) */
-  padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
-.hof-modal-list.cr-grid{padding:14px 14px calc(84px + env(safe-area-inset-bottom));}
+  padding:8px 0 calc(62px + env(safe-area-inset-bottom));}
+.hof-modal-list.cr-grid{padding:14px 14px calc(62px + env(safe-area-inset-bottom));}
 .lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
 .lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
 .lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
@@ -644,7 +644,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 .footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
 .footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(76px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
 #footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 #footer-company strong{color:var(--zc-text-secondary);}
@@ -1072,7 +1072,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="chat-canale-pills" style="display:flex;gap:6px;padding:10px 20px;overflow-x:auto;border-bottom:1px solid var(--zc-border);flex-shrink:0;"></div>
     <div id="chat-mesaje-list" style="flex:1;overflow-y:auto;padding:14px 20px 10px;"></div>
     <div id="chat-reply-preview" style="display:none;padding:8px 20px;background:var(--zc-bg-tint);border-top:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-secondary);align-items:center;justify-content:space-between;flex-shrink:0;"></div>
-    <div style="padding:10px 20px calc(72px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
+    <div style="padding:10px 20px calc(62px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
       <textarea id="chat-input" placeholder="Scrie un mesaj..." maxlength="500" style="flex:1;min-height:40px;max-height:100px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px 12px;color:var(--zc-text-primary);font-size:14px;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
       <button onclick="trimiteMesajChatUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">Trimite</button>
     </div>
@@ -6076,8 +6076,9 @@ setTimeout(showIosToast, 3000);
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
 #cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-bottom-bar);background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
-#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:450;/* peste --z-modal(400) — vezi excepția documentată în scala de z-index */display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);}
-.bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
+#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:450;/* peste --z-modal(400) — vezi excepția documentată în scala de z-index */display:flex;justify-content:space-around;align-items:center;padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);}
+.bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:9px;font-weight:600;padding:3px 8px;flex:1;max-width:110px;}
+.bn-btn svg{width:18px;height:18px;}
 .bn-btn.active{color:#38bdf8;}
 @media(min-width:769px){
   #bottom-nav{
