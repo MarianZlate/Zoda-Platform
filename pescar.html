@@ -226,6 +226,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
    desktop; #bottom-nav rămâne deasupra (z-index deja mai mare, 4500 > 3000),
    ca pe balta.html/index.html. */
 #recorduri-modal,#realizari-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#chat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#chat-modal.open{display:flex;}
 #recorduri-modal.open,#realizari-modal.open{display:flex;}
 .hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;height:100dvh;max-height:100dvh;border-radius:0;}
 .hof-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);}
@@ -234,7 +236,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .modal-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
 .hof-modal-list{overflow-y:auto;padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
 @media(min-width:769px){
-  #recorduri-modal,#realizari-modal{align-items:center;justify-content:center;}
+  #recorduri-modal,#realizari-modal,#chat-modal{align-items:center;justify-content:center;}
   .hof-modal-inner{max-width:560px;height:auto;max-height:85vh;border-radius:20px;margin-top:0;}
   .hof-modal-list{padding-bottom:8px;}
 }
@@ -494,7 +496,37 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
   </div>
 </div>
 
-<!-- MODAL REALIZĂRI — top 10 lunar + hall of fame (active + trecute) -->
+<!-- MODAL CHAT LIVE -->
+<div id="chat-modal">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">💬 Chat live</div>
+        <div class="hof-modal-sub" id="chat-canal-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeChatModal()">✕</button>
+    </div>
+    <div id="chat-canale-pills" style="display:flex;gap:6px;padding:10px 20px;overflow-x:auto;border-bottom:1px solid var(--zc-border);flex-shrink:0;"></div>
+    <div id="chat-mesaje-list" style="flex:1;overflow-y:auto;padding:14px 20px 10px;"></div>
+    <div id="chat-reply-preview" style="display:none;padding:8px 20px;background:var(--zc-bg-tint);border-top:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-secondary);align-items:center;justify-content:space-between;flex-shrink:0;"></div>
+    <div style="padding:10px 20px calc(84px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
+      <textarea id="chat-input" placeholder="Scrie un mesaj..." maxlength="500" style="flex:1;min-height:40px;max-height:100px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px 12px;color:var(--zc-text-primary);font-size:14px;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+      <button onclick="trimiteMesajChatUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">Trimite</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REALIZĂRI — top 10 lunar + hall of fame (active + trecute) --><!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ. -->
+<div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div id="zoda-confirm-msg" style="font-size:14px;color:var(--zc-text-primary);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
+      <button id="zoda-confirm-ok" style="background:#ef4444;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Confirmă</button>
+    </div>
+  </div>
+</div>
+
 <div id="realizari-modal">
   <div class="hof-modal-inner">
     <div class="hof-modal-hdr">
@@ -641,6 +673,23 @@ function fmtDate(str) {
   return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function openAuthFromPescar() {
+  sessionStorage.setItem('zoda_open_auth', 'register');
+  window.location.href = 'index.html';
+}
+
+function formatDataRelativa(iso) {
+  var diffMs = Date.now() - new Date(iso).getTime();
+  var min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'acum';
+  if (min < 60) return 'acum ' + min + ' min';
+  var ore = Math.floor(min / 60);
+  if (ore < 24) return 'acum ' + ore + 'h';
+  var zile = Math.floor(ore / 24);
+  if (zile < 30) return 'acum ' + zile + 'z';
+  return new Date(iso).toLocaleDateString('ro-RO');
+}
+
 function switchRecorduriTab(tab) {
   document.getElementById('recorduri-active-list').style.display  = tab === 'active'  ? 'block' : 'none';
   document.getElementById('recorduri-trecute-list').style.display = tab === 'trecute' ? 'block' : 'none';
@@ -671,6 +720,186 @@ function closeRecorduriModal() {
   document.body.style.overflow = '';
   if (history.state && history.state.modal === 'recorduri') history.back();
 }
+
+// ═══ CHAT LIVE ══════════════════════════════════════════════════════════════
+// Duplicat intenționat (fișiere single-page, fără framework comun) — vezi
+// index.html pentru varianta "canonică" comentată.
+var CHAT_CANALE = [];
+var CHAT_CANAL_ACTIV = null;
+var CHAT_MESAJE = [];
+var CHAT_POLL_TIMER = null;
+var CHAT_REPLY_LA = null;
+
+function openChatModal() {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  document.getElementById('chat-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'chat' }, '');
+  initChatLive();
+}
+
+function closeChatModal() {
+  document.getElementById('chat-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (CHAT_POLL_TIMER) { clearInterval(CHAT_POLL_TIMER); CHAT_POLL_TIMER = null; }
+  if (history.state && history.state.modal === 'chat') history.back();
+}
+
+async function initChatLive() {
+  if (!CHAT_CANALE.length) {
+    try {
+      var { data } = await sb.rpc('citeste_canale_chat');
+      CHAT_CANALE = data || [];
+    } catch(e) { CHAT_CANALE = []; }
+    renderCanalePillsChat();
+  }
+  if (!CHAT_CANAL_ACTIV && CHAT_CANALE.length) {
+    selecteazaCanalChat(CHAT_CANALE[0].id);
+  } else if (CHAT_CANAL_ACTIV) {
+    loadMesajeChat();
+  }
+  if (CHAT_POLL_TIMER) clearInterval(CHAT_POLL_TIMER);
+  CHAT_POLL_TIMER = setInterval(function() {
+    if (document.getElementById('chat-modal').classList.contains('open') && CHAT_CANAL_ACTIV) {
+      loadMesajeChat(true);
+    }
+  }, 4000);
+}
+
+function renderCanalePillsChat() {
+  var el = document.getElementById('chat-canale-pills');
+  if (!el) return;
+  el.innerHTML = CHAT_CANALE.map(function(c) {
+    var activ = c.id === CHAT_CANAL_ACTIV;
+    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '</button>';
+  }).join('');
+}
+
+function selecteazaCanalChat(canalId) {
+  CHAT_CANAL_ACTIV = canalId;
+  var canal = CHAT_CANALE.find(function(c) { return c.id === canalId; });
+  document.getElementById('chat-canal-sub').textContent = canal ? canal.nume : '—';
+  renderCanalePillsChat();
+  cancelReplyChat();
+  loadMesajeChat();
+}
+
+async function loadMesajeChat(silentios) {
+  if (!CHAT_CANAL_ACTIV) return;
+  var listEl = document.getElementById('chat-mesaje-list');
+  if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:13px;padding:20px 0;">Se încarcă...</div>';
+  try {
+    var { data, error } = await sb.rpc('citeste_mesaje_chat', { p_canal_id: CHAT_CANAL_ACTIV });
+    if (error) throw error;
+    var erauLaFund = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 60;
+    CHAT_MESAJE = data || [];
+    renderMesajeChat();
+    if (!silentios || erauLaFund) listEl.scrollTop = listEl.scrollHeight;
+  } catch(e) {
+    if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:13px;padding:20px 0;">' + escH(e.message || 'Eroare la încărcare.') + '</div>';
+  }
+}
+
+function renderMesajeChat() {
+  var listEl = document.getElementById('chat-mesaje-list');
+  if (!listEl) return;
+  if (!CHAT_MESAJE.length) {
+    listEl.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:13px;padding:20px 0;">Niciun mesaj încă. Fii primul care scrie ceva!</div>';
+    return;
+  }
+  var labels = { like: '👍', super: '🔥', wow: '😮', felicitari: '🎉', dislike: '👎' };
+  listEl.innerHTML = CHAT_MESAJE.map(function(m) {
+    var esteSters = !m.autor_id;
+    var nume = m.autor_username || m.autor_zoda_id || 'Utilizator șters';
+    var esteAutorPropriu = PC_USER && m.autor_id === PC_USER.id;
+    var reactii = m.reactii || {};
+    var reactiiHtml = Object.keys(labels).map(function(tip) {
+      var count = reactii[tip] || 0;
+      if (!count && m.reactie_proprie !== tip) return '';
+      var activ = m.reactie_proprie === tip;
+      return '<button onclick="reactioneazaMesajChatUI(' + m.id + ',\'' + tip + '\')" style="background:none;border:none;cursor:pointer;font-size:12px;padding:1px 3px;border-radius:6px;' + (activ ? 'background:var(--zc-bg-tint);' : '') + '">' + labels[tip] + (count ? ' ' + count : '') + '</button>';
+    }).join('');
+    var reactiiPickerHtml = Object.keys(labels).map(function(tip) {
+      return '<button onclick="reactioneazaMesajChatUI(' + m.id + ',\'' + tip + '\')" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;">' + labels[tip] + '</button>';
+    }).join('');
+    var replyQuote = m.raspunde_la
+      ? '<div style="font-size:11px;color:var(--zc-text-muted);border-left:2px solid var(--zc-border);padding-left:6px;margin-bottom:3px;">↪ ' + escH(m.raspunde_la_autor_username || '—') + ': ' + escH((m.raspunde_la_continut || '').slice(0, 60)) + '</div>'
+      : '';
+    var actiuni = [];
+    if (PC_USER) actiuni.push('<button onclick="setReplyToChat(' + m.id + ',\'' + escH(nume).replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Răspunde</button>');
+    if (esteAutorPropriu) actiuni.push('<button onclick="stergeMesajChatUI(' + m.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+    if (PC_USER && !esteAutorPropriu) actiuni.push('<button onclick="raporteazaMesajChatUI(' + m.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--zc-border);">'
+      + replyQuote
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">'
+      + '<strong style="font-size:13px;color:' + (esteSters ? 'var(--zc-text-muted)' : 'var(--zc-text-strong)') + ';">' + escH(nume) + '</strong>'
+      + '<span style="font-size:10px;color:var(--zc-text-muted);white-space:nowrap;">' + formatDataRelativa(m.created_at) + '</span></div>'
+      + '<div style="font-size:14px;color:var(--zc-text-primary);margin-top:2px;white-space:pre-wrap;word-break:break-word;">' + escH(m.continut) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">' + reactiiHtml + '<span style="opacity:.5;">' + reactiiPickerHtml + '</span>' + actiuni.join('') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function setReplyToChat(mesajId, autorUsername) {
+  CHAT_REPLY_LA = { id: mesajId, autorUsername: autorUsername };
+  var el = document.getElementById('chat-reply-preview');
+  el.style.display = 'flex';
+  el.innerHTML = '<span>↪ Răspunzi lui <strong>' + escH(autorUsername) + '</strong></span><button onclick="cancelReplyChat()" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:16px;">✕</button>';
+  var input = document.getElementById('chat-input');
+  if (!input.value.trim()) input.value = '@' + autorUsername + ' ';
+  input.focus();
+}
+
+function cancelReplyChat() {
+  CHAT_REPLY_LA = null;
+  var el = document.getElementById('chat-reply-preview');
+  el.style.display = 'none';
+  el.innerHTML = '';
+}
+
+async function trimiteMesajChatUI() {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  var input = document.getElementById('chat-input');
+  var text = (input.value || '').trim();
+  if (!text || !CHAT_CANAL_ACTIV) return;
+  try {
+    await sb.rpc('trimite_mesaj_chat', { p_canal_id: CHAT_CANAL_ACTIV, p_continut: text, p_raspunde_la: CHAT_REPLY_LA ? CHAT_REPLY_LA.id : null });
+    input.value = '';
+    cancelReplyChat();
+    await loadMesajeChat();
+  } catch(e) { alert(e.message || 'Eroare la trimiterea mesajului.'); }
+}
+
+async function reactioneazaMesajChatUI(mesajId, tip) {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  try {
+    await sb.rpc('reactioneaza_mesaj_chat', { p_mesaj_id: mesajId, p_tip: tip });
+    await loadMesajeChat(true);
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function raporteazaMesajChatUI(mesajId) {
+  var motiv = prompt('De ce raportezi acest mesaj? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_mesaj_chat', { p_mesaj_id: mesajId, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către echipa Zoda.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+async function stergeMesajChatUI(mesajId) {
+  if (!(await zodaConfirm('Ștergi acest mesaj?'))) return;
+  try {
+    await sb.rpc('sterge_mesaj_propriu_chat', { p_mesaj_id: mesajId });
+    await loadMesajeChat(true);
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); trimiteMesajChatUI(); }
+});
+
 function openRealizariModal() {
   var other = document.getElementById('recorduri-modal');
   var switching = other && other.classList.contains('open');
@@ -709,6 +938,32 @@ function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
+function zodaConfirm(mesaj) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('zoda-confirm-modal');
+    var msgEl = document.getElementById('zoda-confirm-msg');
+    var okBtn = document.getElementById('zoda-confirm-ok');
+    var cancelBtn = document.getElementById('zoda-confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm(mesaj)); return; }
+    msgEl.textContent = mesaj;
+    modal.style.display = 'flex';
+    function cleanup(rezultat) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(rezultat);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === modal) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
+}
+
 // ── DISTRIBUIE PROFIL ────────────────────────────────────────────────────────
 function shareProfile() {
   const zodaId = document.getElementById('hero-zoda')?.textContent;
@@ -742,6 +997,8 @@ function shareProfile() {
 // ── URMĂREȘTE PESCAR ─────────────────────────────────────────────────────────
 var URMARESC_PESCAR_CURENT = false;
 var PESCAR_VIZUALIZAT_ZODA_ID = null;
+var PC_USER = null; // userul logat care vizualizează profilul (null = vizitator) — folosit de secțiunea de comentarii captură
+var PC_IS_ZODA_ADMIN = false; // moderare inline pe comentariile oricui
 
 async function initButonUrmarirePescar(zodaId) {
   const btn = document.getElementById('btn-urmareste-pescar');
@@ -902,10 +1159,14 @@ async function boot() {
     isLoggedIn = !!session?.user;
     sessionUser = session?.user || null;
   } catch(e) { isLoggedIn = false; }
+  PC_USER = sessionUser;
 
   if (isLoggedIn && sessionUser) {
     sb.from('user_roles').select('rol').eq('id', sessionUser.id).single()
-      .then(({ data }) => verificaAcorduriPendinte(sessionUser, data?.rol || 'user'));
+      .then(({ data }) => {
+        verificaAcorduriPendinte(sessionUser, data?.rol || 'user');
+        if (data?.rol === 'zoda_admin') PC_IS_ZODA_ADMIN = true;
+      });
   }
 
   if (!isLoggedIn) {
@@ -994,7 +1255,7 @@ async function loadPescarData(zodaId) {
   // 5. Top 10 lunar istoric — ordonăm după pozitie, apoi sortăm în JS după dată
   const { data: top10Istoric } = await sb
     .from('top10_lunar_istoric')
-    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(foto_url, foto_dovada_url, data_captura, standuri(nume))')
+    .select('luna, pozitie, kg_total, balta_id, balti(nume), capturi(id, foto_url, foto_dovada_url, data_captura, standuri(nume))')
     .eq('zoda_id', zodaId)
     .order('pozitie', { ascending: true });
 
@@ -1049,7 +1310,19 @@ async function loadPescarData(zodaId) {
   renderHero(profile, steleData);
   renderStatsRapide(capturiPublice || [], recorduriActive || []);
   renderRecordPersonal(recorduriActive || []);
-  renderRecorduri(steleLogRaw || [], recorduriActive || [], standuriTrecuteMap);
+
+  // Rezolvă captura_id reală a recordului activ pe fiecare stand — standuri.rec_*
+  // sunt câmpuri denormalizate fără FK spre capturi (același caz ca în overlay-ul
+  // de stand din balta.html), deci luăm cea mai mare captură aprobată de la acel stand.
+  const recorduriCapturaIdMap = {};
+  await Promise.all((recorduriActive || []).map(async (s) => {
+    const { data: topCaptura } = await sb.from('capturi').select('id')
+      .eq('stand_id', s.id).eq('status', 'approved').eq('sters', false)
+      .order('kg', { ascending: false }).limit(1).maybeSingle();
+    if (topCaptura) recorduriCapturaIdMap[s.id] = topCaptura.id;
+  }));
+
+  renderRecorduri(steleLogRaw || [], recorduriActive || [], standuriTrecuteMap, recorduriCapturaIdMap);
   renderTopuri(steleLogRaw || [], top10Sortat, hofActiveMap, hofBaltaIds);
   initButonUrmarirePescar(zodaId);
 
@@ -1131,7 +1404,7 @@ function renderRecordPersonal(recorduriActive) {
 // explicite: click pe card (oriunde) → deschide poza; click pe numele
 // bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut } = opts;
+  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, comentariiId } = opts;
   const cardClick = buildFotoClickCaptura(photoUrl, photoDovadaUrl);
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
@@ -1139,6 +1412,10 @@ function crCardHtml(opts) {
   const baltaClick = baltaLink ? `event.stopPropagation();savePescarState();window.location.href='${baltaLink}'` : 'event.stopPropagation()';
   const baltaHtml = baltaText
     ? `<div class="cr-meta-line"><span class="cr-balta-link" onclick="${baltaClick}">📍 ${baltaText}</span></div>`
+    : '';
+  const comentariiHtml = comentariiId != null
+    ? `<button class="pc-toggle-btn" onclick="event.stopPropagation();togglePescarComentarii(${comentariiId})" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;margin-top:6px;">💬 Comentarii</button>
+       <div id="pc-panel-${comentariiId}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--zc-border);" onclick="event.stopPropagation()"></div>`
     : '';
   const inner = `
     <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
@@ -1150,12 +1427,13 @@ function crCardHtml(opts) {
       ${metaHtml}
       ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
+      ${comentariiHtml}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
   return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
 }
 
-function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
+function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap, recorduriCapturaIdMap) {
   const activeList  = document.getElementById('recorduri-active-list');
   const trecuteList = document.getElementById('recorduri-trecute-list');
   const activeStandIds = new Set((recorduriActive).map(s => String(s.id)));
@@ -1173,6 +1451,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap) {
       baltaText: escH(s.balti?.nume || '—'),
       baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
+      comentariiId: (recorduriCapturaIdMap || {})[s.id] || null,
     });
   });
 
@@ -1251,6 +1530,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaText: escH(baltaNume),
         baltaLink: `balta.html?id=${t.balta_id}`,
         dateText: capt.data_captura || '',
+        comentariiId: capt.id || null,
       });
     });
 
@@ -1270,6 +1550,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaText: escH(baltaNume) + (p.standNume ? ' · Stand ' + escH(p.standNume) : ''),
         baltaLink: `balta.html?id=${baltaId}`,
         dateText: p.data_captura || '',
+        comentariiId: p.capturaId || null,
       });
     });
   });
@@ -1292,6 +1573,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaLink: null,
         dateText: capt.data_captura || '',
         trecut: true,
+        comentariiId: capt.id || null,
       });
     });
 
@@ -1322,6 +1604,215 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
   trecuteList.innerHTML = trecuteHtml;
   document.getElementById('realizari-active-empty').style.display  = activeHtml  ? 'none' : 'block';
   document.getElementById('realizari-trecute-empty').style.display = trecuteHtml ? 'none' : 'block';
+}
+
+// ─── COMENTARII CAPTURĂ (profil public pescar) ──────────────────────────────
+// Panou inline, per card (nu modal separat) — se încarcă lazy, doar la prima
+// deschidere. Fără toggle "răspund ca baltă" aici (spre deosebire de overlay-ul
+// de stand din balta.html, unde CAN_EDIT e deja calculat) — un vizitator care
+// e balta_admin undeva poate oricum răspunde din contul personal.
+var PC_CACHE = {};      // captura_id -> array comentarii
+var PC_LOADED = {};     // captura_id -> bool (deja încărcat o dată)
+var PC_REACTII_CACHE = {}; // captura_id -> array reacții (pt. re-randare locală, fără refetch)
+
+function togglePescarComentarii(capturaId) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  var deschis = panel.style.display !== 'none';
+  if (deschis) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  if (!PC_LOADED[capturaId]) {
+    PC_LOADED[capturaId] = true;
+    loadPescarComentarii(capturaId);
+  }
+}
+
+async function loadPescarComentarii(capturaId) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  panel.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:12px;padding:8px 0;">Se încarcă...</div>';
+  var [{ data: comentarii }, { data: reactii }] = await Promise.all([
+    sb.rpc('citeste_comentarii_captura', { p_captura_id: capturaId }),
+    sb.rpc('citeste_reactii_captura', { p_captura_id: capturaId })
+  ]);
+  PC_CACHE[capturaId] = comentarii || [];
+  PC_REACTII_CACHE[capturaId] = reactii || [];
+  renderPescarComentariiPanel(capturaId, reactii || []);
+}
+
+function renderPescarComentariiPanel(capturaId, reactii) {
+  var panel = document.getElementById('pc-panel-' + capturaId);
+  if (!panel) return;
+  var labels = { like: '👍 Like', super: '🔥 Super', wow: '😮 WOW', felicitari: '🎉 Felicitări' };
+  var reactiiHtml = ['like', 'super', 'wow', 'felicitari'].map(function(tip) {
+    var row = reactii.find(function(r) { return r.tip === tip; }) || { total: 0, am_reactionat: false };
+    return '<button onclick="togglePescarReactie(' + capturaId + ',\'' + tip + '\')" style="background:' + (row.am_reactionat ? 'var(--zc-bg-tint)' : 'var(--zc-bg)') + ';border:1px solid ' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-border)') + ';color:' + (row.am_reactionat ? '#38bdf8' : 'var(--zc-text-secondary-2)') + ';font-size:11px;font-weight:700;padding:5px 9px;border-radius:18px;cursor:pointer;">' + labels[tip] + ' <span>' + row.total + '</span></button>';
+  }).join('');
+
+  var composeHtml;
+  if (!PC_USER) {
+    composeHtml = '<div style="background:var(--zc-bg-tint);border-radius:8px;padding:8px;text-align:center;font-size:11px;color:var(--zc-text-strong);margin-top:8px;">Autentifică-te pentru a comenta. <button onclick="openAuthFromPescar()" style="background:none;border:none;color:#38bdf8;font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Creează cont</button></div>';
+  } else {
+    composeHtml = '<div style="margin-top:8px;">'
+      + '<textarea id="pc-input-' + capturaId + '" placeholder="Comentează la această captură..." maxlength="2000" style="width:100%;min-height:48px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:8px;padding:8px;color:var(--zc-text-primary);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:5px;"><button onclick="trimitePescarComentariu(' + capturaId + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Trimite</button></div></div>';
+  }
+
+  var rows = PC_CACHE[capturaId] || [];
+  var top = rows.filter(function(r) { return !r.parinte_id; });
+  var repliesByParent = {};
+  rows.forEach(function(r) { if (r.parinte_id) (repliesByParent[r.parinte_id] = repliesByParent[r.parinte_id] || []).push(r); });
+  var listaHtml = top.length
+    ? top.map(function(c) { return renderPescarComentariuHtml(capturaId, c, repliesByParent[c.id] || []); }).join('')
+    : '<div style="text-align:center;color:var(--zc-text-muted);font-size:12px;padding:10px 0;">Niciun comentariu încă la această captură.</div>';
+
+  panel.innerHTML = '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + reactiiHtml + '</div>' + composeHtml + '<div style="margin-top:8px;">' + listaHtml + '</div>';
+}
+
+async function togglePescarReactie(capturaId, tip) {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  try {
+    await sb.rpc('reactioneaza_captura', { p_captura_id: capturaId, p_tip: tip });
+    var { data: reactii } = await sb.rpc('citeste_reactii_captura', { p_captura_id: capturaId });
+    PC_REACTII_CACHE[capturaId] = reactii || [];
+    renderPescarComentariiPanel(capturaId, reactii || []);
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function trimitePescarComentariu(capturaId, parinteId) {
+  var inputId = parinteId ? ('pc-reply-input-' + capturaId + '-' + parinteId) : ('pc-input-' + capturaId);
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('adauga_comentariu_captura', { p_captura_id: capturaId, p_continut: text, p_parinte_id: parinteId || null, p_ca_balta: false });
+    input.value = '';
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la trimiterea comentariului.'); }
+}
+
+function togglePescarReplyBox(capturaId, id) {
+  var box = document.getElementById('pc-reply-box-' + capturaId + '-' + id);
+  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function votePescarComentariu(capturaId, id, valoare) {
+  if (!PC_USER) { openAuthFromPescar(); return; }
+  try {
+    await sb.rpc('voteaza_comentariu', { p_tip: 'captura', p_id: id, p_valoare: valoare });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la vot.'); }
+}
+
+function editeazaPescarComentariuUI(capturaId, id) {
+  var textEl = document.getElementById('pc-text-' + capturaId + '-' + id);
+  if (!textEl) return;
+  var textActual = textEl.textContent;
+  textEl.innerHTML = '<textarea id="pc-edit-' + capturaId + '-' + id + '" maxlength="2000" style="width:100%;min-height:44px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(textActual) + '</textarea>'
+    + '<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:4px;">'
+    + '<button onclick="salveazaEditarePescarComentariu(' + capturaId + ',' + id + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Salvează</button>'
+    + '<button onclick="loadPescarComentarii(' + capturaId + ')" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;">Anulează</button></div>';
+}
+
+async function salveazaEditarePescarComentariu(capturaId, id) {
+  var input = document.getElementById('pc-edit-' + capturaId + '-' + id);
+  if (!input) return;
+  var text = (input.value || '').trim();
+  if (!text) return;
+  try {
+    await sb.rpc('editeaza_comentariu', { p_tip: 'captura', p_id: id, p_continut_nou: text });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la editare.'); }
+}
+
+async function stergePescarComentariuUI(capturaId, id) {
+  if (!(await zodaConfirm('Ștergi acest comentariu?'))) return;
+  try {
+    await sb.rpc('sterge_comentariu_propriu', { p_tip: 'captura', p_id: id });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+async function raporteazaPescarComentariuUI(capturaId, id) {
+  var motiv = prompt('De ce raportezi acest comentariu? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_comentariu', { p_tip: 'captura', p_id: id, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către administratorul bălții.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+async function modereazaPescarComentariuUI(capturaId, id, actiune) {
+  var mesaje = {
+    sterge: 'Ștergi acest comentariu (și toate răspunsurile), ca administrator? Acțiunea afectează contul autorului, indiferent cine este.',
+    ascunde: 'Ascunzi acest comentariu (și toate răspunsurile) de la ceilalți utilizatori?',
+    reafiseaza: 'Reafișezi acest comentariu (și toate răspunsurile)?'
+  };
+  if (!(await zodaConfirm(mesaje[actiune]))) return;
+  try {
+    await sb.rpc('modereaza_comentariu_admin', { p_tip: 'captura', p_id: id, p_actiune: actiune });
+    await loadPescarComentarii(capturaId);
+  } catch(e) { alert(e.message || 'Eroare la moderare.'); }
+}
+
+function aratPescarComentariuAscuns(capturaId, id) {
+  var c = (PC_CACHE[capturaId] || []).find(function(x) { return x.id === id; });
+  if (c) c._fortatVizibil = true;
+  renderPescarComentariiPanel(capturaId, PC_REACTII_CACHE[capturaId] || []);
+}
+
+function renderPescarComentariuHtml(capturaId, c, replies) {
+  if (c.ascuns_admin && !PC_IS_ZODA_ADMIN) {
+    return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);font-style:italic;">Comentariu ascuns de moderator.</div>';
+  }
+  if (c.ascuns_auto && !c._fortatVizibil) {
+    return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);font-size:11px;color:var(--zc-text-muted);">Comentariu ascuns (multe voturi negative). <button onclick="aratPescarComentariuAscuns(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:#38bdf8;cursor:pointer;text-decoration:underline;padding:0;">Arată oricum</button></div>';
+  }
+  var esteSters = !c.autor_id;
+  var nume = c.autor_username || c.autor_zoda_id || 'Utilizator șters';
+  var numeHtml = esteSters
+    ? '<span style="color:var(--zc-text-muted);font-weight:700;">Utilizator șters</span>'
+    : '<a href="pescar.html?id=' + encodeURIComponent(c.autor_zoda_id || '') + '" onclick="event.stopPropagation()" style="color:var(--zc-text-strong);font-weight:700;font-size:12px;text-decoration:none;">' + escH(nume) + '</a>';
+  var badgeBalta = c.ca_balta ? ' <span style="background:var(--zc-bg-tint);color:#38bdf8;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🏊</span>' : '';
+  var badgeAscunsAdmin = (c.ascuns_admin && PC_IS_ZODA_ADMIN) ? ' <span style="background:#4c1d1d;color:#f87171;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px;">🙈 Ascuns</span>' : '';
+  var editatHtml = c.editat ? ' <span style="color:var(--zc-text-muted);font-size:10px;">(editat)</span>' : '';
+  var esteAutorPropriu = PC_USER && c.autor_id === PC_USER.id;
+  var potEdita = esteAutorPropriu && (Date.now() - new Date(c.created_at).getTime()) < 15 * 60 * 1000;
+  var votUp = c.vot_propriu === 1, votDown = c.vot_propriu === -1;
+
+  var butoane = [];
+  butoane.push('<button onclick="votePescarComentariu(' + capturaId + ',' + c.id + ',1)" style="background:none;border:none;cursor:pointer;color:' + (votUp ? '#38bdf8' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▲</button>');
+  butoane.push('<span style="color:var(--zc-text-secondary-2);font-weight:700;font-size:11px;">' + c.scor + '</span>');
+  butoane.push('<button onclick="votePescarComentariu(' + capturaId + ',' + c.id + ',-1)" style="background:none;border:none;cursor:pointer;color:' + (votDown ? '#ef4444' : 'var(--zc-text-muted)') + ';font-weight:700;font-size:11px;">▼</button>');
+  if (PC_USER) butoane.push('<button onclick="togglePescarReplyBox(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Răspunde</button>');
+  if (potEdita) butoane.push('<button onclick="editeazaPescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Editează</button>');
+  if (esteAutorPropriu && !PC_IS_ZODA_ADMIN) butoane.push('<button onclick="stergePescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+  if (PC_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaPescarComentariuUI(' + capturaId + ',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+  if (PC_IS_ZODA_ADMIN) {
+    butoane.push(c.ascuns_admin
+      ? '<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'reafiseaza\')" style="background:none;border:none;color:#4ade80;cursor:pointer;font-size:11px;">👁️ Reafișează</button>'
+      : '<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'ascunde\')" style="background:none;border:none;color:#f59e0b;cursor:pointer;font-size:11px;">🙈 Ascunde</button>');
+    butoane.push('<button onclick="modereazaPescarComentariuUI(' + capturaId + ',' + c.id + ',\'sterge\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:11px;">🗑️ Șterge (admin)</button>');
+  }
+
+  var replyBox = PC_USER
+    ? '<div id="pc-reply-box-' + capturaId + '-' + c.id + '" style="display:none;margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">'
+      + '<textarea id="pc-reply-input-' + capturaId + '-' + c.id + '" placeholder="Scrie un răspuns..." maxlength="2000" style="width:100%;min-height:42px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:7px;padding:7px;color:var(--zc-text-primary);font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:4px;"><button onclick="trimitePescarComentariu(' + capturaId + ',' + c.id + ')" style="background:var(--zc-cta-2, #0e7490);border:none;color:#fff;font-weight:700;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;">Răspunde</button></div></div>'
+    : '';
+
+  var repliesHtml = replies.length
+    ? '<div style="margin-top:6px;padding-left:12px;border-left:2px solid var(--zc-border);">' + replies.map(function(r) { return renderPescarComentariuHtml(capturaId, r, []); }).join('') + '</div>'
+    : '';
+
+  return '<div id="pc-c-' + capturaId + '-' + c.id + '" style="padding:8px 0;border-bottom:1px solid var(--zc-border);">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;flex-wrap:wrap;">'
+    + '<div>' + numeHtml + badgeBalta + badgeAscunsAdmin + '</div>'
+    + '<div style="color:var(--zc-text-muted);font-size:10px;white-space:nowrap;">' + formatDataRelativa(c.created_at) + editatHtml + '</div></div>'
+    + '<div id="pc-text-' + capturaId + '-' + c.id + '" style="font-size:13px;color:var(--zc-text-strong);margin-top:3px;white-space:pre-wrap;word-break:break-word;">' + escH(c.continut) + '</div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;">' + butoane.join('') + '</div>'
+    + replyBox + repliesHtml + '</div>';
 }
 
 function showError(msg) {
@@ -1568,6 +2059,10 @@ boot();
   <button class="bn-btn" id="bn-realizari" onclick="bnGoRealizariPescar()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.4L22 9.3l-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 7.1-1z"/></svg>
     <span>Realizări</span>
+  </button>
+  <button class="bn-btn" id="bn-chat" onclick="openChatModal()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span>Chat</span>
   </button>
   <button class="bn-btn" id="bn-cont" onclick="bnGoContPescar()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
