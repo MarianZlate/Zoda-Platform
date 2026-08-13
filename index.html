@@ -423,6 +423,8 @@ nav{display:flex;align-items:center;gap:6px;}
 #capturi-modal.open{display:flex;}
 #capturi-recente-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
 #capturi-recente-modal.open{display:flex;}
+#chat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:var(--z-modal);backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#chat-modal.open{display:flex;}
 .hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;
   /* mobil: modalul ocupă tot ecranul, nu doar 80vh cu colțuri rotunjite jos —
      meniul de jos rămâne vizibil/activ deasupra lui (vezi #bottom-nav) */
@@ -1043,6 +1045,37 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
       <button class="modal-close" onclick="closeCapturiRecenteModal()">✕</button>
     </div>
     <div class="hof-modal-list cr-grid" id="cr-modal-body"></div>
+  </div>
+</div>
+
+<!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ. -->
+<div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <div id="zoda-confirm-msg" style="font-size:14px;color:var(--zc-text-primary);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;">
+      <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
+      <button id="zoda-confirm-ok" style="background:#ef4444;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;">Confirmă</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CHAT LIVE -->
+<div id="chat-modal">
+  <div class="hof-modal-inner">
+    <div class="hof-modal-hdr">
+      <div>
+        <div class="hof-modal-title">💬 Chat live</div>
+        <div class="hof-modal-sub" id="chat-canal-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeChatModal()">✕</button>
+    </div>
+    <div id="chat-canale-pills" style="display:flex;gap:6px;padding:10px 20px;overflow-x:auto;border-bottom:1px solid var(--zc-border);flex-shrink:0;"></div>
+    <div id="chat-mesaje-list" style="flex:1;overflow-y:auto;padding:14px 20px 10px;"></div>
+    <div id="chat-reply-preview" style="display:none;padding:8px 20px;background:var(--zc-bg-tint);border-top:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-secondary);align-items:center;justify-content:space-between;flex-shrink:0;"></div>
+    <div style="padding:10px 20px calc(84px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
+      <textarea id="chat-input" placeholder="Scrie un mesaj..." maxlength="500" style="flex:1;min-height:40px;max-height:100px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px 12px;color:var(--zc-text-primary);font-size:14px;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+      <button onclick="trimiteMesajChatUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">Trimite</button>
+    </div>
   </div>
 </div>
 
@@ -2292,6 +2325,193 @@ function closeCapturiRecenteModal() {
   document.body.style.overflow = '';
   if (history.state && history.state.modal === 'capturi-recente') history.back();
 }
+
+// ═══ CHAT LIVE ══════════════════════════════════════════════════════════════
+// Notă tehnică: mesajele se reîmprospătează prin polling (la 4 secunde), nu
+// prin WebSocket/Realtime — tabela mesaje_live nu are nicio policy publică de
+// SELECT (totul trece prin RPC, ca la comentarii), iar Supabase Realtime
+// evaluează RLS direct pe tabelă, deci ar vedea mereu 0 rânduri. Polling e
+// varianta simplă și sigură pentru acum; se poate trece la Realtime adevărat
+// (Broadcast + trigger) quando trafic-ul chiar o cere.
+var CHAT_CANALE = [];
+var CHAT_CANAL_ACTIV = null;
+var CHAT_MESAJE = [];
+var CHAT_POLL_TIMER = null;
+var CHAT_REPLY_LA = null; // { id, autorUsername }
+
+function openChatModal() {
+  if (!currentUser) { openAuthModal(); return; }
+  var capEl = document.getElementById('capturi-modal'); if (capEl && capEl.classList.contains('open')) capEl.classList.remove('open');
+  var hofEl = document.getElementById('hof-modal'); if (hofEl && hofEl.classList.contains('open')) hofEl.classList.remove('open');
+  var crEl = document.getElementById('capturi-recente-modal'); if (crEl && crEl.classList.contains('open')) crEl.classList.remove('open');
+  document.getElementById('chat-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ modal: 'chat' }, '');
+  initChatLive();
+}
+
+function closeChatModal() {
+  document.getElementById('chat-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  if (CHAT_POLL_TIMER) { clearInterval(CHAT_POLL_TIMER); CHAT_POLL_TIMER = null; }
+  if (history.state && history.state.modal === 'chat') history.back();
+}
+
+async function initChatLive() {
+  if (!CHAT_CANALE.length) {
+    try {
+      var { data } = await sb.rpc('citeste_canale_chat');
+      CHAT_CANALE = data || [];
+    } catch(e) { CHAT_CANALE = []; }
+    renderCanalePillsChat();
+  }
+  if (!CHAT_CANAL_ACTIV && CHAT_CANALE.length) {
+    selecteazaCanalChat(CHAT_CANALE[0].id);
+  } else if (CHAT_CANAL_ACTIV) {
+    loadMesajeChat();
+  }
+  if (CHAT_POLL_TIMER) clearInterval(CHAT_POLL_TIMER);
+  CHAT_POLL_TIMER = setInterval(function() {
+    if (document.getElementById('chat-modal').classList.contains('open') && CHAT_CANAL_ACTIV) {
+      loadMesajeChat(true);
+    }
+  }, 4000);
+}
+
+function renderCanalePillsChat() {
+  var el = document.getElementById('chat-canale-pills');
+  if (!el) return;
+  el.innerHTML = CHAT_CANALE.map(function(c) {
+    var activ = c.id === CHAT_CANAL_ACTIV;
+    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '</button>';
+  }).join('');
+}
+
+function selecteazaCanalChat(canalId) {
+  CHAT_CANAL_ACTIV = canalId;
+  var canal = CHAT_CANALE.find(function(c) { return c.id === canalId; });
+  document.getElementById('chat-canal-sub').textContent = canal ? canal.nume : '—';
+  renderCanalePillsChat();
+  cancelReplyChat();
+  loadMesajeChat();
+}
+
+async function loadMesajeChat(silentios) {
+  if (!CHAT_CANAL_ACTIV) return;
+  var listEl = document.getElementById('chat-mesaje-list');
+  if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:13px;padding:20px 0;">Se încarcă...</div>';
+  try {
+    var { data, error } = await sb.rpc('citeste_mesaje_chat', { p_canal_id: CHAT_CANAL_ACTIV });
+    if (error) throw error;
+    var erauLaFund = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 60;
+    CHAT_MESAJE = data || [];
+    renderMesajeChat();
+    if (!silentios || erauLaFund) listEl.scrollTop = listEl.scrollHeight;
+  } catch(e) {
+    if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:13px;padding:20px 0;">' + escH(e.message || 'Eroare la încărcare.') + '</div>';
+  }
+}
+
+function renderMesajeChat() {
+  var listEl = document.getElementById('chat-mesaje-list');
+  if (!listEl) return;
+  if (!CHAT_MESAJE.length) {
+    listEl.innerHTML = '<div style="text-align:center;color:var(--zc-text-muted);font-size:13px;padding:20px 0;">Niciun mesaj încă. Fii primul care scrie ceva!</div>';
+    return;
+  }
+  var labels = { like: '👍', super: '🔥', wow: '😮', felicitari: '🎉', dislike: '👎' };
+  listEl.innerHTML = CHAT_MESAJE.map(function(m) {
+    var esteSters = !m.autor_id;
+    var nume = m.autor_username || m.autor_zoda_id || 'Utilizator șters';
+    var esteAutorPropriu = currentUser && m.autor_id === currentUser.id;
+    var reactii = m.reactii || {};
+    var reactiiHtml = Object.keys(labels).map(function(tip) {
+      var count = reactii[tip] || 0;
+      if (!count && m.reactie_proprie !== tip) return '';
+      var activ = m.reactie_proprie === tip;
+      return '<button onclick="reactioneazaMesajChatUI(' + m.id + ',\'' + tip + '\')" style="background:none;border:none;cursor:pointer;font-size:12px;padding:1px 3px;border-radius:6px;' + (activ ? 'background:var(--zc-bg-tint);' : '') + '">' + labels[tip] + (count ? ' ' + count : '') + '</button>';
+    }).join('');
+    var reactiiPickerHtml = Object.keys(labels).map(function(tip) {
+      return '<button onclick="reactioneazaMesajChatUI(' + m.id + ',\'' + tip + '\')" style="background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;">' + labels[tip] + '</button>';
+    }).join('');
+    var replyQuote = m.raspunde_la
+      ? '<div style="font-size:11px;color:var(--zc-text-muted);border-left:2px solid var(--zc-border);padding-left:6px;margin-bottom:3px;">↪ ' + escH(m.raspunde_la_autor_username || '—') + ': ' + escH((m.raspunde_la_continut || '').slice(0, 60)) + '</div>'
+      : '';
+    var actiuni = [];
+    if (currentUser) actiuni.push('<button onclick="setReplyToChat(' + m.id + ',\'' + escH(nume).replace(/'/g, "\\'") + '\')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Răspunde</button>');
+    if (esteAutorPropriu) actiuni.push('<button onclick="stergeMesajChatUI(' + m.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
+    if (currentUser && !esteAutorPropriu) actiuni.push('<button onclick="raporteazaMesajChatUI(' + m.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--zc-border);">'
+      + replyQuote
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">'
+      + '<strong style="font-size:13px;color:' + (esteSters ? 'var(--zc-text-muted)' : 'var(--zc-text-strong)') + ';">' + escH(nume) + '</strong>'
+      + '<span style="font-size:10px;color:var(--zc-text-muted);white-space:nowrap;">' + timeAgo(m.created_at) + '</span></div>'
+      + '<div style="font-size:14px;color:var(--zc-text-primary);margin-top:2px;white-space:pre-wrap;word-break:break-word;">' + escH(m.continut) + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;">' + reactiiHtml + '<span style="opacity:.5;">' + reactiiPickerHtml + '</span>' + actiuni.join('') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function setReplyToChat(mesajId, autorUsername) {
+  CHAT_REPLY_LA = { id: mesajId, autorUsername: autorUsername };
+  var el = document.getElementById('chat-reply-preview');
+  el.style.display = 'flex';
+  el.innerHTML = '<span>↪ Răspunzi lui <strong>' + escH(autorUsername) + '</strong></span><button onclick="cancelReplyChat()" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:16px;">✕</button>';
+  var input = document.getElementById('chat-input');
+  if (!input.value.trim()) input.value = '@' + autorUsername + ' ';
+  input.focus();
+}
+
+function cancelReplyChat() {
+  CHAT_REPLY_LA = null;
+  var el = document.getElementById('chat-reply-preview');
+  el.style.display = 'none';
+  el.innerHTML = '';
+}
+
+async function trimiteMesajChatUI() {
+  if (!currentUser) { openAuthModal(); return; }
+  var input = document.getElementById('chat-input');
+  var text = (input.value || '').trim();
+  if (!text || !CHAT_CANAL_ACTIV) return;
+  try {
+    await sb.rpc('trimite_mesaj_chat', { p_canal_id: CHAT_CANAL_ACTIV, p_continut: text, p_raspunde_la: CHAT_REPLY_LA ? CHAT_REPLY_LA.id : null });
+    input.value = '';
+    cancelReplyChat();
+    await loadMesajeChat();
+  } catch(e) { alert(e.message || 'Eroare la trimiterea mesajului.'); }
+}
+
+async function reactioneazaMesajChatUI(mesajId, tip) {
+  if (!currentUser) { openAuthModal(); return; }
+  try {
+    await sb.rpc('reactioneaza_mesaj_chat', { p_mesaj_id: mesajId, p_tip: tip });
+    await loadMesajeChat(true);
+  } catch(e) { alert(e.message || 'Eroare.'); }
+}
+
+async function raporteazaMesajChatUI(mesajId) {
+  var motiv = prompt('De ce raportezi acest mesaj? (opțional)');
+  if (motiv === null) return;
+  try {
+    await sb.rpc('raporteaza_mesaj_chat', { p_mesaj_id: mesajId, p_motiv: motiv || null });
+    alert('Mulțumim, am trimis raportarea către echipa Zoda.');
+  } catch(e) { alert(e.message || 'Eroare la raportare.'); }
+}
+
+async function stergeMesajChatUI(mesajId) {
+  if (!(await zodaConfirm('Ștergi acest mesaj?'))) return;
+  try {
+    await sb.rpc('sterge_mesaj_propriu_chat', { p_mesaj_id: mesajId });
+    await loadMesajeChat(true);
+  } catch(e) { alert(e.message || 'Eroare la ștergere.'); }
+}
+
+document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); trimiteMesajChatUI(); }
+});
+
 function setClasamentTab(which) {
   var wBtn = document.getElementById('lb-tab-weekly'), aBtn = document.getElementById('lb-tab-alltime');
   var wBody = document.getElementById('lb-body-weekly'), aBody = document.getElementById('lb-body-alltime');
@@ -4501,7 +4721,7 @@ const WORKER_TURNSTILE_VERIFY = 'https://zoda-turnstile-verify.marianzlate90.wor
 // Versiunea curentă a Termenilor și Politicii de Confidențialitate — trebuie
 // ținută sincronă manual cu "Versiunea X.X" afișată în termeni.html/confidentialitate.html.
 // La fiecare actualizare semnificativă a acelor pagini, crește numărul aici ȘI acolo.
-const TERMS_VERSION = '1.1';
+const TERMS_VERSION = '1.2';
 const BALTA_ADMIN_ACK_VERSION = '1.0';
 let _turnstileOk = false;
 function onTurnstileOk(){ _turnstileOk = true; }
@@ -4957,11 +5177,22 @@ async function loadNotifPanel() {
     const unread = !n.citita;
     const time   = timeAgo(n.created_at);
     const meta   = n.meta || {};
-    const url    = (n.tip === 'captura_respinsa' && meta.captura_id)
-      ? `cont.html?captura_respinsa=${meta.captura_id}`
-      : (n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id
-      ? `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`
-      : (meta.balta_id ? `balta.html?id=${meta.balta_id}` : null);
+    let url;
+    if (n.tip === 'captura_respinsa' && meta.captura_id) {
+      url = `cont.html?captura_respinsa=${meta.captura_id}`;
+    } else if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) {
+      url = `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
+    } else if (meta.balta_id && meta.comentariu_tip) {
+      // Notificări de comentarii/reacții — duc direct la comentariul exact
+      // (sau la tab-ul potrivit din overlay, dacă nu ține de un comentariu anume).
+      url = `balta.html?id=${meta.balta_id}&mod_tip=${meta.comentariu_tip}`;
+      if (meta.comentariu_id) url += `&mod_id=${meta.comentariu_id}`;
+      if (meta.stand_id) url += `&mod_stand=${meta.stand_id}`;
+    } else if (meta.balta_id) {
+      url = `balta.html?id=${meta.balta_id}`;
+    } else {
+      url = null;
+    }
     const clickFn = url
       ? `markNotifRead('${n.id}', this); window.location.href='${url}';`
       : `markNotifRead('${n.id}', this)`;
@@ -5060,6 +5291,32 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
+function zodaConfirm(mesaj) {
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('zoda-confirm-modal');
+    var msgEl = document.getElementById('zoda-confirm-msg');
+    var okBtn = document.getElementById('zoda-confirm-ok');
+    var cancelBtn = document.getElementById('zoda-confirm-cancel');
+    if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm(mesaj)); return; }
+    msgEl.textContent = mesaj;
+    modal.style.display = 'flex';
+    function cleanup(rezultat) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBackdrop);
+      resolve(rezultat);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+    function onBackdrop(e) { if (e.target === modal) cleanup(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBackdrop);
+  });
 }
 
 // Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
@@ -5180,6 +5437,12 @@ sb.auth.onAuthStateChange(async (event, session) => {
       }, 400);
     } else if (authFlag) {
       sessionStorage.removeItem('zoda_open_auth');
+    }
+    // Dacă vine dintr-o altă pagină cu flag de deschidere chat live
+    const chatFlag = sessionStorage.getItem('zoda_open_chat');
+    if (chatFlag) {
+      sessionStorage.removeItem('zoda_open_chat');
+      setTimeout(() => { openChatModal(); }, 400);
     }
     // Toast pentru vizitatori (o dată per sesiune)
     if (!currentUser && !sessionStorage.getItem('zoda_toast_shown')) {
@@ -6032,6 +6295,10 @@ setTimeout(showIosToast, 3000);
   <button class="bn-btn" id="bn-clasament" onclick="openHof()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a1 1 0 0 0-1 1c0 3 2 4 4 4M17 6h3a1 1 0 0 1 1 1c0 3-2 4-4 4"/></svg>
     <span>Clasament</span>
+  </button>
+  <button class="bn-btn" id="bn-chat" onclick="openChatModal()">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span>Chat</span>
   </button>
   <button class="bn-btn" id="bn-cont" onclick="bnGoCont()">
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
