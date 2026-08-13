@@ -97,7 +97,7 @@ th,td{padding:8px 6px;}
   #hdr-in{padding:0 24px;height:62px;flex-wrap:nowrap;gap:16px;}
   #hdr-in .logo{font-size:22px;}
 
-  .tabs{padding:0;gap:4px;overflow-x:visible;width:fit-content;flex-wrap:nowrap;}
+  .tabs{padding:0;gap:4px;overflow-x:visible;width:fit-content;max-width:100%;flex-wrap:wrap;}
   .tab{padding:12px 18px;font-size:15px;}
 
   #panel-balti,#panel-users{padding:28px 24px;}
@@ -106,7 +106,7 @@ th,td{padding:8px 6px;}
   .stat-card{padding:16px 20px;}
   .stat-num{font-size:31px;}
 
-  .action-btns{flex-wrap:nowrap;gap:6px;}
+  .action-btns{flex-wrap:wrap;gap:6px;}
   .btn-pub,.btn-unlist,.btn-edit,.btn-view,.btn-del{font-size:13px;padding:5px 10px;}
 
   /* Edit modal — centrat pe desktop */
@@ -196,13 +196,13 @@ th,td{padding:8px 6px;}
   .users-table td{padding:12px 14px;}
   /* Coloanele cu conținut scurt restrânse, ca spațiul eliberat să meargă la Nume/Acțiuni */
   .balti-table .col-id{width:4%;}
-  .balti-table .col-judet{width:10%;}
-  .balti-table .col-standuri{width:7%;}
-  .balti-table .col-harta{width:6%;}
-  .balti-table .col-zodaid{width:10%;}
-  .balti-table .col-status{width:9%;}
-  .balti-table .col-nume{width:24%;}
-  .balti-table .col-actiuni{width:30%;}
+  .balti-table .col-judet{width:7%;}
+  .balti-table .col-standuri{width:6%;}
+  .balti-table .col-harta{width:5%;}
+  .balti-table .col-zodaid{width:9%;}
+  .balti-table .col-status{width:8%;}
+  .balti-table .col-nume{width:23%;}
+  .balti-table .col-actiuni{width:38%;}
 }
 .vis-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
 .vis-public{background:#071c26;color:#38bdf8;border:1px solid #0c3a4d;}
@@ -472,6 +472,7 @@ th,td{padding:8px 6px;}
     <button class="tab" onclick="switchTab('statistici')">📊 Statistici</button>
     <button class="tab" onclick="switchTab('settings')">⚙️ Setări platformă</button>
     <button class="tab" onclick="switchTab('followup')">📋 Bălți Follow-up</button>
+    <button class="tab" onclick="switchTab('moderare')" style="position:relative;">🛡️ Moderare<span id="moderare-pending-badge" class="tab-badge" style="display:none;"></span></button>
   </div>
 
   <!-- BALTI PANEL -->
@@ -508,7 +509,7 @@ th,td{padding:8px 6px;}
             <th class="col-judet">Județ</th>
             <th class="col-standuri">Standuri</th>
             <th class="col-harta">Hartă</th>
-            <th class="col-zodaid">Admin (ZODA-ID)</th>
+            <th class="col-zodaid">Admin</th>
             <th class="col-status">Status</th>
             <th class="col-actiuni">Acțiuni</th>
           </tr>
@@ -772,6 +773,52 @@ th,td{padding:8px 6px;}
     <div id="followup-list" style="display:flex;flex-direction:column;gap:10px;">
       <div class="empty-state">Se încarcă...</div>
     </div>
+  </div>
+
+  <!-- PANEL MODERARE — vedere globală cross-baltă, doar pentru zoda_admin -->
+  <div id="panel-moderare" style="display:none;">
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <span>🛡️ Moderare — vedere globală (toate bălțile)</span>
+    </div>
+
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCanaleChatUI()">
+        <strong style="color:#f1f5f9;font-size:14px;">🗂️ Canale chat live (denumire + pornit/oprit)</strong>
+        <span id="canale-chat-toggle-icon">▼</span>
+      </div>
+      <div id="canale-chat-body" style="display:none;margin-top:12px;">
+        <div id="canale-chat-list"></div>
+      </div>
+    </div>
+
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCuvinteInterziseUI()">
+        <strong style="color:#f1f5f9;font-size:14px;">⚙️ Listă cuvinte interzise (filtru chat + comentarii, RO + EN)</strong>
+        <span id="cuvinte-toggle-icon">▼</span>
+      </div>
+      <div id="cuvinte-interzise-body" style="display:none;margin-top:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <input id="cuvant-nou-input" type="text" placeholder="cuvânt sau expresie (fără simboluri)..." style="flex:1;min-width:160px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;" onkeydown="if(event.key==='Enter'){adaugaCuvantInterzisUI();event.preventDefault();}"/>
+          <select id="cuvant-nou-nivel" style="background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;">
+            <option value="strict">Strict — se cenzurează (#@&!)</option>
+            <option value="moale">Moale — doar flag pentru mine</option>
+          </select>
+          <button onclick="adaugaCuvantInterzisUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">+ Adaugă</button>
+        </div>
+        <div id="cuvinte-interzise-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:14px;">
+      <button class="tab active" onclick="switchModerareGlobalaTab('raportari')" id="modg-tab-raportari">🚩 Raportări nerezolvate</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('blocari')" id="modg-tab-blocari">🚫 Blocări active</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('banuri')" id="modg-tab-banuri">⛔ Pescari banați</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('chat')" id="modg-tab-chat">💬 Chat live</button>
+    </div>
+    <div id="modg-panel-raportari"></div>
+    <div id="modg-panel-blocari" style="display:none;"></div>
+    <div id="modg-panel-banuri" style="display:none;"></div>
+    <div id="modg-panel-chat" style="display:none;"></div>
   </div>
 
 </div>
@@ -1139,7 +1186,7 @@ function closeConfirm() {
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare'][i]===tab));
   const pB = document.getElementById('panel-balti');      if(pB) pB.style.display      = tab==='balti'      ? 'block' : 'none';
   const pST= document.getElementById('panel-statistici'); if(pST) pST.style.display    = tab==='statistici' ? 'block' : 'none';
   const pA = document.getElementById('panel-aprobari');   if(pA) pA.style.display      = tab==='aprobari'   ? 'block' : 'none';
@@ -1150,6 +1197,7 @@ function switchTab(tab) {
   const pR = document.getElementById('panel-reclame');    if(pR) pR.style.display      = tab==='reclame'    ? 'block' : 'none';
   const pM = document.getElementById('panel-mesaje');     if(pM) pM.style.display      = tab==='mesaje'     ? 'block' : 'none';
   const pFU= document.getElementById('panel-followup');   if(pFU) pFU.style.display    = tab==='followup'   ? 'block' : 'none';
+  const pMD= document.getElementById('panel-moderare');   if(pMD) pMD.style.display    = tab==='moderare'   ? 'block' : 'none';
   if(tab==='statistici') { setStatsInterval(30); }
   if(tab==='aprobari') loadAprobari();
   if(tab==='users')    loadUsers();
@@ -1159,6 +1207,259 @@ function switchTab(tab) {
   if(tab==='reclame')  loadReclame();
   if(tab==='mesaje')   loadMesaje();
   if(tab==='followup') loadFollowup();
+  if(tab==='moderare') switchModerareGlobalaTab('raportari');
+}
+
+// ── MODERARE GLOBALĂ (zoda_admin) — raportări/blocări/banuri, cross-baltă ──
+var MODG_TAB = 'raportari';
+
+// Construiește link-ul direct spre comentariul raportat (balta.html citește
+// aceste query-params și deschide tab-ul/overlay-ul potrivit, cu comentariul evidențiat).
+function modLink(r) {
+  var url = 'balta.html?id=' + r.balta_id + '&mod_tip=' + r.comentariu_tip + '&mod_id=' + r.comentariu_id;
+  if (r.stand_id) url += '&mod_stand=' + r.stand_id;
+  return url;
+}
+
+function switchModerareGlobalaTab(tab) {
+  MODG_TAB = tab;
+  document.getElementById('modg-tab-raportari').classList.toggle('active', tab === 'raportari');
+  document.getElementById('modg-tab-blocari').classList.toggle('active', tab === 'blocari');
+  document.getElementById('modg-tab-banuri').classList.toggle('active', tab === 'banuri');
+  document.getElementById('modg-tab-chat').classList.toggle('active', tab === 'chat');
+  document.getElementById('modg-panel-raportari').style.display = tab === 'raportari' ? 'block' : 'none';
+  document.getElementById('modg-panel-blocari').style.display = tab === 'blocari' ? 'block' : 'none';
+  document.getElementById('modg-panel-banuri').style.display = tab === 'banuri' ? 'block' : 'none';
+  document.getElementById('modg-panel-chat').style.display = tab === 'chat' ? 'block' : 'none';
+  if (tab === 'raportari') loadRaportariGlobale();
+  else if (tab === 'blocari') loadBlocariGlobale();
+  else if (tab === 'banuri') loadBanuriGlobale();
+  else loadRaportariChatGlobale();
+}
+
+async function loadRaportariChatGlobale() {
+  var panel = document.getElementById('modg-panel-chat');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_raportari_chat');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Niciun mesaj de chat raportat momentan.</div>'; return; }
+    panel.innerHTML = data.map(r => {
+      const numeAutor = r.autor_username || r.autor_zoda_id || 'Utilizator șters';
+      const raportatDe = r.raportat_de_username || 'Filtru automat (cuvinte)';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">💬 ${escH(r.canal_nume || '—')}</span>
+          <span style="font-size:11px;font-weight:700;color:${r.rezolvat ? '#4ade80' : '#f59e0b'};">${r.rezolvat ? '✓ Rezolvat' : '⏳ Nerezolvat'}</span>
+        </div>
+        <div style="font-size:14px;color:#f1f5f9;margin-top:6px;white-space:pre-wrap;word-break:break-word;">${escH(r.continut || '(mesaj șters)')}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;">De la: <strong>${escH(numeAutor)}</strong> · Raportat de: ${escH(raportatDe)}${r.motiv ? ' · Motiv: ' + escH(r.motiv) : ''} · ${new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          <button onclick="modereazaMesajChatAdminUI(${r.mesaj_id}, 'sterge', ${r.raportare_id})" style="background:transparent;border:1px solid #ef4444;color:#ef4444;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">🗑️ Șterge mesaj</button>
+          ${!r.rezolvat
+            ? `<button onclick="marcheazaRaportChatRezolvatUI(${r.raportare_id}, true)" style="background:transparent;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">Marchează rezolvat</button>`
+            : `<button onclick="marcheazaRaportChatRezolvatUI(${r.raportare_id}, false)" style="background:transparent;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">Redeschide</button>`}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function modereazaMesajChatAdminUI(mesajId, actiune, raportareId) {
+  if (!confirm(actiune === 'sterge' ? 'Ștergi acest mesaj de chat?' : 'Restaurezi acest mesaj de chat?')) return;
+  try {
+    await sb.rpc('modereaza_mesaj_chat_admin', { p_mesaj_id: mesajId, p_actiune: actiune });
+    if (raportareId) await sb.rpc('marcheaza_raportare_chat_rezolvata', { p_raportare_id: raportareId, p_valoare: true });
+    showToast('Mesaj de chat moderat.');
+    loadRaportariChatGlobale();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+async function marcheazaRaportChatRezolvatUI(raportareId, valoare) {
+  try {
+    await sb.rpc('marcheaza_raportare_chat_rezolvata', { p_raportare_id: raportareId, p_valoare: valoare });
+    loadRaportariChatGlobale();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+// ── LISTĂ CUVINTE INTERZISE (filtru chat + comentarii) ──────────────────────
+// ── CANALE CHAT (denumire + pornit/oprit) ────────────────────────────────────
+var _canaleChatIncarcate = false;
+
+function toggleCanaleChatUI() {
+  var body = document.getElementById('canale-chat-body');
+  var icon = document.getElementById('canale-chat-toggle-icon');
+  var deschis = body.style.display !== 'none';
+  body.style.display = deschis ? 'none' : 'block';
+  icon.textContent = deschis ? '▼' : '▲';
+  if (!deschis && !_canaleChatIncarcate) {
+    _canaleChatIncarcate = true;
+    loadCanaleChatUI();
+  }
+}
+
+async function loadCanaleChatUI() {
+  var el = document.getElementById('canale-chat-list');
+  el.innerHTML = '<div class="empty-state" style="padding:8px;">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_canale_chat_admin');
+    if (error) throw error;
+    if (!data || !data.length) { el.innerHTML = '<div class="empty-state" style="padding:8px;">Niciun canal.</div>'; return; }
+    el.innerHTML = data.map(c => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #1e293b;flex-wrap:wrap;">
+        <span style="font-size:16px;">${c.emoji || ''}</span>
+        <input id="canal-nume-${c.id}" type="text" value="${escH(c.nume)}" style="flex:1;min-width:140px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:${c.activ ? '#4ade80' : '#64748b'};font-weight:700;cursor:pointer;white-space:nowrap;">
+          <input id="canal-activ-${c.id}" type="checkbox" ${c.activ ? 'checked' : ''} style="width:16px;height:16px;cursor:pointer;"/>
+          ${c.activ ? 'Pornit' : 'Oprit'}
+        </label>
+        <button onclick="salveazaCanalChatUI(${c.id})" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;">Salvează</button>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state" style="color:#ef4444;padding:8px;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function salveazaCanalChatUI(id) {
+  var nume = document.getElementById('canal-nume-' + id).value.trim();
+  var activ = document.getElementById('canal-activ-' + id).checked;
+  if (!nume) { showToast('Numele canalului nu poate fi gol.', true); return; }
+  try {
+    await sb.rpc('actualizeaza_canal_chat', { p_id: id, p_nume: nume, p_activ: activ });
+    showToast('Canal actualizat.');
+    await loadCanaleChatUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+var _cuvinteInterziseIncarcate = false;
+
+function toggleCuvinteInterziseUI() {
+  var body = document.getElementById('cuvinte-interzise-body');
+  var icon = document.getElementById('cuvinte-toggle-icon');
+  var deschis = body.style.display !== 'none';
+  body.style.display = deschis ? 'none' : 'block';
+  icon.textContent = deschis ? '▼' : '▲';
+  if (!deschis && !_cuvinteInterziseIncarcate) {
+    _cuvinteInterziseIncarcate = true;
+    loadCuvinteInterziseUI();
+  }
+}
+
+async function loadCuvinteInterziseUI() {
+  var el = document.getElementById('cuvinte-interzise-list');
+  el.innerHTML = '<div class="empty-state" style="padding:8px;">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_cuvinte_interzise');
+    if (error) throw error;
+    if (!data || !data.length) { el.innerHTML = '<div class="empty-state" style="padding:8px;">Nicio intrare încă.</div>'; return; }
+    el.innerHTML = data.map(c => {
+      const culoare = c.nivel === 'strict' ? '#ef4444' : '#f59e0b';
+      const eticheta = c.nivel === 'strict' ? 'strict' : 'moale';
+      return `<span style="display:inline-flex;align-items:center;gap:5px;background:#0a0f1a;border:1px solid ${culoare};color:${culoare};font-size:12px;font-weight:600;padding:4px 8px;border-radius:14px;">
+        ${escH(c.cuvant)} <span style="opacity:.7;font-size:10px;">(${eticheta})</span>
+        <button onclick="stergeCuvantInterzisUI(${c.id})" style="background:none;border:none;color:${culoare};cursor:pointer;font-size:13px;line-height:1;padding:0;">✕</button>
+      </span>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state" style="color:#ef4444;padding:8px;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function adaugaCuvantInterzisUI() {
+  var input = document.getElementById('cuvant-nou-input');
+  var nivel = document.getElementById('cuvant-nou-nivel').value;
+  var cuvant = (input.value || '').trim();
+  if (!cuvant) return;
+  try {
+    await sb.rpc('adauga_cuvant_interzis', { p_cuvant: cuvant, p_nivel: nivel });
+    input.value = '';
+    await loadCuvinteInterziseUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'cuvânt invalid (doar litere/cifre)'), true); }
+}
+
+async function stergeCuvantInterzisUI(id) {
+  try {
+    await sb.rpc('sterge_cuvant_interzis', { p_id: id });
+    await loadCuvinteInterziseUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+async function loadRaportariGlobale() {
+  var panel = document.getElementById('modg-panel-raportari');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_raportari_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Nicio raportare nerezolvată momentan.</div>'; return; }
+    const tipLabel = { balta: '💬 Comentariu baltă', captura: '📸 Comentariu captură', stand: '❓ Q&A stand' };
+    panel.innerHTML = data.map(r => {
+      const numeAutor = r.autor_username || r.autor_zoda_id || 'Utilizator șters';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">${tipLabel[r.comentariu_tip] || r.comentariu_tip} · 📍 ${escH(r.balta_nume || '—')}</span>
+          <span style="font-size:11px;color:#f59e0b;font-weight:700;">⏳ Nerezolvat</span>
+        </div>
+        <div style="font-size:14px;color:#f1f5f9;margin-top:6px;white-space:pre-wrap;word-break:break-word;">${escH(r.continut || '(comentariu șters)')}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;">De la: <strong>${escH(numeAutor)}</strong> · Raportat de: ${escH(r.raportat_de_username || '—')}${r.motiv ? ' · Motiv: ' + escH(r.motiv) : ''} · ${new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
+        <div style="margin-top:8px;">
+          <a href="${modLink(r)}" target="_blank" style="font-size:12px;color:#38bdf8;text-decoration:none;font-weight:700;">🎯 Moderează comentariul</a>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function loadBlocariGlobale() {
+  var panel = document.getElementById('modg-panel-blocari');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_blocari_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Nicio blocare momentan.</div>'; return; }
+    const motivLabels = { spam: 'Spam', limbaj_agresiv: 'Limbaj agresiv', dezinformare: 'Dezinformare', altul: 'Altul' };
+    panel.innerHTML = data.map(b => {
+      const nume = b.pescar_username || b.pescar_zoda_id || 'Utilizator șters';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;${b.activ ? '' : 'opacity:.55;'}">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <strong style="font-size:14px;color:#f1f5f9;">${escH(nume)}</strong>
+          <span style="font-size:11px;font-weight:700;color:${b.activ ? '#ef4444' : '#64748b'};">${b.activ ? '🚫 Activ' : 'Retras'}</span>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">📍 ${escH(b.balta_nume || '—')} · Motiv: ${motivLabels[b.motiv] || b.motiv}${b.detalii ? ' — ' + escH(b.detalii) : ''}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">Blocat de ${escH(b.blocat_de_username || '—')} · ${new Date(b.created_at).toLocaleDateString('ro-RO')}${b.folosit_pentru_ban ? ' · a contat la un strike de ban platformă' : ''}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function loadBanuriGlobale() {
+  var panel = document.getElementById('modg-panel-banuri');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_banuri_globale');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Niciun pescar banat momentan.</div>'; return; }
+    panel.innerHTML = data.map(b => {
+      const nume = b.pescar_username || b.pescar_zoda_id || 'Utilizator șters';
+      const nivelLabel = b.nivel === 1 ? '30 zile' : b.nivel === 2 ? '90 zile' : 'Permanent';
+      const expira = b.nivel === 3 ? 'Fără expirare' : (b.banat_pana_la ? 'Expiră: ' + new Date(b.banat_pana_la).toLocaleDateString('ro-RO') : '—');
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <strong style="font-size:14px;color:#f1f5f9;">${escH(nume)}</strong>
+          <span style="font-size:11px;font-weight:700;color:#ef4444;">⛔ ${nivelLabel}</span>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">${escH(b.motiv_ultim || '—')}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">${expira}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
 }
 
 // ── BĂLȚI FOLLOW-UP ──────────────────────────────────────────────────────────
@@ -3134,6 +3435,13 @@ function renderUsersTable() {
       ? `<button class="btn-revoke-balta-admin" onclick="revocaAmbasador('${u.id}','${numeSigur}')">Revocă ambasador</button>`
       : `<button class="btn-make-balta-admin" onclick="promoveazaLaAmbasador('${u.id}','${numeSigur}')">🎥 Fă Ambasador</button>`;
 
+    const chatMuteBtns = `<div class="action-btns" style="margin-top:6px;">
+      <button onclick="muteazaChatUI('${u.id}','30zile','${numeSigur}')" title="Mute 30 zile în chat live" style="background:transparent;border:1px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔇 30z</button>
+      <button onclick="muteazaChatUI('${u.id}','90zile','${numeSigur}')" title="Mute 90 zile în chat live" style="background:transparent;border:1px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔇 90z</button>
+      <button onclick="muteazaChatUI('${u.id}','permanent','${numeSigur}')" title="Ban permanent din chat live" style="background:transparent;border:1px solid #ef4444;color:#ef4444;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">⛔ Chat</button>
+      <button onclick="demuteazaChatUI('${u.id}','${numeSigur}')" title="Elimină orice mute din chat live" style="background:transparent;border:1px solid #4b5563;color:#94a3b8;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔊 Demute</button>
+    </div>`;
+
     let actiuni;
     if (rol === 'zoda_admin') {
       actiuni = u.id === SUPREME_ADMIN_UID
@@ -3161,9 +3469,25 @@ function renderUsersTable() {
       <td class="col-email">${nameHtml}</td>
       <td class="col-rol">${rolBadge}${ambasadorBadge}</td>
       <td class="col-data" style="color:#4b5563;">${createdAt}</td>
-      <td class="col-actiuni">${actiuni}</td>
+      <td class="col-actiuni">${actiuni}${chatMuteBtns}</td>
     </tr>`;
   }).join('');
+}
+
+async function muteazaChatUI(userId, durata, nume) {
+  const labels = { '30zile': '30 de zile', '90zile': '90 de zile', 'permanent': 'permanent' };
+  if (!confirm(`Aplici mute în chat live lui ${nume} — ${labels[durata]}?`)) return;
+  try {
+    await sb.rpc('muteaza_chat', { p_pescar_id: userId, p_durata: durata });
+    showToast(`🔇 ${nume} a primit mute în chat (${labels[durata]}).`);
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+async function demuteazaChatUI(userId, nume) {
+  try {
+    await sb.rpc('demuteaza_chat', { p_pescar_id: userId });
+    showToast(`🔊 Mute-ul de chat pentru ${nume} a fost eliminat.`);
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
 }
 
 async function setUserRole(userId, rol) {
