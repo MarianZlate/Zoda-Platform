@@ -2210,11 +2210,11 @@ function openHof()  {
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
   setClasamentTab('alltime');
   document.getElementById('hof-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
 }
 function closeHof() {
-  document.getElementById('hof-modal').classList.remove('open'); document.body.style.overflow = '';
+  document.getElementById('hof-modal').classList.remove('open'); unlockBodyScroll();
   if (history.state && history.state.modal === 'hof') history.back();
 }
 function openCapturiModal()  {
@@ -2224,11 +2224,11 @@ function openCapturiModal()  {
   var authEl = document.getElementById('auth-modal');
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
   document.getElementById('capturi-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   if (switching) history.replaceState({ modal: 'capturi' }, ''); else history.pushState({ modal: 'capturi' }, '');
 }
 function closeCapturiModal() {
-  document.getElementById('capturi-modal').classList.remove('open'); document.body.style.overflow = '';
+  document.getElementById('capturi-modal').classList.remove('open'); unlockBodyScroll();
   if (history.state && history.state.modal === 'capturi') history.back();
 }
 
@@ -2317,12 +2317,12 @@ function openCapturiRecenteModal() {
     ? _capturiRecenteCache.map(capturaRecentaCardHtml).join('')
     : '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Nicio captură înregistrată încă.</div>';
   document.getElementById('capturi-recente-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   history.pushState({ modal: 'capturi-recente' }, '');
 }
 function closeCapturiRecenteModal() {
   document.getElementById('capturi-recente-modal').classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (history.state && history.state.modal === 'capturi-recente') history.back();
 }
 
@@ -2345,14 +2345,14 @@ function openChatModal() {
   var hofEl = document.getElementById('hof-modal'); if (hofEl && hofEl.classList.contains('open')) hofEl.classList.remove('open');
   var crEl = document.getElementById('capturi-recente-modal'); if (crEl && crEl.classList.contains('open')) crEl.classList.remove('open');
   document.getElementById('chat-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   history.pushState({ modal: 'chat' }, '');
   initChatLive();
 }
 
 function closeChatModal() {
   document.getElementById('chat-modal').classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (CHAT_POLL_TIMER) { clearInterval(CHAT_POLL_TIMER); CHAT_POLL_TIMER = null; }
   if (history.state && history.state.modal === 'chat') history.back();
 }
@@ -2531,21 +2531,21 @@ window.addEventListener('popstate', function (e) {
     var hofEl = document.getElementById('hof-modal');
     if (hofEl && hofEl.classList.contains('open')) {
       hofEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
   if (!(e.state && e.state.modal === 'capturi')) {
     var capEl = document.getElementById('capturi-modal');
     if (capEl && capEl.classList.contains('open')) {
       capEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
   if (!(e.state && e.state.modal === 'capturi-recente')) {
     var crEl = document.getElementById('capturi-recente-modal');
     if (crEl && crEl.classList.contains('open')) {
       crEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
 });
@@ -2877,7 +2877,7 @@ function toggleBaltiAproapeDropdown(e) {
     scrollSearchUnderHeader('stat-aproape-chip');
   }
   dd.style.display = willOpen ? 'block' : 'none';
-  document.body.style.overflow = willOpen ? 'hidden' : '';
+  if (willOpen) lockBodyScroll(); else unlockBodyScroll();
   if (willOpen) {
     if (_baltiAproapeCoords) renderBaltiAproape(_baltiAproapeCoords);
     else cereLocatieBaltiAproape();
@@ -2946,7 +2946,7 @@ function togglePublicBaltiDropdown(e) {
     const ddAproape = document.getElementById('balti-aproape-dropdown');
     if (ddAproape && ddAproape.style.display === 'block') {
       ddAproape.style.display = 'none';
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
     const chip = document.getElementById('stat-publice-chip');
     // Poziție analitică, nu getBoundingClientRect() imediat după scroll —
@@ -2964,7 +2964,7 @@ function togglePublicBaltiDropdown(e) {
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
   }
   dd.style.display = willOpen ? 'block' : 'none';
-  document.body.style.overflow = willOpen ? 'hidden' : '';
+  if (willOpen) lockBodyScroll(); else unlockBodyScroll();
 }
 // Ancorează dropdown-ul vertical de bara "Bălți Verificate Zoda" (top = sub
 // bară); orizontal rămâne centrat pe mijlocul ecranului (CSS: left:50% +
@@ -2982,13 +2982,13 @@ document.addEventListener('click', function(e) {
   if (dd && dd.style.display === 'block' && chip && !chip.contains(e.target)) {
     dd.style.display = 'none';
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
-    document.body.style.overflow = '';
+    unlockBodyScroll();
   }
   const chipAproape = document.getElementById('stat-aproape-chip');
   const ddAproape = document.getElementById('balti-aproape-dropdown');
   if (ddAproape && ddAproape.style.display === 'block' && chipAproape && !chipAproape.contains(e.target)) {
     ddAproape.style.display = 'none';
-    document.body.style.overflow = '';
+    unlockBodyScroll();
   }
 });
 
@@ -4615,7 +4615,7 @@ function openAuthModal()  {
   if (capEl && capEl.classList.contains('open')) closeCapturiModal();
   var crEl = document.getElementById('capturi-recente-modal');
   if (crEl && crEl.classList.contains('open')) closeCapturiRecenteModal();
-  document.getElementById('auth-modal').classList.add('open'); document.body.style.overflow = 'hidden';
+  document.getElementById('auth-modal').classList.add('open'); lockBodyScroll();
 }
 
 // ── MENIU DE JOS — Acasă (deja pe index: doar închide modaluri deschise și
@@ -4639,7 +4639,7 @@ function bnGoCont() {
   document.getElementById('hof-modal')?.classList.remove('open');
   document.getElementById('capturi-modal')?.classList.remove('open');
   document.getElementById('capturi-recente-modal')?.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (typeof currentUser !== 'undefined' && currentUser) {
     saveIndexState();
     window.location.href = 'cont.html';
@@ -4647,7 +4647,7 @@ function bnGoCont() {
     openAuthModal();
   }
 }
-function closeAuthModal() { document.getElementById('auth-modal')?.classList.remove('open'); authClearMsg(); document.body.style.overflow = ''; }
+function closeAuthModal() { document.getElementById('auth-modal')?.classList.remove('open'); authClearMsg(); unlockBodyScroll(); }
 
 function authSwitchTab(tab) {
   document.getElementById('pane-login').style.display    = tab === 'login'    ? 'block' : 'none';
@@ -5291,6 +5291,39 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Blocare de scroll robustă pentru modaluri/dropdown-uri — `overflow:hidden`
+// pe <body> NU blochează scroll-ul prin atingere pe iOS Safari (bug cunoscut
+// de browser), lăsând pagina să scroleze pe sub un element `position:fixed`,
+// ceea ce dă impresia că "se plimbă". Fix: scoatem <body> din flux
+// (position:fixed, ancorat la poziția curentă de scroll), ceea ce blochează
+// scroll-ul prin atingere real, pe toate platformele.
+var _scrollLockY = 0;
+var _scrollLockCount = 0;
+function lockBodyScroll() {
+  if (_scrollLockCount === 0) {
+    _scrollLockY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = (-_scrollLockY) + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+  }
+  _scrollLockCount++;
+}
+function unlockBodyScroll() {
+  _scrollLockCount = Math.max(0, _scrollLockCount - 1);
+  if (_scrollLockCount === 0) {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    window.scrollTo(0, _scrollLockY);
+  }
 }
 
 // Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
