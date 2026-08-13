@@ -780,14 +780,35 @@ th,td{padding:8px 6px;}
     <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <span>🛡️ Moderare — vedere globală (toate bălțile)</span>
     </div>
+
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:14px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleCuvinteInterziseUI()">
+        <strong style="color:#f1f5f9;font-size:14px;">⚙️ Listă cuvinte interzise (filtru chat + comentarii, RO + EN)</strong>
+        <span id="cuvinte-toggle-icon">▼</span>
+      </div>
+      <div id="cuvinte-interzise-body" style="display:none;margin-top:12px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <input id="cuvant-nou-input" type="text" placeholder="cuvânt nou (fără spații/simboluri)..." style="flex:1;min-width:160px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;" onkeydown="if(event.key==='Enter'){adaugaCuvantInterzisUI();event.preventDefault();}"/>
+          <select id="cuvant-nou-nivel" style="background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 10px;color:#f1f5f9;font-size:13px;">
+            <option value="strict">Strict — se cenzurează (#@&!)</option>
+            <option value="moale">Moale — doar flag pentru mine</option>
+          </select>
+          <button onclick="adaugaCuvantInterzisUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">+ Adaugă</button>
+        </div>
+        <div id="cuvinte-interzise-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+
     <div class="tabs" style="margin-bottom:14px;">
       <button class="tab active" onclick="switchModerareGlobalaTab('raportari')" id="modg-tab-raportari">🚩 Raportări nerezolvate</button>
       <button class="tab" onclick="switchModerareGlobalaTab('blocari')" id="modg-tab-blocari">🚫 Blocări active</button>
       <button class="tab" onclick="switchModerareGlobalaTab('banuri')" id="modg-tab-banuri">⛔ Pescari banați</button>
+      <button class="tab" onclick="switchModerareGlobalaTab('chat')" id="modg-tab-chat">💬 Chat live</button>
     </div>
     <div id="modg-panel-raportari"></div>
     <div id="modg-panel-blocari" style="display:none;"></div>
     <div id="modg-panel-banuri" style="display:none;"></div>
+    <div id="modg-panel-chat" style="display:none;"></div>
   </div>
 
 </div>
@@ -1195,12 +1216,116 @@ function switchModerareGlobalaTab(tab) {
   document.getElementById('modg-tab-raportari').classList.toggle('active', tab === 'raportari');
   document.getElementById('modg-tab-blocari').classList.toggle('active', tab === 'blocari');
   document.getElementById('modg-tab-banuri').classList.toggle('active', tab === 'banuri');
+  document.getElementById('modg-tab-chat').classList.toggle('active', tab === 'chat');
   document.getElementById('modg-panel-raportari').style.display = tab === 'raportari' ? 'block' : 'none';
   document.getElementById('modg-panel-blocari').style.display = tab === 'blocari' ? 'block' : 'none';
   document.getElementById('modg-panel-banuri').style.display = tab === 'banuri' ? 'block' : 'none';
+  document.getElementById('modg-panel-chat').style.display = tab === 'chat' ? 'block' : 'none';
   if (tab === 'raportari') loadRaportariGlobale();
   else if (tab === 'blocari') loadBlocariGlobale();
-  else loadBanuriGlobale();
+  else if (tab === 'banuri') loadBanuriGlobale();
+  else loadRaportariChatGlobale();
+}
+
+async function loadRaportariChatGlobale() {
+  var panel = document.getElementById('modg-panel-chat');
+  panel.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_raportari_chat');
+    if (error) throw error;
+    if (!data || !data.length) { panel.innerHTML = '<div class="empty-state">Niciun mesaj de chat raportat momentan.</div>'; return; }
+    panel.innerHTML = data.map(r => {
+      const numeAutor = r.autor_username || r.autor_zoda_id || 'Utilizator șters';
+      const raportatDe = r.raportat_de_username || 'Filtru automat (cuvinte)';
+      return `<div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;">💬 ${escH(r.canal_nume || '—')}</span>
+          <span style="font-size:11px;font-weight:700;color:${r.rezolvat ? '#4ade80' : '#f59e0b'};">${r.rezolvat ? '✓ Rezolvat' : '⏳ Nerezolvat'}</span>
+        </div>
+        <div style="font-size:14px;color:#f1f5f9;margin-top:6px;white-space:pre-wrap;word-break:break-word;">${escH(r.continut || '(mesaj șters)')}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:6px;">De la: <strong>${escH(numeAutor)}</strong> · Raportat de: ${escH(raportatDe)}${r.motiv ? ' · Motiv: ' + escH(r.motiv) : ''} · ${new Date(r.created_at).toLocaleDateString('ro-RO')}</div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          <button onclick="modereazaMesajChatAdminUI(${r.mesaj_id}, 'sterge', ${r.raportare_id})" style="background:transparent;border:1px solid #ef4444;color:#ef4444;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">🗑️ Șterge mesaj</button>
+          ${!r.rezolvat
+            ? `<button onclick="marcheazaRaportChatRezolvatUI(${r.raportare_id}, true)" style="background:transparent;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">Marchează rezolvat</button>`
+            : `<button onclick="marcheazaRaportChatRezolvatUI(${r.raportare_id}, false)" style="background:transparent;border:1px solid #334155;color:#94a3b8;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;">Redeschide</button>`}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    panel.innerHTML = `<div class="empty-state" style="color:#ef4444;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function modereazaMesajChatAdminUI(mesajId, actiune, raportareId) {
+  if (!confirm(actiune === 'sterge' ? 'Ștergi acest mesaj de chat?' : 'Restaurezi acest mesaj de chat?')) return;
+  try {
+    await sb.rpc('modereaza_mesaj_chat_admin', { p_mesaj_id: mesajId, p_actiune: actiune });
+    if (raportareId) await sb.rpc('marcheaza_raportare_chat_rezolvata', { p_raportare_id: raportareId, p_valoare: true });
+    showToast('Mesaj de chat moderat.');
+    loadRaportariChatGlobale();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+async function marcheazaRaportChatRezolvatUI(raportareId, valoare) {
+  try {
+    await sb.rpc('marcheaza_raportare_chat_rezolvata', { p_raportare_id: raportareId, p_valoare: valoare });
+    loadRaportariChatGlobale();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+// ── LISTĂ CUVINTE INTERZISE (filtru chat + comentarii) ──────────────────────
+var _cuvinteInterziseIncarcate = false;
+
+function toggleCuvinteInterziseUI() {
+  var body = document.getElementById('cuvinte-interzise-body');
+  var icon = document.getElementById('cuvinte-toggle-icon');
+  var deschis = body.style.display !== 'none';
+  body.style.display = deschis ? 'none' : 'block';
+  icon.textContent = deschis ? '▼' : '▲';
+  if (!deschis && !_cuvinteInterziseIncarcate) {
+    _cuvinteInterziseIncarcate = true;
+    loadCuvinteInterziseUI();
+  }
+}
+
+async function loadCuvinteInterziseUI() {
+  var el = document.getElementById('cuvinte-interzise-list');
+  el.innerHTML = '<div class="empty-state" style="padding:8px;">Se încarcă...</div>';
+  try {
+    const { data, error } = await sb.rpc('citeste_cuvinte_interzise');
+    if (error) throw error;
+    if (!data || !data.length) { el.innerHTML = '<div class="empty-state" style="padding:8px;">Nicio intrare încă.</div>'; return; }
+    el.innerHTML = data.map(c => {
+      const culoare = c.nivel === 'strict' ? '#ef4444' : '#f59e0b';
+      const eticheta = c.nivel === 'strict' ? 'strict' : 'moale';
+      return `<span style="display:inline-flex;align-items:center;gap:5px;background:#0a0f1a;border:1px solid ${culoare};color:${culoare};font-size:12px;font-weight:600;padding:4px 8px;border-radius:14px;">
+        ${escH(c.cuvant)} <span style="opacity:.7;font-size:10px;">(${eticheta})</span>
+        <button onclick="stergeCuvantInterzisUI(${c.id})" style="background:none;border:none;color:${culoare};cursor:pointer;font-size:13px;line-height:1;padding:0;">✕</button>
+      </span>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state" style="color:#ef4444;padding:8px;">${escH(e.message || 'Eroare la încărcare.')}</div>`;
+  }
+}
+
+async function adaugaCuvantInterzisUI() {
+  var input = document.getElementById('cuvant-nou-input');
+  var nivel = document.getElementById('cuvant-nou-nivel').value;
+  var cuvant = (input.value || '').trim();
+  if (!cuvant) return;
+  try {
+    await sb.rpc('adauga_cuvant_interzis', { p_cuvant: cuvant, p_nivel: nivel });
+    input.value = '';
+    await loadCuvinteInterziseUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'cuvânt invalid (doar litere/cifre)'), true); }
+}
+
+async function stergeCuvantInterzisUI(id) {
+  try {
+    await sb.rpc('sterge_cuvant_interzis', { p_id: id });
+    await loadCuvinteInterziseUI();
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
 }
 
 async function loadRaportariGlobale() {
@@ -3252,6 +3377,13 @@ function renderUsersTable() {
       ? `<button class="btn-revoke-balta-admin" onclick="revocaAmbasador('${u.id}','${numeSigur}')">Revocă ambasador</button>`
       : `<button class="btn-make-balta-admin" onclick="promoveazaLaAmbasador('${u.id}','${numeSigur}')">🎥 Fă Ambasador</button>`;
 
+    const chatMuteBtns = `<div class="action-btns" style="margin-top:6px;">
+      <button onclick="muteazaChatUI('${u.id}','30zile','${numeSigur}')" title="Mute 30 zile în chat live" style="background:transparent;border:1px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔇 30z</button>
+      <button onclick="muteazaChatUI('${u.id}','90zile','${numeSigur}')" title="Mute 90 zile în chat live" style="background:transparent;border:1px solid #f59e0b;color:#f59e0b;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔇 90z</button>
+      <button onclick="muteazaChatUI('${u.id}','permanent','${numeSigur}')" title="Ban permanent din chat live" style="background:transparent;border:1px solid #ef4444;color:#ef4444;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">⛔ Chat</button>
+      <button onclick="demuteazaChatUI('${u.id}','${numeSigur}')" title="Elimină orice mute din chat live" style="background:transparent;border:1px solid #4b5563;color:#94a3b8;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer;">🔊 Demute</button>
+    </div>`;
+
     let actiuni;
     if (rol === 'zoda_admin') {
       actiuni = u.id === SUPREME_ADMIN_UID
@@ -3279,9 +3411,25 @@ function renderUsersTable() {
       <td class="col-email">${nameHtml}</td>
       <td class="col-rol">${rolBadge}${ambasadorBadge}</td>
       <td class="col-data" style="color:#4b5563;">${createdAt}</td>
-      <td class="col-actiuni">${actiuni}</td>
+      <td class="col-actiuni">${actiuni}${chatMuteBtns}</td>
     </tr>`;
   }).join('');
+}
+
+async function muteazaChatUI(userId, durata, nume) {
+  const labels = { '30zile': '30 de zile', '90zile': '90 de zile', 'permanent': 'permanent' };
+  if (!confirm(`Aplici mute în chat live lui ${nume} — ${labels[durata]}?`)) return;
+  try {
+    await sb.rpc('muteaza_chat', { p_pescar_id: userId, p_durata: durata });
+    showToast(`🔇 ${nume} a primit mute în chat (${labels[durata]}).`);
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
+}
+
+async function demuteazaChatUI(userId, nume) {
+  try {
+    await sb.rpc('demuteaza_chat', { p_pescar_id: userId });
+    showToast(`🔊 Mute-ul de chat pentru ${nume} a fost eliminat.`);
+  } catch(e) { showToast('Eroare: ' + (e.message || 'necunoscută'), true); }
 }
 
 async function setUserRole(userId, rol) {
