@@ -2866,6 +2866,23 @@ async function modereazaComentariuOvUI(sub, id, actiune) {
   } catch(e) { alert(e.message || 'Eroare la moderare.'); }
 }
 
+async function mutaComentariuOvUI(id, subSursa) {
+  var mesaj = subSursa === 'captura'
+    ? 'Muți acest comentariu (și toate răspunsurile) din Comentarii captură în Q&A stand?'
+    : 'Muți acest comentariu (și toate răspunsurile) din Q&A stand în Comentarii captură?';
+  if (!(await zodaConfirm(mesaj))) return;
+  try {
+    await sb.rpc('muta_comentariu_captura_stand', {
+      p_tip_sursa: subSursa,
+      p_comentariu_id: id,
+      p_captura_id: OV_CAPTURA_ID,
+      p_stand_id: OV_STAND_ID
+    });
+    await Promise.all([loadOvcComentarii('captura'), loadOvcComentarii('qa')]);
+    renderOvcLista(OV_SUB_TAB);
+  } catch(e) { alert(e.message || 'Eroare la mutare.'); }
+}
+
 function aratComentariuAscunsOv(sub, id) {
   var c = (OVC_CACHE[sub] || []).find(function(x) { return x.id === id; });
   if (c) c._fortatVizibil = true;
@@ -2917,6 +2934,13 @@ function renderComentariuOvHtml(c, replies, sub) {
   if (potEdita) butoane.push('<button onclick="editeazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Editează</button>');
   if (esteAutorPropriu && !IS_ZODA_ADMIN) butoane.push('<button onclick="stergeComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Șterge</button>');
   if (BALTA_USER && !esteAutorPropriu) butoane.push('<button onclick="raporteazaComentariuOvUI(\'' + sub + '\',' + c.id + ')" style="background:none;border:none;color:var(--zc-text-muted);cursor:pointer;font-size:11px;">Raportează</button>');
+  if (CAN_EDIT && !c.parinte_id) {
+    if (sub === 'captura') {
+      butoane.push('<button onclick="mutaComentariuOvUI(' + c.id + ',\'captura\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:11px;">↷ Mută în Q&amp;A stand</button>');
+    } else if (OV_CAPTURA_ID) {
+      butoane.push('<button onclick="mutaComentariuOvUI(' + c.id + ',\'stand\')" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:11px;">↷ Mută în Comentarii captură</button>');
+    }
+  }
   if (IS_ZODA_ADMIN) {
     butoane.push(c.ascuns_admin
       ? '<button onclick="modereazaComentariuOvUI(\'' + sub + '\',' + c.id + ',\'reafiseaza\')" style="background:none;border:none;color:#4ade80;cursor:pointer;font-size:11px;">👁️ Reafișează</button>'
