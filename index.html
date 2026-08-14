@@ -41,6 +41,26 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+// ── REDIRECT DEEP-LINK (notificări push) ─────────────────────────────────────
+// sw.js deschide tab-uri noi ca 'index.html?redirect=...' în loc de link direct
+// spre pagina țintă, ca acel tab nou (fără nicio pagină anterioară în istoric)
+// să aibă mereu index.html ca primă intrare reală. Altfel butonul fizic
+// "înapoi" al telefonului n-are unde să te ducă și iese direct din aplicație.
+// Curățăm parametrul din URL ÎNAINTE de a naviga mai departe (history.replaceState),
+// ca intrarea rămasă în istoric să fie un index.html "curat" — dacă am naviga
+// direct fără curățare, revenirea cu "înapoi" ar re-declanșa același redirect
+// și userul ar rămâne blocat într-o buclă.
+(function () {
+  try {
+    var _qp = new URLSearchParams(location.search);
+    var _redirect = _qp.get('redirect');
+    if (_redirect) {
+      history.replaceState(null, '', location.pathname);
+      window.location.href = _redirect;
+    }
+  } catch (e) {}
+})();
+
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
 // României); diferența de răsărit/apus în interiorul țării e sub 30 min,
