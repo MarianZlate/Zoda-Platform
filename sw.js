@@ -146,15 +146,21 @@ self.addEventListener('push', (event) => {
 // tab-ul deja deschis dacă platforma e deja activă într-un tab.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/cont.html';
+  const rawUrl = (event.notification.data && event.notification.data.url) || '/cont.html';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.includes(new URL(targetUrl, self.location.origin).pathname) && 'focus' in client) {
+        if (client.url.includes(new URL(rawUrl, self.location.origin).pathname) && 'focus' in client) {
           return client.focus();
         }
       }
-      if (clients.openWindow) return clients.openWindow(targetUrl);
+      // Tab nou — trecem prin index.html?redirect=... în loc de link direct.
+      // Un tab deschis de OS (din notificare) n-are nicio pagină anterioară în
+      // istoric; fără acest pas, butonul fizic "înapoi" al telefonului iese
+      // direct din aplicație în loc să navigheze înapoi. Vezi index.html pentru
+      // partea care consumă parametrul.
+      const openUrl = '/index.html?redirect=' + encodeURIComponent(rawUrl);
+      if (clients.openWindow) return clients.openWindow(openUrl);
     })
   );
 });
