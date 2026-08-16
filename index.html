@@ -907,7 +907,6 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="cr-wrap">
       <div id="cr-hdr">
         <div id="cr-title">Capturi recente</div>
-        <button id="cr-vezi-tot" onclick="openCapturiRecenteModal()">Vezi tot →</button>
       </div>
       <div id="cr-carousel">
         <div id="cr-track"><div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;">Se încarcă...</div></div>
@@ -5379,7 +5378,7 @@ function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
   if (!fotoUrl) return '';
   var gal = [fotoUrl];
   if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
-  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  var galJson = JSON.stringify(gal).replace(/"/g, '&quot;').replace(/'/g, "\\'");
   return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 // ──────────────────────────────────────────────────────────────────────────────
