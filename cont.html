@@ -2747,6 +2747,15 @@ async function submitCaptura() {
 
     if (error) throw new Error(error.message);
 
+    // Notifică toți zoda_admin — captură nouă de moderat (tab „Capturi")
+    try {
+      await sb.rpc('notifica_zoda_admins', {
+        p_tip: 'captura_noua_pending',
+        p_mesaj: `Captură nouă de la ${pescarNume} (${kg} kg) așteaptă aprobare.`,
+        p_meta: { balta_id: _baltaAdminId, stand_id: parseInt(standId) },
+      });
+    } catch(e) { console.warn('Notificare zoda_admin eșuată (captură nouă):', e); }
+
     setProgress(100, 'Trimis!');
     setTimeout(() => {
       closeCaptura();
