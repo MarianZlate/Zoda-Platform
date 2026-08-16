@@ -3807,6 +3807,15 @@ async function submitContactForm() {
   document.getElementById('cf-email').value = '';
   document.getElementById('cf-mesaj').value = '';
   statusEl.style.color = '#38bdf8'; statusEl.textContent = '✓ Mesaj trimis! Îți răspundem cât mai curând.';
+
+  // Notifică toți zoda_admin — mesaj nou de contact (tab „Mesaje")
+  try {
+    await sb.rpc('notifica_zoda_admins', {
+      p_tip: 'mesaj_contact_nou',
+      p_mesaj: `Mesaj nou de contact de la ${nume}.`,
+      p_meta: { nume, email },
+    });
+  } catch(e) { console.warn('Notificare zoda_admin eșuată (mesaj contact):', e); }
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
@@ -4030,6 +4039,15 @@ async function abSubmit() {
   }
 
   const baltaId = baltaSaved.id;
+
+  // Notifică toți zoda_admin — baltă nouă de aprobat (tab „Aprobări")
+  try {
+    await sb.rpc('notifica_zoda_admins', {
+      p_tip: 'cerere_publicare_balta',
+      p_mesaj: `Baltă nouă înregistrată: „${baltaSaved.nume}" — așteaptă aprobare.`,
+      p_meta: { balta_id: baltaId },
+    });
+  } catch(e) { console.warn('Notificare zoda_admin eșuată (baltă nouă):', e); }
 
   // 2. Salveaza standurile
   if(standuriData.length > 0) {
