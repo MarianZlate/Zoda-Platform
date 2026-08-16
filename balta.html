@@ -2253,7 +2253,7 @@ function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
   if (!fotoUrl) return '';
   var gal = [fotoUrl];
   if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
-  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
+  var galJson = JSON.stringify(gal).replace(/"/g, '&quot;').replace(/'/g, "\\'");
   return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 
