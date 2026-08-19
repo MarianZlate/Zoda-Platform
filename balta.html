@@ -391,6 +391,11 @@ html[data-theme="light"] .logo-img-light{display:block;}
    deasupra lor, ca userul să poată naviga fără să închidă mai întâi modalul. */
 #bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:3500;display:flex;justify-content:space-around;align-items:center;padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);}
 .bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:9px;font-weight:600;padding:3px 8px;flex:1;max-width:110px;}
+.bn-icon-wrap{position:relative;display:inline-flex;}
+.bn-chat-dot{display:none;position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid var(--zc-bg-panel);}
+.bn-chat-dot.show{display:block;}
+.chat-canal-dot{display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:2px solid var(--zc-bg);}
+.chat-canal-dot.show{display:block;}
 .bn-btn svg{width:18px;height:18px;}
 .bn-btn.active{color:#38bdf8;}
 
@@ -420,7 +425,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 /* Capturi (modal) — același design de card-foto ca "Capturi recente" de pe
    index.html (cr-card/cr-grid), pentru consistență vizuală și comportamentală
    completă între pagini. */
-.cr-grid{display:grid;grid-template-columns:1fr;grid-auto-rows:max-content;align-items:start;gap:14px;padding:14px;}
+.cr-grid{display:grid;grid-template-columns:1fr;gap:14px;padding:14px;}
 .cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-card{border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
@@ -2253,7 +2258,7 @@ function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl) {
   if (!fotoUrl) return '';
   var gal = [fotoUrl];
   if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
-  var galJson = JSON.stringify(gal).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'");
   return "event.stopPropagation();openFS('" + escH(fotoUrl).replace(/'/g, "\\'") + "'," + galJson + ",0)";
 }
 
@@ -3185,6 +3190,60 @@ var CHAT_MESAJE = [];
 var CHAT_POLL_TIMER = null;
 var CHAT_REPLY_LA = null;
 
+// ── BADGE "MESAJE NOI" (punct, fără număr) ───────────────────────────────────
+// Rulează cât timp userul e pe pagină, indiferent dacă modalul de chat e
+// deschis sau nu — altfel n-ai de unde să știi că a venit un mesaj cât timp
+// stai pe altă parte a aplicației. Punct, nu contor: un număr mare după o
+// absență mai lungă descurajează, nu ajută (decizie explicită).
+var CHAT_BADGE_POLL_TIMER = null;
+var CHAT_ULTIM_VAZUT = {}; // { canalId: id-ul ultimului mesaj văzut, în localStorage }
+try { CHAT_ULTIM_VAZUT = JSON.parse(localStorage.getItem('zoda_chat_ultim_vazut') || '{}'); } catch(e) { CHAT_ULTIM_VAZUT = {}; }
+var CHAT_ULTIM_SERVER = {}; // { canalId: id-ul celui mai recent mesaj de pe server }
+
+function chatSalveazaUltimVazut() {
+  try { localStorage.setItem('zoda_chat_ultim_vazut', JSON.stringify(CHAT_ULTIM_VAZUT)); } catch(e) {}
+}
+
+function chatMarcheazaCanalCitit(canalId, ultimId) {
+  if (!canalId || !ultimId) return;
+  if (!CHAT_ULTIM_VAZUT[canalId] || ultimId > CHAT_ULTIM_VAZUT[canalId]) {
+    CHAT_ULTIM_VAZUT[canalId] = ultimId;
+    chatSalveazaUltimVazut();
+  }
+  updateChatBadgeUI();
+}
+
+function chatAreNecitite(canalId) {
+  var ultimServer = CHAT_ULTIM_SERVER[canalId];
+  if (!ultimServer) return false;
+  return ultimServer > (CHAT_ULTIM_VAZUT[canalId] || 0);
+}
+
+function updateChatBadgeUI() {
+  var oriceNecitit = Object.keys(CHAT_ULTIM_SERVER).some(function(cid) { return chatAreNecitite(cid); });
+  var dot = document.getElementById('bn-chat-dot');
+  if (dot) dot.classList.toggle('show', oriceNecitit);
+  document.querySelectorAll('.chat-canal-dot').forEach(function(el) {
+    el.classList.toggle('show', chatAreNecitite(el.getAttribute('data-canal-id')));
+  });
+}
+
+async function pollChatBadge() {
+  try {
+    var { data, error } = await sb.rpc('citeste_ultimele_mesaje_id_chat');
+    if (error) throw error;
+    (data || []).forEach(function(r) { CHAT_ULTIM_SERVER[r.canal_id] = r.ultim_mesaj_id; });
+    updateChatBadgeUI();
+  } catch(e) {}
+}
+
+function initChatBadgePoll() {
+  pollChatBadge();
+  if (CHAT_BADGE_POLL_TIMER) clearInterval(CHAT_BADGE_POLL_TIMER);
+  CHAT_BADGE_POLL_TIMER = setInterval(pollChatBadge, 22000);
+}
+window.addEventListener('load', initChatBadgePoll);
+
 function openChatModal() {
   if (!BALTA_USER) { openAuthFromBalta(); return; }
   document.getElementById('chat-modal').classList.add('open');
@@ -3226,7 +3285,8 @@ function renderCanalePillsChat() {
   if (!el) return;
   el.innerHTML = CHAT_CANALE.map(function(c) {
     var activ = c.id === CHAT_CANAL_ACTIV;
-    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '</button>';
+    var necitit = chatAreNecitite(c.id);
+    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="position:relative;flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '<span class="chat-canal-dot' + (necitit ? ' show' : '') + '" data-canal-id="' + c.id + '"></span></button>';
   }).join('');
 }
 
@@ -3249,6 +3309,11 @@ async function loadMesajeChat(silentios) {
     var erauLaFund = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 60;
     CHAT_MESAJE = data || [];
     renderMesajeChat();
+    if (CHAT_MESAJE.length) {
+      chatMarcheazaCanalCitit(CHAT_CANAL_ACTIV, Math.max.apply(null, CHAT_MESAJE.map(function(m) { return m.id; })));
+    } else if (CHAT_ULTIM_SERVER[CHAT_CANAL_ACTIV]) {
+      chatMarcheazaCanalCitit(CHAT_CANAL_ACTIV, CHAT_ULTIM_SERVER[CHAT_CANAL_ACTIV]);
+    }
     if (!silentios || erauLaFund) listEl.scrollTop = listEl.scrollHeight;
   } catch(e) {
     if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:13px;padding:20px 0;">' + escH(e.message || 'Eroare la încărcare.') + '</div>';
@@ -5775,7 +5840,7 @@ function startDrag(e, id) {
     <span>Clasament</span>
   </button>
   <button class="bn-btn" id="bn-chat" onclick="openChatModal()">
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span class="bn-icon-wrap"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="bn-chat-dot" id="bn-chat-dot"></span></span>
     <span>Chat</span>
   </button>
   <button class="bn-btn" id="bn-cont" onclick="bnGoContBalta()">
