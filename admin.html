@@ -715,6 +715,16 @@ th,td{padding:8px 6px;}
     <div id="reclame-list" style="display:flex;flex-direction:column;gap:10px;">
       <div class="empty-state">Se încarcă...</div>
     </div>
+
+    <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:32px;">
+      <span>🤝 Parteneri Zoda — logo-uri în footer, pe toate paginile</span>
+      <button onclick="openAddPartener()" style="display:flex;align-items:center;gap:8px;background:#0c3a4d;border:none;color:#38bdf8;font-size:15px;font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer;">
+        ＋ Adaugă parteneri
+      </button>
+    </div>
+    <div id="partener-list" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="empty-state">Se încarcă...</div>
+    </div>
   </div>
 
   <!-- MESAJE PANEL -->
@@ -913,6 +923,46 @@ th,td{padding:8px 6px;}
       <div id="reclama-err" style="display:none;background:#1c0a0a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px;"></div>
 
       <button onclick="saveReclama()" id="reclama-save-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;margin-bottom:20px;">💾 Salvează reclama</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTENER MODAL -->
+<div id="partener-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1700;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;width:100%;max-width:480px;margin:16px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid #1e293b;background:#0a0f1a;position:sticky;top:0;">
+      <div style="font-size:18px;font-weight:900;color:#f1f5f9;" id="partener-modal-title">🤝 Adaugă partener</div>
+      <button onclick="closePartenerModal()" style="background:transparent;border:none;color:#4b5563;font-size:25px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:2px;">
+      <input type="hidden" id="pt-id"/>
+
+      <div class="fg">
+        <label>NUME PARTENER (opțional — folosit ca text alternativ / tooltip)</label>
+        <input type="text" id="pt-nume" placeholder="ex: Magazinul de Pescuit X"/>
+      </div>
+
+      <div class="fg">
+        <label>LOGO (ideal PNG cu fundal transparent)</label>
+        <div id="pt-img-preview" style="width:100%;height:100px;border-radius:10px;background:#0a0f1a;border:1.5px dashed #1e293b;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#4b5563;font-size:25px;margin-bottom:8px;">🖼️</div>
+        <label for="pt-img-input" style="display:inline-block;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">Alege logo</label>
+        <input type="file" id="pt-img-input" accept="image/*" style="display:none;" onchange="ptImgSelected(this)"/>
+        <div id="pt-img-status" style="font-size:11px;color:#4b5563;margin-top:4px;"></div>
+      </div>
+
+      <div class="fg">
+        <label>LINK DESTINAȚIE (click pe logo)</label>
+        <input type="url" id="pt-link" placeholder="https://..."/>
+      </div>
+
+      <div class="fg">
+        <label>ORDINE ÎN FOOTER (opțional, mai mic = primul afișat)</label>
+        <input type="number" id="pt-sort" value="0"/>
+      </div>
+
+      <div id="partener-err" style="display:none;background:#1c0a0a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px;"></div>
+
+      <button onclick="savePartener()" id="partener-save-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;margin-bottom:20px;">💾 Salvează partenerul</button>
     </div>
   </div>
 </div>
@@ -1204,7 +1254,7 @@ function switchTab(tab) {
   if(tab==='capturi')  loadCapturi();
   if(tab==='ambasadori') { loadAmbasadori(); loadTotiAmbasadorii(); }
   if(tab==='settings') loadSettings();
-  if(tab==='reclame')  loadReclame();
+  if(tab==='reclame')  { loadReclame(); loadParteneri(); }
   if(tab==='mesaje')   loadMesaje();
   if(tab==='followup') loadFollowup();
   if(tab==='moderare') switchModerareGlobalaTab('raportari');
@@ -3110,6 +3160,192 @@ function exportReclamaRaport(id) {
   w.document.open();
   w.document.write(html);
   w.document.close();
+}
+
+// ── PARTENERI ZODA (logo-uri în footer, pe toate paginile) ────────────────────
+let PARTENERI = [];
+let ptEditId = null;
+let ptImgFile = null;
+let ptImgUrl = '';
+
+async function loadParteneri() {
+  const wrap = document.getElementById('partener-list');
+  if(!wrap) return;
+  wrap.innerHTML = '<div class="empty-state">Se încarcă...</div>';
+  const { data, error } = await sb.from('parteneri').select('*').order('sort_order', { ascending: true }).order('id', { ascending: true });
+  if(error) { wrap.innerHTML = '<div class="empty-state">Eroare la încărcare: ' + error.message + '</div>'; return; }
+  PARTENERI = data || [];
+  if(!PARTENERI.length) { wrap.innerHTML = '<div class="empty-state">Niciun partener adăugat încă. Footer-ul arată textul vechi până adaugi primul.</div>'; return; }
+
+  wrap.innerHTML = PARTENERI.map(p => {
+    const statusTxt   = p.activ ? '✅ Activ' : '⏸️ Dezactivat';
+    const statusColor = p.activ ? '#38bdf8' : '#4b5563';
+    return `<div class="rc-card">
+      <div class="rc-top">
+        <img class="rc-img" src="${p.logo_url}" style="object-fit:contain;background:#0a0f1a;" onerror="this.style.opacity=0.2"/>
+        <div class="rc-titlemeta">
+          <div class="rc-title">${escH(p.nume || '(fără nume)')}</div>
+          <div class="rc-meta">
+            <div>${escH(p.link)}</div>
+            <div>👁️ ${p.afisari||0} afișări · 🖱️ ${p.clickuri||0} click-uri</div>
+          </div>
+        </div>
+      </div>
+      <div class="rc-bottom">
+        <span class="rc-status" style="color:${statusColor};">${statusTxt}</span>
+        <div class="rc-actions">
+          <button onclick="openEditPartener(${p.id})" style="background:#1e293b;border:none;color:#94a3b8;font-size:12px;padding:7px 10px;border-radius:7px;cursor:pointer;">✏️</button>
+          <button onclick="toggleActivPartener(${p.id})" style="background:#1e293b;border:none;color:#94a3b8;font-size:12px;padding:7px 10px;border-radius:7px;cursor:pointer;">${p.activ ? '⏸️' : '▶️'}</button>
+          <button onclick="deletePartener(${p.id})" style="background:#1e293b;border:none;color:#ef4444;font-size:12px;padding:7px 10px;border-radius:7px;cursor:pointer;">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ptResetForm() {
+  ptEditId = null; ptImgFile = null; ptImgUrl = '';
+  document.getElementById('pt-id').value = '';
+  document.getElementById('pt-nume').value = '';
+  document.getElementById('pt-link').value = '';
+  document.getElementById('pt-sort').value = '0';
+  document.getElementById('pt-img-preview').innerHTML = '🖼️';
+  document.getElementById('pt-img-status').textContent = '';
+  document.getElementById('partener-err').style.display = 'none';
+}
+
+function openAddPartener() {
+  ptResetForm();
+  document.getElementById('partener-modal-title').textContent = '🤝 Adaugă partener';
+  document.getElementById('partener-modal').style.display = 'flex';
+}
+
+function openEditPartener(id) {
+  const p = PARTENERI.find(x => x.id === id);
+  if(!p) return;
+  ptResetForm();
+  ptEditId = id;
+  ptImgUrl = p.logo_url;
+  document.getElementById('partener-modal-title').textContent = '✏️ Editează partenerul';
+  document.getElementById('pt-id').value = p.id;
+  document.getElementById('pt-nume').value = p.nume || '';
+  document.getElementById('pt-link').value = p.link || '';
+  document.getElementById('pt-sort').value = p.sort_order || 0;
+  document.getElementById('pt-img-preview').innerHTML = p.logo_url ? `<img src="${p.logo_url}" style="width:100%;height:100%;object-fit:contain;"/>` : '🖼️';
+  document.getElementById('partener-modal').style.display = 'flex';
+}
+
+function closePartenerModal() {
+  document.getElementById('partener-modal').style.display = 'none';
+}
+
+// Resize care păstrează transparența PNG (spre deosebire de resizeImage(), care
+// convertește mereu la JPEG — bun pentru poze de captură, rău pentru logo-uri).
+function resizePartnerLogo(file, maxSize) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxSize && height <= maxSize) { resolve(file); return; }
+      const ratio = Math.min(maxSize / width, maxSize / height);
+      width = Math.round(width * ratio); height = Math.round(height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const isPng = file.type === 'image/png' || /\.png$/i.test(file.name);
+      const mime = isPng ? 'image/png' : 'image/jpeg';
+      const ext  = isPng ? '.png' : '.jpg';
+      canvas.toBlob(blob => {
+        if (!blob) { resolve(file); return; }
+        resolve(new File([blob], file.name.replace(/\.[^.]+$/, ext), { type: mime }));
+      }, mime, isPng ? undefined : 0.9);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+async function ptImgSelected(input) {
+  const file = input.files[0];
+  if(!file) return;
+  ptImgFile = file;
+  const statusEl = document.getElementById('pt-img-status');
+  const preview = document.getElementById('pt-img-preview');
+  try {
+    statusEl.textContent = '⏳ Se procesează...';
+    const resized = await resizePartnerLogo(file, 500);
+    preview.innerHTML = `<img src="${URL.createObjectURL(resized)}" style="width:100%;height:100%;object-fit:contain;"/>`;
+    ptImgFile = resized;
+    statusEl.textContent = '✓ Gata — se va încărca la salvare';
+  } catch(e) {
+    statusEl.textContent = '❌ Eroare la procesarea imaginii';
+    ptImgFile = null;
+  }
+}
+
+async function savePartener() {
+  const nume     = document.getElementById('pt-nume').value.trim();
+  const link     = document.getElementById('pt-link').value.trim();
+  const sortOrder= parseInt(document.getElementById('pt-sort').value, 10) || 0;
+  const errEl = document.getElementById('partener-err');
+  errEl.style.display = 'none';
+
+  if(!link)                         return ptShowErr('Completează link-ul de destinație.');
+  if(!ptImgFile && !ptImgUrl)       return ptShowErr('Alege un logo pentru partener.');
+
+  const btn = document.getElementById('partener-save-btn');
+  btn.disabled = true; btn.textContent = 'Se salvează...';
+
+  try {
+    let imgUrl = ptImgUrl;
+    if(ptImgFile) {
+      imgUrl = await uploadToR2(ptImgFile, 'parteneri');
+    }
+
+    const payload = {
+      nume: nume || null,
+      logo_url: imgUrl,
+      link,
+      sort_order: sortOrder,
+    };
+
+    let error;
+    if(ptEditId) {
+      ({ error } = await sb.from('parteneri').update(payload).eq('id', ptEditId));
+    } else {
+      payload.activ = true;
+      ({ error } = await sb.from('parteneri').insert(payload));
+    }
+
+    if(error) { ptShowErr(error.message); btn.disabled = false; btn.textContent = '💾 Salvează partenerul'; return; }
+
+    closePartenerModal();
+    showToast(ptEditId ? '✅ Partenerul a fost actualizat!' : '✅ Partenerul a fost adăugat!');
+    loadParteneri();
+  } catch(e) {
+    ptShowErr('Eroare upload logo: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '💾 Salvează partenerul';
+}
+
+function ptShowErr(msg) {
+  const el = document.getElementById('partener-err');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+async function toggleActivPartener(id) {
+  const p = PARTENERI.find(x => x.id === id);
+  if(!p) return;
+  const { error } = await sb.from('parteneri').update({ activ: !p.activ }).eq('id', id);
+  if(!error) loadParteneri();
+}
+
+async function deletePartener(id) {
+  if(!confirm('Ștergi definitiv acest partener? Nu se poate anula.')) return;
+  const { error } = await sb.from('parteneri').delete().eq('id', id);
+  if(!error) loadParteneri();
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
