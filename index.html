@@ -41,6 +41,26 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+// ── REDIRECT DEEP-LINK (notificări push) ─────────────────────────────────────
+// sw.js deschide tab-uri noi ca 'index.html?redirect=...' în loc de link direct
+// spre pagina țintă, ca acel tab nou (fără nicio pagină anterioară în istoric)
+// să aibă mereu index.html ca primă intrare reală. Altfel butonul fizic
+// "înapoi" al telefonului n-are unde să te ducă și iese direct din aplicație.
+// Curățăm parametrul din URL ÎNAINTE de a naviga mai departe (history.replaceState),
+// ca intrarea rămasă în istoric să fie un index.html "curat" — dacă am naviga
+// direct fără curățare, revenirea cu "înapoi" ar re-declanșa același redirect
+// și userul ar rămâne blocat într-o buclă.
+(function () {
+  try {
+    var _qp = new URLSearchParams(location.search);
+    var _redirect = _qp.get('redirect');
+    if (_redirect) {
+      history.replaceState(null, '', location.pathname);
+      window.location.href = _redirect;
+    }
+  } catch (e) {}
+})();
+
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
 // României); diferența de răsărit/apus în interiorul țării e sub 30 min,
@@ -436,8 +456,8 @@ nav{display:flex;align-items:center;gap:6px;}
 .hof-modal-list{overflow-y:auto;
   /* mobil: spațiu jos ca ultimele rânduri să nu fie ascunse sub #bottom-nav,
      care plutește deasupra modalului full-page (vezi z-index-ul lui) */
-  padding:8px 0 calc(84px + env(safe-area-inset-bottom));}
-.hof-modal-list.cr-grid{padding:14px 14px calc(84px + env(safe-area-inset-bottom));}
+  padding:8px 0 calc(62px + env(safe-area-inset-bottom));}
+.hof-modal-list.cr-grid{padding:14px 14px calc(62px + env(safe-area-inset-bottom));}
 .lb-tab-toggle{display:flex;gap:6px;padding:12px 24px 0;}
 .lb-tab-btn{flex:1;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px;font-size:13.5px;font-weight:700;color:var(--zc-text-secondary);cursor:pointer;}
 .lb-tab-btn.active{background:#38bdf8;border-color:#38bdf8;color:var(--zc-bg);}
@@ -448,7 +468,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .judet-opt .judet-match{color:#38bdf8;font-weight:800;}
 #auth-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:var(--z-modal);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;}
 #auth-modal.open{display:flex;}
-.auth-inner{background:var(--zc-bg);border:1px solid var(--zc-border);width:100%;position:relative;max-width:100%;border-radius:16px 16px 0 0;padding:24px 18px;margin-top:auto;margin-bottom:calc(70px + env(safe-area-inset-bottom));}
+.auth-inner{background:var(--zc-bg);border:1px solid var(--zc-border);width:100%;position:relative;max-width:100%;border-radius:16px 16px 0 0;padding:24px 18px;margin-top:auto;margin-bottom:calc(70px + env(safe-area-inset-bottom));max-height:calc(100vh - 70px - env(safe-area-inset-bottom) - 40px);overflow-y:auto;}
 .auth-close{position:absolute;top:16px;right:18px;background:transparent;border:none;color:var(--zc-text-muted);font-size:25px;cursor:pointer;}
 .auth-logo{text-align:center;font-size:36px;margin-bottom:8px;}
 .auth-title{text-align:center;font-size:22px;font-weight:900;color:var(--zc-text-primary);margin-bottom:4px;}
@@ -644,7 +664,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
 .footer-col-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
 .footer-col a{color:var(--zc-text-secondary-2);text-decoration:none;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s;}
 .footer-col a:hover{color:#38bdf8;}
-#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
+#footer-bottom{max-width:1100px;margin:0 auto;padding:0 20px calc(76px + env(safe-area-inset-bottom));font-size:12px;color:var(--zc-text-dim);}
 #footer-legal{max-width:1100px;margin:0 auto;padding:0 20px 18px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;border-top:1px solid var(--zc-border);padding-top:18px;}
 #footer-company{font-size:12px;color:var(--zc-text-muted);line-height:1.6;}
 #footer-company strong{color:var(--zc-text-secondary);}
@@ -1072,7 +1092,7 @@ html[data-theme="light"] .footer-logo-img-light{display:block;}
     <div id="chat-canale-pills" style="display:flex;gap:6px;padding:10px 20px;overflow-x:auto;border-bottom:1px solid var(--zc-border);flex-shrink:0;"></div>
     <div id="chat-mesaje-list" style="flex:1;overflow-y:auto;padding:14px 20px 10px;"></div>
     <div id="chat-reply-preview" style="display:none;padding:8px 20px;background:var(--zc-bg-tint);border-top:1px solid var(--zc-border);font-size:12px;color:var(--zc-text-secondary);align-items:center;justify-content:space-between;flex-shrink:0;"></div>
-    <div style="padding:10px 20px calc(84px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
+    <div style="padding:10px 20px calc(62px + env(safe-area-inset-bottom));border-top:1px solid var(--zc-border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
       <textarea id="chat-input" placeholder="Scrie un mesaj..." maxlength="500" style="flex:1;min-height:40px;max-height:100px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:10px;padding:9px 12px;color:var(--zc-text-primary);font-size:14px;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
       <button onclick="trimiteMesajChatUI()" style="background:#0e7490;border:none;color:#fff;font-weight:700;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">Trimite</button>
     </div>
@@ -1784,7 +1804,7 @@ function renderDropdownRasfoire() {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
-        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:var(--zc-text-secondary);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
         ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
       </div>
@@ -1840,7 +1860,7 @@ function onSearch(q) {
     <div class="dd-item" onclick="__goToBalta(${b.id})">
       <div style="flex:1;">
         <div class="dd-name">${escH(b.nume)}</div>
-        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
+        ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:var(--zc-text-secondary);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
       </div>
       <button class="dd-open" onclick="event.stopPropagation();__goToBalta(${b.id})">Deschide →</button>
@@ -2210,11 +2230,11 @@ function openHof()  {
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
   setClasamentTab('alltime');
   document.getElementById('hof-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   if (switching) history.replaceState({ modal: 'hof' }, ''); else history.pushState({ modal: 'hof' }, '');
 }
 function closeHof() {
-  document.getElementById('hof-modal').classList.remove('open'); document.body.style.overflow = '';
+  document.getElementById('hof-modal').classList.remove('open'); unlockBodyScroll();
   if (history.state && history.state.modal === 'hof') history.back();
 }
 function openCapturiModal()  {
@@ -2224,11 +2244,11 @@ function openCapturiModal()  {
   var authEl = document.getElementById('auth-modal');
   if (authEl && authEl.classList.contains('open')) closeAuthModal();
   document.getElementById('capturi-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   if (switching) history.replaceState({ modal: 'capturi' }, ''); else history.pushState({ modal: 'capturi' }, '');
 }
 function closeCapturiModal() {
-  document.getElementById('capturi-modal').classList.remove('open'); document.body.style.overflow = '';
+  document.getElementById('capturi-modal').classList.remove('open'); unlockBodyScroll();
   if (history.state && history.state.modal === 'capturi') history.back();
 }
 
@@ -2317,12 +2337,12 @@ function openCapturiRecenteModal() {
     ? _capturiRecenteCache.map(capturaRecentaCardHtml).join('')
     : '<div style="padding:24px 14px;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Nicio captură înregistrată încă.</div>';
   document.getElementById('capturi-recente-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   history.pushState({ modal: 'capturi-recente' }, '');
 }
 function closeCapturiRecenteModal() {
   document.getElementById('capturi-recente-modal').classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (history.state && history.state.modal === 'capturi-recente') history.back();
 }
 
@@ -2339,20 +2359,74 @@ var CHAT_MESAJE = [];
 var CHAT_POLL_TIMER = null;
 var CHAT_REPLY_LA = null; // { id, autorUsername }
 
+// ── BADGE "MESAJE NOI" (punct, fără număr) ───────────────────────────────────
+// Rulează cât timp userul e pe pagină, indiferent dacă modalul de chat e
+// deschis sau nu — altfel n-ai de unde să știi că a venit un mesaj cât timp
+// stai pe altă parte a aplicației. Punct, nu contor: un număr mare după o
+// absență mai lungă descurajează, nu ajută (decizie explicită).
+var CHAT_BADGE_POLL_TIMER = null;
+var CHAT_ULTIM_VAZUT = {}; // { canalId: id-ul ultimului mesaj văzut, în localStorage }
+try { CHAT_ULTIM_VAZUT = JSON.parse(localStorage.getItem('zoda_chat_ultim_vazut') || '{}'); } catch(e) { CHAT_ULTIM_VAZUT = {}; }
+var CHAT_ULTIM_SERVER = {}; // { canalId: id-ul celui mai recent mesaj de pe server }
+
+function chatSalveazaUltimVazut() {
+  try { localStorage.setItem('zoda_chat_ultim_vazut', JSON.stringify(CHAT_ULTIM_VAZUT)); } catch(e) {}
+}
+
+function chatMarcheazaCanalCitit(canalId, ultimId) {
+  if (!canalId || !ultimId) return;
+  if (!CHAT_ULTIM_VAZUT[canalId] || ultimId > CHAT_ULTIM_VAZUT[canalId]) {
+    CHAT_ULTIM_VAZUT[canalId] = ultimId;
+    chatSalveazaUltimVazut();
+  }
+  updateChatBadgeUI();
+}
+
+function chatAreNecitite(canalId) {
+  var ultimServer = CHAT_ULTIM_SERVER[canalId];
+  if (!ultimServer) return false;
+  return ultimServer > (CHAT_ULTIM_VAZUT[canalId] || 0);
+}
+
+function updateChatBadgeUI() {
+  var oriceNecitit = Object.keys(CHAT_ULTIM_SERVER).some(function(cid) { return chatAreNecitite(cid); });
+  var dot = document.getElementById('bn-chat-dot');
+  if (dot) dot.classList.toggle('show', oriceNecitit);
+  document.querySelectorAll('.chat-canal-dot').forEach(function(el) {
+    el.classList.toggle('show', chatAreNecitite(el.getAttribute('data-canal-id')));
+  });
+}
+
+async function pollChatBadge() {
+  try {
+    var { data, error } = await sb.rpc('citeste_ultimele_mesaje_id_chat');
+    if (error) throw error;
+    (data || []).forEach(function(r) { CHAT_ULTIM_SERVER[r.canal_id] = r.ultim_mesaj_id; });
+    updateChatBadgeUI();
+  } catch(e) {}
+}
+
+function initChatBadgePoll() {
+  pollChatBadge();
+  if (CHAT_BADGE_POLL_TIMER) clearInterval(CHAT_BADGE_POLL_TIMER);
+  CHAT_BADGE_POLL_TIMER = setInterval(pollChatBadge, 22000);
+}
+window.addEventListener('load', initChatBadgePoll);
+
 function openChatModal() {
   if (!currentUser) { openAuthModal(); return; }
   var capEl = document.getElementById('capturi-modal'); if (capEl && capEl.classList.contains('open')) capEl.classList.remove('open');
   var hofEl = document.getElementById('hof-modal'); if (hofEl && hofEl.classList.contains('open')) hofEl.classList.remove('open');
   var crEl = document.getElementById('capturi-recente-modal'); if (crEl && crEl.classList.contains('open')) crEl.classList.remove('open');
   document.getElementById('chat-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  lockBodyScroll();
   history.pushState({ modal: 'chat' }, '');
   initChatLive();
 }
 
 function closeChatModal() {
   document.getElementById('chat-modal').classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (CHAT_POLL_TIMER) { clearInterval(CHAT_POLL_TIMER); CHAT_POLL_TIMER = null; }
   if (history.state && history.state.modal === 'chat') history.back();
 }
@@ -2383,7 +2457,8 @@ function renderCanalePillsChat() {
   if (!el) return;
   el.innerHTML = CHAT_CANALE.map(function(c) {
     var activ = c.id === CHAT_CANAL_ACTIV;
-    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '</button>';
+    var necitit = chatAreNecitite(c.id);
+    return '<button onclick="selecteazaCanalChat(' + c.id + ')" style="position:relative;flex-shrink:0;background:' + (activ ? '#0e7490' : 'var(--zc-bg)') + ';border:1px solid ' + (activ ? '#0e7490' : 'var(--zc-border)') + ';color:' + (activ ? '#fff' : 'var(--zc-text-secondary)') + ';font-weight:700;font-size:13px;padding:8px 14px;border-radius:20px;cursor:pointer;white-space:nowrap;">' + (c.emoji || '') + ' ' + escH(c.nume) + '<span class="chat-canal-dot' + (necitit ? ' show' : '') + '" data-canal-id="' + c.id + '"></span></button>';
   }).join('');
 }
 
@@ -2406,6 +2481,11 @@ async function loadMesajeChat(silentios) {
     var erauLaFund = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 60;
     CHAT_MESAJE = data || [];
     renderMesajeChat();
+    if (CHAT_MESAJE.length) {
+      chatMarcheazaCanalCitit(CHAT_CANAL_ACTIV, Math.max.apply(null, CHAT_MESAJE.map(function(m) { return m.id; })));
+    } else if (CHAT_ULTIM_SERVER[CHAT_CANAL_ACTIV]) {
+      chatMarcheazaCanalCitit(CHAT_CANAL_ACTIV, CHAT_ULTIM_SERVER[CHAT_CANAL_ACTIV]);
+    }
     if (!silentios || erauLaFund) listEl.scrollTop = listEl.scrollHeight;
   } catch(e) {
     if (!silentios) listEl.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:13px;padding:20px 0;">' + escH(e.message || 'Eroare la încărcare.') + '</div>';
@@ -2531,21 +2611,21 @@ window.addEventListener('popstate', function (e) {
     var hofEl = document.getElementById('hof-modal');
     if (hofEl && hofEl.classList.contains('open')) {
       hofEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
   if (!(e.state && e.state.modal === 'capturi')) {
     var capEl = document.getElementById('capturi-modal');
     if (capEl && capEl.classList.contains('open')) {
       capEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
   if (!(e.state && e.state.modal === 'capturi-recente')) {
     var crEl = document.getElementById('capturi-recente-modal');
     if (crEl && crEl.classList.contains('open')) {
       crEl.classList.remove('open');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
   }
 });
@@ -2877,7 +2957,7 @@ function toggleBaltiAproapeDropdown(e) {
     scrollSearchUnderHeader('stat-aproape-chip');
   }
   dd.style.display = willOpen ? 'block' : 'none';
-  document.body.style.overflow = willOpen ? 'hidden' : '';
+  if (willOpen) lockBodyScroll(); else unlockBodyScroll();
   if (willOpen) {
     if (_baltiAproapeCoords) renderBaltiAproape(_baltiAproapeCoords);
     else cereLocatieBaltiAproape();
@@ -2927,7 +3007,7 @@ function renderBaltiAproape(coords) {
     .filter(x => x.dist <= 30)
     .sort((a, c) => a.dist - c.dist);
   list.innerHTML = cuDistanta.length
-    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span>${x.b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(x.b.parent_nume)}</div>` : ''}</a>`).join('')
+    ? cuDistanta.map(x => `<a href="#" onclick="event.preventDefault();event.stopPropagation();mergiLaPinBaltaAproape(${x.b.id});">${escH(x.b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${x.dist.toFixed(1)} km</span>${x.b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(x.b.parent_nume)}</div>` : ''}</a>`).join('')
     : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Nicio baltă înregistrată în raza de 30 km.</div>';
 }
 
@@ -2946,7 +3026,7 @@ function togglePublicBaltiDropdown(e) {
     const ddAproape = document.getElementById('balti-aproape-dropdown');
     if (ddAproape && ddAproape.style.display === 'block') {
       ddAproape.style.display = 'none';
-      document.body.style.overflow = '';
+      unlockBodyScroll();
     }
     const chip = document.getElementById('stat-publice-chip');
     // Poziție analitică, nu getBoundingClientRect() imediat după scroll —
@@ -2957,14 +3037,14 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:#38bdf8;">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
     window.addEventListener('resize', pozitioneazaPublicBaltiDropdown);
   } else {
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
   }
   dd.style.display = willOpen ? 'block' : 'none';
-  document.body.style.overflow = willOpen ? 'hidden' : '';
+  if (willOpen) lockBodyScroll(); else unlockBodyScroll();
 }
 // Ancorează dropdown-ul vertical de bara "Bălți Verificate Zoda" (top = sub
 // bară); orizontal rămâne centrat pe mijlocul ecranului (CSS: left:50% +
@@ -2982,13 +3062,13 @@ document.addEventListener('click', function(e) {
   if (dd && dd.style.display === 'block' && chip && !chip.contains(e.target)) {
     dd.style.display = 'none';
     window.removeEventListener('resize', pozitioneazaPublicBaltiDropdown);
-    document.body.style.overflow = '';
+    unlockBodyScroll();
   }
   const chipAproape = document.getElementById('stat-aproape-chip');
   const ddAproape = document.getElementById('balti-aproape-dropdown');
   if (ddAproape && ddAproape.style.display === 'block' && chipAproape && !chipAproape.contains(e.target)) {
     ddAproape.style.display = 'none';
-    document.body.style.overflow = '';
+    unlockBodyScroll();
   }
 });
 
@@ -4615,7 +4695,7 @@ function openAuthModal()  {
   if (capEl && capEl.classList.contains('open')) closeCapturiModal();
   var crEl = document.getElementById('capturi-recente-modal');
   if (crEl && crEl.classList.contains('open')) closeCapturiRecenteModal();
-  document.getElementById('auth-modal').classList.add('open'); document.body.style.overflow = 'hidden';
+  document.getElementById('auth-modal').classList.add('open'); lockBodyScroll();
 }
 
 // ── MENIU DE JOS — Acasă (deja pe index: doar închide modaluri deschise și
@@ -4639,7 +4719,7 @@ function bnGoCont() {
   document.getElementById('hof-modal')?.classList.remove('open');
   document.getElementById('capturi-modal')?.classList.remove('open');
   document.getElementById('capturi-recente-modal')?.classList.remove('open');
-  document.body.style.overflow = '';
+  unlockBodyScroll();
   if (typeof currentUser !== 'undefined' && currentUser) {
     saveIndexState();
     window.location.href = 'cont.html';
@@ -4647,7 +4727,7 @@ function bnGoCont() {
     openAuthModal();
   }
 }
-function closeAuthModal() { document.getElementById('auth-modal')?.classList.remove('open'); authClearMsg(); document.body.style.overflow = ''; }
+function closeAuthModal() { document.getElementById('auth-modal')?.classList.remove('open'); authClearMsg(); unlockBodyScroll(); }
 
 function authSwitchTab(tab) {
   document.getElementById('pane-login').style.display    = tab === 'login'    ? 'block' : 'none';
@@ -5291,6 +5371,39 @@ function dataLocalaAzi() {
 
 function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Blocare de scroll robustă pentru modaluri/dropdown-uri — `overflow:hidden`
+// pe <body> NU blochează scroll-ul prin atingere pe iOS Safari (bug cunoscut
+// de browser), lăsând pagina să scroleze pe sub un element `position:fixed`,
+// ceea ce dă impresia că "se plimbă". Fix: scoatem <body> din flux
+// (position:fixed, ancorat la poziția curentă de scroll), ceea ce blochează
+// scroll-ul prin atingere real, pe toate platformele.
+var _scrollLockY = 0;
+var _scrollLockCount = 0;
+function lockBodyScroll() {
+  if (_scrollLockCount === 0) {
+    _scrollLockY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.position = 'fixed';
+    document.body.style.top = (-_scrollLockY) + 'px';
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+  }
+  _scrollLockCount++;
+}
+function unlockBodyScroll() {
+  _scrollLockCount = Math.max(0, _scrollLockCount - 1);
+  if (_scrollLockCount === 0) {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    window.scrollTo(0, _scrollLockY);
+  }
 }
 
 // Dialog de confirmare propriu, non-blocant — înlocuiește confirm() nativ.
@@ -6076,8 +6189,14 @@ setTimeout(showIosToast, 3000);
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
 #cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:var(--z-bottom-bar);background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
-#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:450;/* peste --z-modal(400) — vezi excepția documentată în scala de z-index */display:flex;justify-content:space-around;align-items:center;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);box-shadow:0 -6px 24px rgba(0,0,0,.35);}
-.bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:11px;font-weight:600;padding:4px 10px;flex:1;max-width:110px;}
+#bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:450;/* peste --z-modal(400) — vezi excepția documentată în scala de z-index */display:flex;justify-content:space-around;align-items:center;padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);}
+.bn-btn{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--zc-text-secondary);cursor:pointer;font-size:9px;font-weight:600;padding:3px 8px;flex:1;max-width:110px;}
+.bn-icon-wrap{position:relative;display:inline-flex;}
+.bn-chat-dot{display:none;position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid var(--zc-bg-panel);}
+.bn-chat-dot.show{display:block;}
+.chat-canal-dot{display:none;position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:2px solid var(--zc-bg);}
+.chat-canal-dot.show{display:block;}
+.bn-btn svg{width:18px;height:18px;}
 .bn-btn.active{color:#38bdf8;}
 @media(min-width:769px){
   #bottom-nav{
@@ -6297,7 +6416,7 @@ setTimeout(showIosToast, 3000);
     <span>Clasament</span>
   </button>
   <button class="bn-btn" id="bn-chat" onclick="openChatModal()">
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span class="bn-icon-wrap"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg><span class="bn-chat-dot" id="bn-chat-dot"></span></span>
     <span>Chat</span>
   </button>
   <button class="bn-btn" id="bn-cont" onclick="bnGoCont()">
