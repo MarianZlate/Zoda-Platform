@@ -4503,7 +4503,7 @@ document.addEventListener('keydown', function(e) {
   window.promoItemClick = function(){
     var b = PROMO_ITEMS[promoIdx];
     if(!b) return;
-    window.open(b.link_destinatie, '_blank', 'noopener');
+    window.location.href = b.link_destinatie;
     try { Promise.resolve(sb.rpc('increment_reclama_click', { reclama_id: b.id })).catch(function(){}); } catch(e) {}
   };
 
