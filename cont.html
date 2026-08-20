@@ -834,7 +834,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 
       <!-- STATS RAPIDE -->
       <div class="hero-stats-row">
-        <div class="hero-stat-item" onclick="openCapturileMeleModal()" style="cursor:pointer;">
+        <div class="hero-stat-item" onclick="deschideCapturileMele()" style="cursor:pointer;">
           <svg class="hero-stat-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 12c-1.5-3-5-5-9-5C5 7 2 9.5 2 12s3 5 7 5c4 0 7.5-2 9-5Z"/><path d="M18 12l4-3v6l-4-3Z"/><circle cx="7" cy="10.5" r="1" fill="currentColor" stroke="none"/></svg>
           <div class="hero-stat-val" id="hero-stat-capturi">0</div>
           <div class="hero-stat-lbl">Capturi</div>
@@ -960,6 +960,25 @@ html[data-theme="light"] .logo-img-light{display:block;}
     </div>
   </div>
 
+  <!-- ── CAPTURILE MELE ── -->
+  <div class="section" id="section-capturile-mele">
+    <div class="section-hdr" onclick="toggleCapturileMelePanel()" style="cursor:pointer;">
+      <span class="section-icon">🐟</span>
+      <div style="flex:1;">
+        <div class="section-title">Capturile mele</div>
+        <div class="section-sub" id="capturile-mele-count-sub">Toate capturile tale aprobate</div>
+      </div>
+      <span class="notif-chevron" id="capturile-mele-chevron">▾</span>
+    </div>
+    <div class="section-body" id="capturile-mele-body" style="display:none;padding-top:6px;padding-bottom:14px;">
+      <div class="cr-grid" id="capturile-mele-list"></div>
+      <div class="modal-empty-state" id="capturile-mele-empty" style="display:none;">
+        <div class="modal-empty-title">Nicio captură încă</div>
+        <div class="modal-empty-sub">Capturile tale aprobate vor apărea aici.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── ADMINISTRATOR BALTĂ ── -->
   <div class="section" id="section-balta-admin" style="display:none;">
     <div class="section-hdr">
@@ -1059,26 +1078,6 @@ html[data-theme="light"] .logo-img-light{display:block;}
   </div>
 
 </div><!-- /#page -->
-
-<!-- MODAL CAPTURILE MELE — toate capturile proprii aprobate, cu opțiune de ștergere -->
-<div id="capturile-mele-modal">
-  <div class="hof-modal-inner">
-    <div class="hof-modal-hdr">
-      <div>
-        <div class="hof-modal-title">🐟 Capturile mele</div>
-        <div class="hof-modal-sub">Toate capturile tale aprobate</div>
-      </div>
-      <button class="modal-close" onclick="closeCapturileMeleModal()">✕</button>
-    </div>
-    <div class="hof-modal-list">
-      <div class="cr-grid" id="capturile-mele-list"></div>
-      <div class="modal-empty-state" id="capturile-mele-empty" style="display:none;">
-        <div class="modal-empty-title">Nicio captură încă</div>
-        <div class="modal-empty-sub">Capturile tale aprobate vor apărea aici.</div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Dialog de confirmare propriu (non-blocant) — folosit în locul confirm() nativ. -->
 <div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
@@ -4139,22 +4138,30 @@ function closeRealizariModal() {
   if (history.state && history.state.modal === 'realizari') history.back();
 }
 
-// ── CAPTURILE MELE — toate capturile proprii + ștergere ─────────────────────
-function openCapturileMeleModal() {
-  renderCapturileMele();
-  document.getElementById('capturile-mele-modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  history.pushState({ modal: 'capturile-mele' }, '');
+// ── CAPTURILE MELE — secțiune inline colapsabilă, ca Notificări/Urmăresc ────
+function toggleCapturileMelePanel() {
+  var body = document.getElementById('capturile-mele-body');
+  var chevron = document.getElementById('capturile-mele-chevron');
+  var open = body.style.display !== 'block';
+  body.style.display = open ? 'block' : 'none';
+  chevron.textContent = open ? '▴' : '▾';
+  if (open) renderCapturileMele();
 }
-function closeCapturileMeleModal() {
-  document.getElementById('capturile-mele-modal').classList.remove('open');
-  document.body.style.overflow = '';
-  if (history.state && history.state.modal === 'capturile-mele') history.back();
+// Apelat din cifra "Capturi" din hero — deschide secțiunea (dacă e închisă) și derulează spre ea.
+function deschideCapturileMele() {
+  var body = document.getElementById('capturile-mele-body');
+  if (body.style.display !== 'block') toggleCapturileMelePanel();
+  var section = document.getElementById('section-capturile-mele');
+  if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function renderCapturileMele() {
   const list  = document.getElementById('capturile-mele-list');
   const empty = document.getElementById('capturile-mele-empty');
+  const sub   = document.getElementById('capturile-mele-count-sub');
   const capturi = window._capturiMele || [];
+  if (sub) sub.textContent = capturi.length
+    ? `${capturi.length} ${capturi.length === 1 ? 'captură' : 'capturi'}`
+    : 'Nicio captură încă';
   if (!capturi.length) {
     list.innerHTML = '';
     empty.style.display = 'block';
@@ -4221,10 +4228,6 @@ window.addEventListener('popstate', function (e) {
   if (!(e.state && e.state.modal === 'realizari')) {
     const aEl = document.getElementById('realizari-modal');
     if (aEl && aEl.classList.contains('open')) { aEl.classList.remove('open'); document.body.style.overflow = ''; }
-  }
-  if (!(e.state && e.state.modal === 'capturile-mele')) {
-    const cEl = document.getElementById('capturile-mele-modal');
-    if (cEl && cEl.classList.contains('open')) { cEl.classList.remove('open'); document.body.style.overflow = ''; }
   }
 });
 
