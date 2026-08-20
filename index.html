@@ -1008,7 +1008,7 @@ nav{display:flex;align-items:center;gap:6px;}
       wrap.innerHTML = data.map(function(p){
         var alt = p.nume ? escHFooterPt(p.nume) : 'Partener Zoda';
         var numeHtml = '<span class="footer-partener-nume">' + (p.nume ? escHFooterPt(p.nume) : '') + '</span>';
-        return '<a class="footer-partener-btn" href="' + escHFooterPt(p.link) + '" target="_blank" rel="noopener sponsored" title="' + alt + '" onclick="footerPartenerClick(' + p.id + ')"><span class="footer-partener-logo"><img src="' + escHFooterPt(p.logo_url) + '" alt="' + alt + '" loading="lazy"/></span>' + numeHtml + '</a>';
+        return '<a class="footer-partener-btn" href="' + escHFooterPt(p.link) + '" rel="sponsored" title="' + alt + '" onclick="footerPartenerClick(' + p.id + ')"><span class="footer-partener-logo"><img src="' + escHFooterPt(p.logo_url) + '" alt="' + alt + '" loading="lazy"/></span>' + numeHtml + '</a>';
       }).join('');
       data.forEach(function(p){
         try{ Promise.resolve(sb.rpc('increment_partener_afisare', { p_partener_id: p.id })).catch(function(){}); }catch(e){}
