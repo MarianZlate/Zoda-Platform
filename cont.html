@@ -677,9 +677,12 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .footer-parteneri{display:flex;flex-direction:column;gap:10px;max-width:320px;}
 .footer-parteneri-title{font-family:var(--font-display);font-size:12px;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;}
 .footer-parteneri-logos{display:flex;flex-wrap:wrap;gap:10px;}
-.footer-partener-btn{display:flex;align-items:center;justify-content:center;width:72px;height:44px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px;transition:border-color .18s,transform .15s;}
-.footer-partener-btn:hover{border-color:var(--lime);transform:translateY(-2px);}
-.footer-partener-btn img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+.footer-partener-btn{display:flex;flex-direction:column;align-items:center;gap:5px;width:76px;text-decoration:none;}
+.footer-partener-logo{display:flex;align-items:center;justify-content:center;width:72px;height:44px;background:var(--panel);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px;transition:border-color .18s,transform .15s;}
+.footer-partener-btn:hover .footer-partener-logo{border-color:var(--lime);transform:translateY(-2px);}
+.footer-partener-logo img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+.footer-partener-nume{font-size:11px;font-weight:600;color:var(--text-faint);text-align:center;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer-partener-btn:hover .footer-partener-nume{color:var(--lime);}
 
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
 .footer-col{display:flex;flex-direction:column;gap:10px;min-width:140px;}
@@ -1247,7 +1250,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
       if(!data || !data.length){ if(section) section.style.display = 'none'; return; }
       wrap.innerHTML = data.map(function(p){
         var alt = p.nume ? escHFooterPt(p.nume) : 'Partener Zoda';
-        return '<a class="footer-partener-btn" href="' + escHFooterPt(p.link) + '" target="_blank" rel="noopener sponsored" title="' + alt + '" onclick="footerPartenerClick(' + p.id + ')"><img src="' + escHFooterPt(p.logo_url) + '" alt="' + alt + '" loading="lazy"/></a>';
+        var numeHtml = p.nume ? '<span class="footer-partener-nume">' + escHFooterPt(p.nume) + '</span>' : '';
+        return '<a class="footer-partener-btn" href="' + escHFooterPt(p.link) + '" target="_blank" rel="noopener sponsored" title="' + alt + '" onclick="footerPartenerClick(' + p.id + ')"><span class="footer-partener-logo"><img src="' + escHFooterPt(p.logo_url) + '" alt="' + alt + '" loading="lazy"/></span>' + numeHtml + '</a>';
       }).join('');
       data.forEach(function(p){
         try{ Promise.resolve(sb.rpc('increment_partener_afisare', { p_partener_id: p.id })).catch(function(){}); }catch(e){}
