@@ -976,7 +976,7 @@ th,td{padding:8px 6px;}
     <div style="font-weight:900;font-size:18px;color:#f1f5f9;margin-bottom:4px;">Ajustează logo-ul</div>
     <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Trage pentru a poziționa, folosește sliderul pentru zoom. Zonele în șah rămân fundal transparent.</div>
 
-    <div id="pt-crop-stage" style="position:relative;width:320px;max-width:100%;height:196px;margin:0 auto 16px;border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 0 0 3px #0c3a4d;background-color:#1f2937;background-image:linear-gradient(45deg,#374151 25%,transparent 25%),linear-gradient(-45deg,#374151 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#374151 75%),linear-gradient(-45deg,transparent 75%,#374151 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;">
+    <div id="pt-crop-stage" style="position:relative;width:320px;max-width:100%;height:124px;margin:0 auto 16px;border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 0 0 3px #0c3a4d;background-color:#1f2937;background-image:linear-gradient(45deg,#374151 25%,transparent 25%),linear-gradient(-45deg,#374151 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#374151 75%),linear-gradient(-45deg,transparent 75%,#374151 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;">
       <img id="pt-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
     </div>
 
@@ -3297,7 +3297,7 @@ function resizePartnerLogo(file, maxSize) {
 
 // ── LOGO PARTENER — crop/poziționare/zoom, exact ca la avatar din cont.html ──
 let _ptCrop = { imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
-const PT_STAGE_W = 320, PT_STAGE_H = 196; // px, trebuie sa corespunda cu #pt-crop-stage din HTML (raport ~ chenarul din footer)
+const PT_STAGE_W = 320, PT_STAGE_H = 124; // px, trebuie sa corespunda cu #pt-crop-stage din HTML (raport 88:34 — chenarul lat din footer, Varianta A)
 
 function onPartenerLogoFile(input) {
   const file = input.files[0];
