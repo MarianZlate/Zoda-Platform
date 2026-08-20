@@ -945,8 +945,11 @@ th,td{padding:8px 6px;}
       <div class="fg">
         <label>LOGO (ideal PNG cu fundal transparent)</label>
         <div id="pt-img-preview" style="width:100%;height:100px;border-radius:10px;background:#0a0f1a;border:1.5px dashed #1e293b;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#4b5563;font-size:25px;margin-bottom:8px;">🖼️</div>
-        <label for="pt-img-input" style="display:inline-block;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">Alege logo</label>
-        <input type="file" id="pt-img-input" accept="image/*" style="display:none;" onchange="ptImgSelected(this)"/>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label for="pt-img-input" style="display:inline-block;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">Alege logo</label>
+          <button type="button" id="pt-recrop-btn" onclick="reopenPartenerCropper()" style="display:none;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">✂️ Reajustează încadrarea</button>
+        </div>
+        <input type="file" id="pt-img-input" accept="image/*" style="display:none;" onchange="onPartenerLogoFile(this)"/>
         <div id="pt-img-status" style="font-size:11px;color:#4b5563;margin-top:4px;"></div>
       </div>
 
@@ -963,6 +966,28 @@ th,td{padding:8px 6px;}
       <div id="partener-err" style="display:none;background:#1c0a0a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px;"></div>
 
       <button onclick="savePartener()" id="partener-save-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;margin-bottom:20px;">💾 Salvează partenerul</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTENER LOGO CROP MODAL — poziționare/zoom, ca la avatar din cont.html -->
+<div id="modal-partener-crop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1800;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
+  <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;padding:22px;max-width:380px;width:100%;text-align:center;">
+    <div style="font-weight:900;font-size:18px;color:#f1f5f9;margin-bottom:4px;">Ajustează logo-ul</div>
+    <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Trage pentru a poziționa, folosește sliderul pentru zoom. Zonele în șah rămân fundal transparent.</div>
+
+    <div id="pt-crop-stage" style="position:relative;width:320px;max-width:100%;height:196px;margin:0 auto 16px;border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 0 0 3px #0c3a4d;background-color:#1f2937;background-image:linear-gradient(45deg,#374151 25%,transparent 25%),linear-gradient(-45deg,#374151 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#374151 75%),linear-gradient(-45deg,transparent 75%,#374151 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;">
+      <img id="pt-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="font-size:17px;color:#64748b;">🔍</span>
+      <input id="pt-crop-zoom" type="range" min="100" max="400" value="100" style="flex:1;accent-color:#38bdf8;" oninput="onPartenerCropZoom(this.value)"/>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="cancelPartenerCrop()" style="flex:1;padding:11px;border-radius:10px;border:1px solid #1e293b;background:transparent;color:#94a3b8;font-weight:700;cursor:pointer;">Anulează</button>
+      <button onclick="confirmPartenerCrop()" style="flex:1;padding:11px;border-radius:10px;border:none;background:#0c3a4d;color:#38bdf8;font-weight:700;cursor:pointer;">💾 Salvează</button>
     </div>
   </div>
 </div>
@@ -3211,6 +3236,7 @@ function ptResetForm() {
   document.getElementById('pt-sort').value = '0';
   document.getElementById('pt-img-preview').innerHTML = '🖼️';
   document.getElementById('pt-img-status').textContent = '';
+  document.getElementById('pt-recrop-btn').style.display = 'none';
   document.getElementById('partener-err').style.display = 'none';
 }
 
@@ -3232,6 +3258,7 @@ function openEditPartener(id) {
   document.getElementById('pt-link').value = p.link || '';
   document.getElementById('pt-sort').value = p.sort_order || 0;
   document.getElementById('pt-img-preview').innerHTML = p.logo_url ? `<img src="${p.logo_url}" style="width:100%;height:100%;object-fit:contain;"/>` : '🖼️';
+  document.getElementById('pt-recrop-btn').style.display = p.logo_url ? 'inline-block' : 'none';
   document.getElementById('partener-modal').style.display = 'flex';
 }
 
@@ -3241,6 +3268,7 @@ function closePartenerModal() {
 
 // Resize care păstrează transparența PNG (spre deosebire de resizeImage(), care
 // convertește mereu la JPEG — bun pentru poze de captură, rău pentru logo-uri).
+// Rămâne ca plasă de siguranță pentru cazul (rar) în care cropper-ul nu apucă să ruleze.
 function resizePartnerLogo(file, maxSize) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -3267,22 +3295,146 @@ function resizePartnerLogo(file, maxSize) {
   });
 }
 
-async function ptImgSelected(input) {
+// ── LOGO PARTENER — crop/poziționare/zoom, exact ca la avatar din cont.html ──
+let _ptCrop = { imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+const PT_STAGE_W = 320, PT_STAGE_H = 196; // px, trebuie sa corespunda cu #pt-crop-stage din HTML (raport ~ chenarul din footer)
+
+function onPartenerLogoFile(input) {
   const file = input.files[0];
-  if(!file) return;
-  ptImgFile = file;
+  if (!file) return;
+  openPartenerCropper(file);
+  input.value = ''; // permite re-selectarea aceluiași fișier ulterior
+}
+
+async function reopenPartenerCropper() {
+  if (ptImgFile) { openPartenerCropper(ptImgFile); return; }
+  if (!ptImgUrl) return;
   const statusEl = document.getElementById('pt-img-status');
-  const preview = document.getElementById('pt-img-preview');
   try {
-    statusEl.textContent = '⏳ Se procesează...';
-    const resized = await resizePartnerLogo(file, 500);
-    preview.innerHTML = `<img src="${URL.createObjectURL(resized)}" style="width:100%;height:100%;object-fit:contain;"/>`;
-    ptImgFile = resized;
-    statusEl.textContent = '✓ Gata — se va încărca la salvare';
+    statusEl.textContent = '⏳ Se încarcă logo-ul curent...';
+    const resp = await fetch(ptImgUrl);
+    const blob = await resp.blob();
+    const file = new File([blob], 'logo.png', { type: blob.type || 'image/png' });
+    statusEl.textContent = '';
+    openPartenerCropper(file);
   } catch(e) {
-    statusEl.textContent = '❌ Eroare la procesarea imaginii';
-    ptImgFile = null;
+    statusEl.textContent = '❌ Nu am putut încărca logo-ul existent pentru reajustare.';
   }
+}
+
+function openPartenerCropper(file) {
+  const modal = document.getElementById('modal-partener-crop');
+  const img = document.getElementById('pt-crop-img');
+  const stage = document.getElementById('pt-crop-stage');
+  const zoomSlider = document.getElementById('pt-crop-zoom');
+
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    _ptCrop.imgEl = img;
+    _ptCrop.naturalW = img.naturalWidth;
+    _ptCrop.naturalH = img.naturalHeight;
+    // baseScale = logo-ul încape complet în chenar (gen object-fit:contain) — nu decupăm nimic implicit
+    _ptCrop.baseScale = Math.min(PT_STAGE_W / img.naturalWidth, PT_STAGE_H / img.naturalHeight);
+    _ptCrop.zoom = 1;
+    _ptCrop.offX = 0;
+    _ptCrop.offY = 0;
+    zoomSlider.value = 100;
+    applyPartenerCropTransform();
+  };
+  img.src = url;
+
+  modal.style.display = 'flex';
+
+  stage.onpointerdown = (e) => {
+    _ptCrop.dragging = true;
+    _ptCrop.startX = e.clientX;
+    _ptCrop.startY = e.clientY;
+    _ptCrop.startOffX = _ptCrop.offX;
+    _ptCrop.startOffY = _ptCrop.offY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor = 'grabbing';
+  };
+  stage.onpointermove = (e) => {
+    if (!_ptCrop.dragging) return;
+    _ptCrop.offX = _ptCrop.startOffX + (e.clientX - _ptCrop.startX);
+    _ptCrop.offY = _ptCrop.startOffY + (e.clientY - _ptCrop.startY);
+    clampPartenerOffset();
+    applyPartenerCropTransform();
+  };
+  const stopDrag = () => { _ptCrop.dragging = false; stage.style.cursor = 'grab'; };
+  stage.onpointerup = stopDrag;
+  stage.onpointercancel = stopDrag;
+  stage.onwheel = (e) => {
+    e.preventDefault();
+    const cur = parseFloat(zoomSlider.value);
+    const next = Math.min(400, Math.max(100, cur - e.deltaY * 0.15));
+    zoomSlider.value = next;
+    onPartenerCropZoom(next);
+  };
+}
+
+function onPartenerCropZoom(val) {
+  _ptCrop.zoom = val / 100;
+  clampPartenerOffset();
+  applyPartenerCropTransform();
+}
+
+function clampPartenerOffset() {
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const dispW = _ptCrop.naturalW * scale;
+  const dispH = _ptCrop.naturalH * scale;
+  const maxOffX = Math.max(0, (dispW - PT_STAGE_W) / 2);
+  const maxOffY = Math.max(0, (dispH - PT_STAGE_H) / 2);
+  _ptCrop.offX = Math.min(maxOffX, Math.max(-maxOffX, _ptCrop.offX));
+  _ptCrop.offY = Math.min(maxOffY, Math.max(-maxOffY, _ptCrop.offY));
+}
+
+function applyPartenerCropTransform() {
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const dispW = _ptCrop.naturalW * scale;
+  const dispH = _ptCrop.naturalH * scale;
+  const left = (PT_STAGE_W - dispW) / 2 + _ptCrop.offX;
+  const top  = (PT_STAGE_H - dispH) / 2 + _ptCrop.offY;
+  _ptCrop.imgEl.style.width = dispW + 'px';
+  _ptCrop.imgEl.style.height = dispH + 'px';
+  _ptCrop.imgEl.style.transform = `translate(${left}px, ${top}px)`;
+}
+
+function cancelPartenerCrop() {
+  document.getElementById('modal-partener-crop').style.display = 'none';
+  const img = document.getElementById('pt-crop-img');
+  if (img.src) { URL.revokeObjectURL(img.src); img.src = ''; }
+}
+
+function confirmPartenerCrop() {
+  const OUT_W = PT_STAGE_W * 2, OUT_H = PT_STAGE_H * 2; // rezoluție finală, dublu față de chenarul de editare
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const factor = OUT_W / PT_STAGE_W;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = OUT_W;
+  canvas.height = OUT_H;
+  const ctx = canvas.getContext('2d');
+  // NU umplem fundalul canvas-ului — rămâne transparent unde logo-ul nu acoperă (PNG păstrează asta)
+  ctx.save();
+  ctx.translate(
+    (OUT_W / 2) + (_ptCrop.offX * factor),
+    (OUT_H / 2) + (_ptCrop.offY * factor)
+  );
+  ctx.scale(scale * factor, scale * factor);
+  ctx.drawImage(_ptCrop.imgEl, -_ptCrop.naturalW / 2, -_ptCrop.naturalH / 2);
+  ctx.restore();
+
+  canvas.toBlob((blob) => {
+    const statusEl = document.getElementById('pt-img-status');
+    if (!blob) { statusEl.textContent = '❌ Eroare la procesarea imaginii'; return; }
+    const croppedFile = new File([blob], 'partener-logo.png', { type: 'image/png' });
+    cancelPartenerCrop();
+    ptImgFile = croppedFile;
+    document.getElementById('pt-img-preview').innerHTML = `<img src="${URL.createObjectURL(croppedFile)}" style="width:100%;height:100%;object-fit:contain;"/>`;
+    statusEl.textContent = '✓ Gata — se va încărca la salvare';
+    document.getElementById('pt-recrop-btn').style.display = 'inline-block';
+  }, 'image/png');
 }
 
 async function savePartener() {
