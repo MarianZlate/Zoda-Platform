@@ -604,12 +604,12 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-parteneri{display:flex;flex-direction:column;gap:10px;max-width:320px;}
 .footer-parteneri-title{font-size:12px;font-weight:800;color:var(--zc-text-secondary);text-transform:uppercase;letter-spacing:.06em;}
-.footer-parteneri-logos{display:flex;flex-wrap:wrap;gap:10px;}
+.footer-parteneri-logos{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 10px;}
 .footer-partener-btn{display:flex;flex-direction:column;align-items:center;gap:5px;width:76px;text-decoration:none;}
 .footer-partener-logo{display:flex;align-items:center;justify-content:center;width:72px;height:44px;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:8px;padding:6px;transition:border-color .2s,transform .15s;}
 .footer-partener-btn:hover .footer-partener-logo{border-color:#38bdf8;transform:translateY(-2px);}
 .footer-partener-logo img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
-.footer-partener-nume{font-size:11px;font-weight:600;color:var(--zc-text-muted);text-align:center;max-width:76px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.footer-partener-nume{font-size:11px;font-weight:600;line-height:1.3;color:var(--zc-text-muted);text-align:center;width:76px;min-height:2.6em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 .footer-partener-btn:hover .footer-partener-nume{color:#38bdf8;}
 
 .footer-cols{display:flex;flex-wrap:wrap;gap:28px;}
@@ -1217,7 +1217,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
       if(!data || !data.length){ if(section) section.style.display = 'none'; return; }
       wrap.innerHTML = data.map(function(p){
         var alt = p.nume ? escHFooterPt(p.nume) : 'Partener Zoda';
-        var numeHtml = p.nume ? '<span class="footer-partener-nume">' + escHFooterPt(p.nume) + '</span>' : '';
+        var numeHtml = '<span class="footer-partener-nume">' + (p.nume ? escHFooterPt(p.nume) : '') + '</span>';
         return '<a class="footer-partener-btn" href="' + escHFooterPt(p.link) + '" target="_blank" rel="noopener sponsored" title="' + alt + '" onclick="footerPartenerClick(' + p.id + ')"><span class="footer-partener-logo"><img src="' + escHFooterPt(p.logo_url) + '" alt="' + alt + '" loading="lazy"/></span>' + numeHtml + '</a>';
       }).join('');
       data.forEach(function(p){
