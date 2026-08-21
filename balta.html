@@ -3767,25 +3767,39 @@ function renderPillsFiltrate() {
   document.getElementById('pills-empty').style.display = vizibile.length ? 'none' : 'block';
 }
 
-// Atenție primă vizită pe numerele standurilor — mulți vizitatori nu-și dau
-// seama că numerele sunt butoane, deși există text explicativ deasupra. O
-// pulsare scurtă (CSS, .attn pe #pills) atrage ochiul spre grilă la prima
-// vizită a unui vizitator pe balta.html; flag în localStorage, ca să nu mai
-// ruleze niciodată din nou pe același dispozitiv, indiferent de baltă.
-var STANDURI_HINT_KEY = 'zoda_standuri_hint_vazut';
+// Atenție pe numerele standurilor — mulți vizitatori nu-și dau seama că
+// numerele sunt butoane, deși există text explicativ deasupra. O pulsare
+// scurtă (CSS, .attn pe #pills) atrage ochiul spre grilă. Se repetă de 3 ori,
+// la câteva secunde distanță, ca să prindă și vizitatorii care nu au apucat
+// să scroleze până la standuri când pornește primul puls. Rulează la fiecare
+// deschidere a paginii unei bălți (nu mai e limitat o singură dată per
+// dispozitiv, ca să nu mai treacă neobservat pe balta_admin/vizitatori care
+// nu scrolează imediat).
+var STANDURI_HINT_TIMER = null;
 function triggerStanduriHintAtentie() {
-  try {
-    if (localStorage.getItem(STANDURI_HINT_KEY)) return;
-  } catch (e) { return; }
   var pillsEl = document.getElementById('pills');
   if (!pillsEl || !pillsEl.children.length) return;
-  pillsEl.classList.add('attn');
-  setTimeout(function () { opresteStanduriHintAtentie(); }, 5000);
+  var PULS_DURATA_MS = 5000;   // > 4 cicluri x 1.1s din @keyframes pillsAttn, ca animatia sa apuce sa se termine
+  var PULS_INTERVAL_MS = 6000; // pauza intre pulsuri succesive
+  var NR_PULSURI = 3;
+  var facute = 0;
+  function unPuls() {
+    facute++;
+    pillsEl.classList.remove('attn');
+    void pillsEl.offsetWidth; // forteaza reflow, ca sa poata reporni animatia CSS de la 0
+    pillsEl.classList.add('attn');
+    setTimeout(function () { pillsEl.classList.remove('attn'); }, PULS_DURATA_MS);
+  }
+  unPuls();
+  STANDURI_HINT_TIMER = setInterval(function () {
+    if (facute >= NR_PULSURI) { clearInterval(STANDURI_HINT_TIMER); STANDURI_HINT_TIMER = null; return; }
+    unPuls();
+  }, PULS_INTERVAL_MS);
 }
 function opresteStanduriHintAtentie() {
+  if (STANDURI_HINT_TIMER) { clearInterval(STANDURI_HINT_TIMER); STANDURI_HINT_TIMER = null; }
   var pillsEl = document.getElementById('pills');
   if (pillsEl) pillsEl.classList.remove('attn');
-  try { localStorage.setItem(STANDURI_HINT_KEY, '1'); } catch (e) {}
 }
 
 function renderPins() {
