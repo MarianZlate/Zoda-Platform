@@ -3464,20 +3464,23 @@ function deseneazaCardCaptura(c) {
     const logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
     const bottomMargin = 20 * vScale;
     const logoY = H - bottomMargin - logoH;
-    const logoCenterY = logoY + logoH / 2;
     const roFontSize = logoH * 0.58;
+    // Baza lui ".ro" se aliniază la baza cuvântului "ZODA" (marginea de jos a
+    // logo-ului), nu la mijlocul lui — citește ca o prelungire firească a
+    // wordmark-ului, gen "ZODA.ro" scris pe același rând de bază.
+    const roBaselineY = logoY + logoH;
 
     ctx.save();
     ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'alphabetic';
     ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
     ctx.lineJoin = 'round';
     ctx.miterLimit = 2;
     ctx.strokeStyle = 'rgba(4,7,12,.85)';
     ctx.lineWidth = 4 * vScale;
-    ctx.strokeText('.ro', W - marginX, logoCenterY);
+    ctx.strokeText('.ro', W - marginX, roBaselineY);
     ctx.fillStyle = '#38bdf8';
-    ctx.fillText('.ro', W - marginX, logoCenterY);
+    ctx.fillText('.ro', W - marginX, roBaselineY);
     const roWidth = ctx.measureText('.ro').width;
     ctx.restore();
 
