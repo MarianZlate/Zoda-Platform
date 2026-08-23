@@ -4178,6 +4178,7 @@ function renderCapturileMele() {
       baltaLink: c.balta_id ? `balta.html?id=${c.balta_id}` : null,
       dateText: c.data_captura || '',
       deleteId: i,
+      shareData: c.foto_url ? { foto_url: c.foto_url, kg: c.kg, data_captura: c.data_captura, balti: c.balti, standuri: c.standuri } : null,
     });
   }).join('');
 }
