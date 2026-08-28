@@ -893,8 +893,14 @@
 
   function identitatePescar(r) {
     var nume = numeImplicitPescar(r);
+    // Textul afișat e „avertisment", nu „strike" (rundă 27, la cererea lui
+    // Marian — mulți nu știu ce înseamnă „strike"). Doar cuvântul din UI
+    // s-a schimbat; numele câmpului din baza de date (`strike_uri_active`,
+    // tabelul `strike_uri`, RPC-ul `marcheaza_neprezentare`) rămân
+    // neschimbate — schimbarea aici e strict de vocabular pentru pescar/
+    // balta_admin, nu o redenumire de schemă.
     var strikeHtml = (r.strike_uri_active && r.strike_uri_active > 0)
-      ? ' <span class="rez-strike">⚠️ ' + r.strike_uri_active + ' strike' + (r.strike_uri_active > 1 ? '-uri' : '') + ' activ' + (r.strike_uri_active > 1 ? 'e' : '') + '</span>'
+      ? ' <span class="rez-strike">⚠️ ' + r.strike_uri_active + ' avertisment' + (r.strike_uri_active > 1 ? 'e' : '') + ' activ' + (r.strike_uri_active > 1 ? 'e' : '') + '</span>'
       : '';
     var telefon = r.telefon_client
       ? ' <a class="rez-tel-btn" href="tel:' + escH(r.telefon_client) + '"><span>📞</span>' + escH(r.telefon_client) + '</a>'
@@ -1145,11 +1151,11 @@
 
     var b = document.getElementById('rez-neprezentare-' + r.id);
     if (b) b.onclick = async function () {
-      if (!confirm('Sigur marchezi neprezentare? Pescarul primește un strike.')) return;
+      if (!confirm('Sigur marchezi neprezentare? Pescarul primește un avertisment.')) return;
       try {
         var res = await sb.rpc('marcheaza_neprezentare', { p_rezervare_id: r.id });
         if (res.error) throw res.error;
-        toast('Strike acordat.');
+        toast('Avertisment acordat.');
         closeModal();
         renderTabCalendar();
       } catch (e) { toast(e.message || 'Eroare.', true); }
