@@ -37,15 +37,13 @@
   var _toastEl = null;
   function toast(msg, isErr) {
     if (typeof global.showToast === 'function') { global.showToast(msg, !!isErr); return; }
+    injectStylesOnce();
     if (!_toastEl) {
       _toastEl = document.createElement('div');
-      _toastEl.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);' +
-        'background:#111827;border:1px solid #1e293b;color:#f1f5f9;padding:11px 18px;border-radius:10px;' +
-        'font-size:14px;font-weight:600;z-index:100000;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;';
+      _toastEl.className = 'rez-toast';
       document.body.appendChild(_toastEl);
     }
-    _toastEl.style.borderColor = isErr ? '#ef4444' : '#38bdf8';
-    _toastEl.style.color = isErr ? '#fca5a5' : '#f1f5f9';
+    _toastEl.classList.toggle('err', !!isErr);
     _toastEl.textContent = msg;
     _toastEl.style.display = 'block';
     clearTimeout(_toastEl._t);
@@ -97,6 +95,89 @@
     return d;
   }
 
+  // ── Program sezonier (§29 pct. 7, rundă 12) ─────────────────────────────────
+  // Rezolvare CÂMP CU CÂMP, nu o singură „regulă câștigătoare" pentru toată
+  // data — decizie de design revizuită după ce testele automate au prins
+  // problema variantei inițiale: o regulă PERMANENTĂ de blocare 24h și o
+  // regulă SEZONIERĂ separată doar de ore (ex. program de iarnă) se pot
+  // suprapune pe aceleași date; dacă una singură "câștiga" toată data, cea mai
+  // recent creată dintre ele (de regulă cea de blocare, fără ore proprii) ar
+  // fi anulat orele sezoniere ale celeilalte, fără nicio legătură logică
+  // între ele. Corect: fiecare câmp (ora_zi_start/stop, ora_noapte_start,
+  // blocheaza_24h) se rezolvă independent — cea mai recentă regulă activă
+  // care acoperă data ȘI specifică EXPLICIT acel câmp câștigă doar pentru
+  // acel câmp. Pentru blocheaza_24h, "specifică" = explicit `true` — o regulă
+  // cu `blocheaza_24h=false` nu deblochează nimic, doar nu contribuie.
+  // OGLINDĂ EXACTĂ a verificării din trigger-ul `fn_verifica_blocare_24h()`
+  // (SQL) — dacă se schimbă regula de rezolvare, se schimbă în AMBELE locuri.
+  function gasesteValoareRegula(reguli, dataStr, camp) {
+    var candidat = null;
+    (Array.isArray(reguli) ? reguli : []).forEach(function (r) {
+      var inRange = (!r.data_start || dataStr >= r.data_start) && (!r.data_sfarsit || dataStr <= r.data_sfarsit);
+      var areValoare = camp === 'blocheaza_24h' ? !!r.blocheaza_24h : (r[camp] != null && r[camp] !== '');
+      if (inRange && areValoare && (!candidat || r.id > candidat.id)) candidat = r;
+    });
+    return candidat;
+  }
+
+  // Orele efective pentru o dată — orele din cea mai recentă regulă care
+  // suprascrie fiecare câmp în parte (dacă există), altfel orele de bază ale
+  // bălții; blocheaza_24h = true dacă ORICE regulă activă acoperind data are
+  // blocheaza_24h=true.
+  function oreEfectivePentruData(balta, reguli, dataStr) {
+    var rZiStart = gasesteValoareRegula(reguli, dataStr, 'ora_zi_start');
+    var rZiStop = gasesteValoareRegula(reguli, dataStr, 'ora_zi_stop');
+    var rNoapte = gasesteValoareRegula(reguli, dataStr, 'ora_noapte_start');
+    var rBlocheaza = gasesteValoareRegula(reguli, dataStr, 'blocheaza_24h');
+    return {
+      ora_zi_start: (rZiStart && rZiStart.ora_zi_start) || (balta && balta.ora_zi_start) || '06:00',
+      ora_zi_stop: (rZiStop && rZiStop.ora_zi_stop) || (balta && balta.ora_zi_stop) || '18:00',
+      ora_noapte_start: (rNoapte && rNoapte.ora_noapte_start) || (balta && balta.ora_noapte_start) || '18:00',
+      blocheaza_24h: !!rBlocheaza
+    };
+  }
+
+  // Mesaj de indisponibilitate pentru UI (null dacă tipul e disponibil la data
+  // respectivă) — folosit ca avertisment înainte de trimitere, atât în
+  // modalul pescarului cât și la adăugarea manuală.
+  function motivIndisponibilSesiune(balta, tip, dataStartStr, reguli) {
+    if (!dataStartStr || (tip !== '24h' && tip !== 'personalizat')) return null;
+    var ore = oreEfectivePentruData(balta, reguli, dataStartStr);
+    return ore.blocheaza_24h ? 'Partidele de 24h/personalizat sunt indisponibile pentru data aleasă (regulă sezonieră a bălții) — alege tipul „Zi" sau o altă dată.' : null;
+  }
+
+  // Calculul orei de start/sfârșit al unei partide din tipul ei + orele de
+  // ancoră ale bălții (eventual suprascrise de o regulă sezonieră activă
+  // pentru data aleasă, cf. mai sus) — SINGURUL loc unde se face acest calcul,
+  // folosit atât de modalul pescarului (deschideModalRezervare) cât și de
+  // adăugarea manuală din panoul balta_admin (renderTabManual, cf. §29 pct.
+  // 6/7) — ca să nu diveargă logica între cele două locuri.
+  // tip: '12h' | '24h' | 'personalizat'. Pentru 'personalizat', momStart/
+  // momSfarsit sunt 'zi'|'noapte'. `reguli` (opțional) = rezultatul
+  // `citeste_reguli_program_balta`. Întoarce {start, sfarsit} (Date) sau null
+  // dacă intervalul nu poate fi calculat, e invalid (sfârșit <= start), sau
+  // tipul e blocat de o regulă sezonieră pentru data aleasă.
+  function calculeazaIntervalSesiune(balta, tip, dataStartStr, dataSfarsitStr, momStart, momSfarsit, reguli) {
+    if (!dataStartStr) return null;
+    var oreStart = oreEfectivePentruData(balta, reguli, dataStartStr);
+    if ((tip === '24h' || tip === 'personalizat') && oreStart.blocheaza_24h) return null;
+    var dataStart, dataSfarsit;
+    if (tip === '12h') {
+      dataStart = combinaDataOra(dataStartStr, oreStart.ora_zi_start);
+      dataSfarsit = combinaDataOra(dataStartStr, oreStart.ora_zi_stop);
+    } else if (tip === '24h') {
+      dataStart = combinaDataOra(dataStartStr, oreStart.ora_noapte_start);
+      dataSfarsit = new Date(dataStart.getTime() + 24 * 3600 * 1000);
+    } else {
+      if (!dataSfarsitStr) return null;
+      var oreSfarsit = oreEfectivePentruData(balta, reguli, dataSfarsitStr);
+      dataStart = combinaDataOra(dataStartStr, momStart === 'noapte' ? oreStart.ora_noapte_start : oreStart.ora_zi_start);
+      dataSfarsit = combinaDataOra(dataSfarsitStr, momSfarsit === 'noapte' ? oreSfarsit.ora_noapte_start : oreSfarsit.ora_zi_start);
+    }
+    if (!dataStart || !dataSfarsit || dataSfarsit <= dataStart) return null;
+    return { start: dataStart, sfarsit: dataSfarsit };
+  }
+
   async function getCurrentUserId() {
     try {
       var res = await sb.auth.getSession();
@@ -106,25 +187,37 @@
 
   function injectStylesOnce() {
     if (document.getElementById('rez-styles')) return;
+    // Culorile de mai jos folosesc variabilele CSS `--zc-*` — definite deja,
+    // identic, în balta.html/cont.html/rezervari-admin.html (fiecare cu
+    // propriul motor de temă light/dark/automat, cf. §29 pct. 4). Dacă acest
+    // modul e vreodată încărcat într-o pagină gazdă FĂRĂ acele variabile
+    // definite, fallback-urile din var(--x, fallback) de mai jos păstrează
+    // exact culorile dark originale — nimic nu se strică.
     var css = `
       .rez-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:99998;display:flex;align-items:center;justify-content:center;padding:14px;}
-      .rez-modal{background:#0a0f1a;border:1px solid #1e293b;border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
-      .rez-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #1e293b;position:sticky;top:0;background:#0a0f1a;z-index:2;}
-      .rez-modal-hdr h3{margin:0;font-size:16px;color:#f1f5f9;font-weight:800;}
-      .rez-modal-close{background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;}
+      .rez-toast{display:none;position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--zc-bg-panel,#111827);border:1px solid #0891b2;color:var(--zc-text-primary,#f1f5f9);padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;z-index:100000;box-shadow:0 8px 24px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
+      .rez-toast.err{border-color:#ef4444;color:#b91c1c;}
+      .rez-text-ok{color:#15803d;}
+      .rez-text-warn{color:#b45309;}
+      .rez-text-muted2{color:var(--zc-text-secondary-2,#94a3b8);}
+      .rez-modal{background:var(--zc-bg,#0a0f1a);border:1px solid var(--zc-border,#1e293b);border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+      .rez-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:0;background:var(--zc-bg,#0a0f1a);z-index:2;}
+      .rez-modal-hdr h3{margin:0;font-size:16px;color:var(--zc-text-primary,#f1f5f9);font-weight:800;}
+      .rez-modal-close{background:none;border:none;color:var(--zc-text-secondary-2,#94a3b8);font-size:20px;cursor:pointer;line-height:1;}
       .rez-modal-body{padding:16px 18px;}
       .rez-field{margin-bottom:14px;}
-      .rez-field label{display:block;font-size:12.5px;font-weight:700;color:#94a3b8;margin-bottom:5px;}
-      .rez-field input, .rez-field select{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:9px 11px;color:#f1f5f9;font-size:15px;outline:none;box-sizing:border-box;}
+      .rez-field label{display:block;font-size:12.5px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:5px;}
+      .rez-field input, .rez-field select{width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;outline:none;box-sizing:border-box;}
+      .rez-field input[type="checkbox"]{width:auto;flex:0 0 auto;background:none;border:none;padding:0;}
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
-      .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#38bdf8;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
+      .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#0891b2;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
       .rez-tel-btn:hover{background:rgba(56,189,248,.18);}
       .rez-tip-row{display:flex;gap:8px;flex-wrap:wrap;}
-      .rez-tip-card{flex:1;min-width:100px;border:1.5px solid #1e293b;border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
+      .rez-tip-card{flex:1;min-width:100px;border:1.5px solid var(--zc-border,#1e293b);border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
       .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
-      .rez-tip-card-title{font-size:13.5px;font-weight:800;color:#f1f5f9;}
-      .rez-tip-desc{font-size:11px;color:#94a3b8;margin-top:2px;}
-      .rez-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#94a3b8;margin:2px 0 10px;}
+      .rez-tip-card-title{font-size:13.5px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
+      .rez-tip-desc{font-size:11px;color:var(--zc-text-secondary-2,#94a3b8);margin-top:2px;}
+      .rez-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--zc-text-secondary-2,#94a3b8);margin:2px 0 10px;}
       .rez-legend span{display:flex;align-items:center;gap:4px;}
       .rez-dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
       .rez-dot.liber{background:#22c55e;}
@@ -132,46 +225,67 @@
       .rez-dot.ocupat{background:#ef4444;}
       .rez-dot.selectat{background:#38bdf8;}
       .rez-stand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;}
-      .rez-stand-cell{border:1.5px solid #1e293b;border-radius:9px;padding:10px 6px;text-align:center;font-size:12.5px;font-weight:700;cursor:pointer;color:#f1f5f9;background:#111827;}
+      .rez-stand-cell{border:1.5px solid var(--zc-border,#1e293b);border-radius:9px;padding:10px 6px;text-align:center;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--zc-text-primary,#f1f5f9);background:var(--zc-bg-panel,#111827);}
       .rez-stand-cell.liber{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);}
       .rez-stand-cell.partial{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4);}
-      .rez-stand-cell.ocupat{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#64748b;cursor:not-allowed;}
-      .rez-stand-cell.selectat{background:rgba(56,189,248,.18);border-color:#38bdf8;color:#38bdf8;}
-      .rez-btn{background:#0e7490;color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border:none;border-radius:9px;cursor:pointer;width:100%;}
+      .rez-stand-cell.ocupat{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:var(--zc-text-muted,#64748b);cursor:not-allowed;}
+      .rez-stand-cell.selectat{background:rgba(56,189,248,.18);border-color:#38bdf8;color:#0891b2;}
+      .rez-btn{background:var(--zc-accent-dark,#0e7490);color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border:none;border-radius:9px;cursor:pointer;width:100%;}
       .rez-btn:disabled{opacity:.5;cursor:not-allowed;}
-      .rez-btn-secondary{background:transparent;border:1px solid #1e293b;color:#94a3b8;}
+      .rez-btn-secondary{background:transparent;border:1px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);}
       .rez-btn-danger{background:#7f1d1d;color:#fecaca;}
-      .rez-list-item{border:1px solid #1e293b;border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:#cbd5e1;}
+      .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);}
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
-      .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#f59e0b;}
-      .rez-badge-confirmata{background:rgba(34,197,94,.15);color:#22c55e;}
-      .rez-badge-anulata,.rez-badge-respinsa,.rez-badge-expirata{background:rgba(148,163,184,.15);color:#94a3b8;}
-      .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#ef4444;}
-      .rez-strike{color:#f59e0b;font-size:11.5px;font-weight:800;}
-      .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid #1e293b;position:sticky;top:57px;background:#0a0f1a;z-index:1;}
-      .rez-tabs-page{display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1e293b;margin-bottom:16px;}
-      .rez-tab{background:none;border:none;color:#94a3b8;font-weight:700;font-size:13px;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;}
-      .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
-      .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
-      #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
-      .rez-cal-scroll{overflow:auto;max-height:60vh;border:1px solid #1e293b;border-radius:10px;-webkit-overflow-scrolling:touch;}
-      .rez-cal-row{display:flex;border-bottom:1px solid #1e293b;}
+      .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
+      .rez-badge-confirmata{background:rgba(34,197,94,.15);color:#15803d;}
+      .rez-badge-anulata,.rez-badge-respinsa,.rez-badge-expirata{background:rgba(148,163,184,.18);color:var(--zc-text-secondary,#94a3b8);}
+      .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#dc2626;}
+      .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
+      .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
+      .rez-tabs-page{display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--zc-border,#1e293b);margin-bottom:16px;}
+      .rez-tab{background:none;border:none;color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;}
+      .rez-tab.active{color:#0891b2;border-bottom-color:#38bdf8;}
+      .rez-empty{text-align:center;color:var(--zc-text-dim,#4b5563);font-size:13.5px;padding:20px 0;}
+      #rez-stand-btn{margin-top:12px;width:100%;background:var(--zc-accent-dark,#0e7490);color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
+      .rez-cal-scroll{overflow:auto;max-height:60vh;border:1px solid var(--zc-border,#1e293b);border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);}
       .rez-cal-row:last-child{border-bottom:none;}
-      .rez-cal-header-row{display:flex;border-bottom:1px solid #1e293b;background:#0a0f1a;position:sticky;top:0;z-index:3;}
-      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:11.5px;font-weight:700;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:#0a0f1a;border-right:1px solid #1e293b;display:flex;align-items:center;z-index:2;}
-      .rez-cal-corner{background:#0a0f1a;}
+      .rez-cal-header-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);background:var(--zc-bg,#0a0f1a);position:sticky;top:0;z-index:3;}
+      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:11.5px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
+      .rez-cal-corner{background:var(--zc-bg,#0a0f1a);}
       .rez-cal-track{position:relative;flex-shrink:0;height:34px;}
       .rez-cal-daynums{height:auto;display:flex;}
-      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:10.5px;color:#64748b;border-right:1px solid rgba(30,41,59,.5);padding:4px 0;}
-      .rez-cal-daycell.weekend{background:rgba(148,163,184,.06);}
-      .rez-cal-daycell.azi{color:#38bdf8;font-weight:800;}
-      .rez-cal-luna{font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;}
+      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:10.5px;color:var(--zc-text-muted,#64748b);border-right:1px solid var(--zc-border,rgba(30,41,59,.5));padding:4px 0;}
+      .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
+      .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
+      .rez-cal-luna{font-size:9px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 1px;}
-      .rez-cal-bar.confirmata{background:rgba(34,197,94,.35);border:1.5px solid #22c55e;}
-      .rez-cal-bar.neprezentat{background:rgba(239,68,68,.35);border:1.5px solid #ef4444;}
-      .rez-cal-bar.selectat{outline:2px solid #38bdf8;outline-offset:1px;}
-      .rez-cal-bar-dur{font-size:9px;font-weight:800;color:#f1f5f9;white-space:nowrap;pointer-events:none;line-height:1;}
+      .rez-cal-bar.confirmata{background:rgba(34,197,94,.4);border:1.5px solid #16a34a;}
+      .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
+      .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
+      .rez-cal-bar-dur{font-size:9px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
+      /* ── Variante DARK — culorile de mai sus (badge-uri, telefon, tab activ,
+         ziua curentă din calendar, durata de pe bară) sunt alese să fie
+         lizibile pe fundal DESCHIS (mai saturate/închise la culoare, cf.
+         §29 pct. 4); pe fundal ÎNCHIS aceleași nuanțe sunt prea închise ca să
+         mai contrasteze bine, deci le înlocuim aici cu variantele deschise
+         folosite dintotdeauna de modul, active când tema efectivă NU e
+         'light' (adică atributul data-theme lipsește sau e explicit 'dark'). */
+      html:not([data-theme="light"]) .rez-tel-btn{color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-stand-cell.selectat{color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-badge-in_asteptare{color:#f59e0b;}
+      html:not([data-theme="light"]) .rez-badge-confirmata{color:#22c55e;}
+      html:not([data-theme="light"]) .rez-badge-neprezentat{color:#ef4444;}
+      html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
+      html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-cal-daycell.azi{color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-cal-bar.selectat{outline-color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-cal-bar-dur{color:#f1f5f9;text-shadow:none;}
+      html:not([data-theme="light"]) .rez-toast{border-color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-toast.err{color:#fca5a5;}
+      html:not([data-theme="light"]) .rez-text-ok{color:#22c55e;}
+      html:not([data-theme="light"]) .rez-text-warn{color:#f59e0b;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -297,11 +411,19 @@
 
     var numeUser = '';
     var standuri = [];
+    var reguli = [];
     try {
       var profRes = await sb.from('user_profiles').select('username').eq('id', uid).single();
       numeUser = (profRes && profRes.data && profRes.data.username) || '';
       var standRes = await sb.from('standuri').select('id, nume').eq('balta_id', balta.id).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
       standuri = standRes.data || [];
+      // Regulile sezoniere (§29 pct. 7) — public, fără autentificare, la fel
+      // ca disponibilitatea; eșecul acestui apel nu blochează restul
+      // modalului, doar renunță la orice suprascriere sezonieră.
+      try {
+        var reguliRes = await sb.rpc('citeste_reguli_program_balta', { p_balta_id: balta.id });
+        if (!reguliRes.error) reguli = reguliRes.data || [];
+      } catch (e2) { /* fără reguli — folosim orele de bază ale bălții */ }
     } catch (e) {
       setModalBody('<div class="rez-empty">Eroare la încărcare: ' + escH(e.message) + '</div>');
       return;
@@ -327,36 +449,35 @@
           '<div class="rez-tip-card" data-tip="personalizat"><div class="rez-tip-card-title">Personalizat</div><div class="rez-tip-desc">24h sau mai mult</div></div>' +
         '</div>' +
       '</div>' +
+      '<div id="rez-avert-tip"></div>' +
       '<div id="rez-date-fields"></div>' +
       '<div class="rez-field"><label>Stand</label>' +
         '<div class="rez-legend"><span><i class="rez-dot liber"></i>Liber</span><span><i class="rez-dot partial"></i>Parțial (tot disponibil)</span><span><i class="rez-dot ocupat"></i>Ocupat</span><span><i class="rez-dot selectat"></i>Selectat</span></div>' +
         '<div class="rez-stand-grid" id="rez-stand-grid"></div>' +
       '</div>' +
       '<button class="rez-btn" id="rez-submit-btn" disabled>Trimite cererea</button>' +
-      '<div style="font-size:11.5px;color:#4b5563;margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
+      '<div style="font-size:11.5px;color:var(--zc-text-dim,#4b5563);margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
 
     setModalBody(body);
 
     function calculeazaInterval() {
       var dataStartInput = document.getElementById('rez-data-start');
       if (!dataStartInput || !dataStartInput.value) return null;
-      var dataStart, dataSfarsit;
-      if (tipCurent === '12h') {
-        dataStart = combinaDataOra(dataStartInput.value, balta.ora_zi_start || '06:00');
-        dataSfarsit = combinaDataOra(dataStartInput.value, balta.ora_zi_stop || '18:00');
-      } else if (tipCurent === '24h') {
-        dataStart = combinaDataOra(dataStartInput.value, balta.ora_noapte_start || '18:00');
-        dataSfarsit = new Date(dataStart.getTime() + 24 * 3600 * 1000);
-      } else {
+      if (tipCurent === 'personalizat') {
         var dataSfarsitInput = document.getElementById('rez-data-sfarsit');
-        if (!dataSfarsitInput || !dataSfarsitInput.value) return null;
         var momStart = document.getElementById('rez-mom-start').value;
         var momSfarsit = document.getElementById('rez-mom-sfarsit').value;
-        dataStart = combinaDataOra(dataStartInput.value, momStart === 'noapte' ? (balta.ora_noapte_start || '18:00') : (balta.ora_zi_start || '06:00'));
-        dataSfarsit = combinaDataOra(dataSfarsitInput.value, momSfarsit === 'noapte' ? (balta.ora_noapte_start || '18:00') : (balta.ora_zi_start || '06:00'));
+        return calculeazaIntervalSesiune(balta, tipCurent, dataStartInput.value, dataSfarsitInput ? dataSfarsitInput.value : null, momStart, momSfarsit, reguli);
       }
-      if (dataSfarsit <= dataStart) return null;
-      return { start: dataStart, sfarsit: dataSfarsit };
+      return calculeazaIntervalSesiune(balta, tipCurent, dataStartInput.value, null, null, null, reguli);
+    }
+
+    function actualizeazaAvertizare() {
+      var dataStartInput = document.getElementById('rez-data-start');
+      var avertEl = document.getElementById('rez-avert-tip');
+      if (!avertEl) return;
+      var motiv = dataStartInput ? motivIndisponibilSesiune(balta, tipCurent, dataStartInput.value, reguli) : null;
+      avertEl.innerHTML = motiv ? '<div class="rez-text-warn" style="font-size:12.5px;margin:-6px 0 12px;">⚠️ ' + escH(motiv) + '</div>' : '';
     }
 
     function renderDateFields() {
@@ -373,8 +494,9 @@
       document.getElementById('rez-date-fields').innerHTML = html;
       ['rez-data-start', 'rez-data-sfarsit', 'rez-mom-start', 'rez-mom-sfarsit'].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.onchange = actualizeazaGrid;
+        if (el) el.onchange = function () { actualizeazaAvertizare(); actualizeazaGrid(); };
       });
+      actualizeazaAvertizare();
     }
 
     var _dispToken = 0;
@@ -384,7 +506,9 @@
       var interval = calculeazaInterval();
       updateSubmitState();
       if (!interval) {
-        grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">Alege o dată validă pentru a vedea disponibilitatea standurilor.</div>';
+        var dataStartInput2 = document.getElementById('rez-data-start');
+        var motivBlocaj = dataStartInput2 ? motivIndisponibilSesiune(balta, tipCurent, dataStartInput2.value, reguli) : null;
+        grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">' + (motivBlocaj ? escH(motivBlocaj) : 'Alege o dată validă pentru a vedea disponibilitatea standurilor.') + '</div>';
         return;
       }
       grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">Se verifică disponibilitatea...</div>';
@@ -496,10 +620,10 @@
     var arataConfirma = r.status === 'confirmata' && !r.confirmat_24h_la && (start - acum) <= 24 * 3600 * 1000 && start > acum;
     var arataAnuleaza = (r.status === 'in_asteptare' || r.status === 'confirmata') && (start - acum) >= 24 * 3600 * 1000;
     return '<div class="rez-list-item">' +
-      '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(statusLabel(r.status)) + '</span></div>' +
+      '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
-      (r.motiv_anulare ? '<div style="color:#f59e0b;">Motiv: ' + escH(r.motiv_anulare) + '</div>' : '') +
-      (r.confirmat_24h_la ? '<div style="color:#22c55e;">✓ Prezență confirmată</div>' : '') +
+      (r.motiv_anulare ? '<div class="rez-text-warn">Motiv: ' + escH(r.motiv_anulare) + '</div>' : '') +
+      (r.confirmat_24h_la ? '<div class="rez-text-ok">✓ Prezență confirmată</div>' : '') +
       (arataConfirma ? '<button class="rez-btn" id="rez-confirma-' + r.id + '" style="margin-top:8px;">✓ Confirm că vin</button>' : '') +
       (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" id="rez-anuleaza-' + r.id + '" style="margin-top:8px;">Anulează</button>' : '') +
       '</div>';
@@ -535,6 +659,8 @@
   // indiferent dacă părintele e un modal sau un container simplu de pagină.
   var _adminBaltaId = null;
   var _adminBaltaNume = null;
+  var _adminBalta = null; // rândul complet din `balti` (ore de ancoră etc.) — cf. §29 pct. 6/7
+  var _adminReguli = []; // reguli sezoniere active (§29 pct. 7)
   var _adminTabCurent = 'cereri';
   var _adminStanduri = [];
   var _adminMultiplu = false;
@@ -547,11 +673,21 @@
       '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri</button>' +
       '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
+      '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Moderare</button>' +
+      '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program sezonier</button>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div>';
 
-    var { data: standuri } = await sb.from('standuri').select('id, nume').eq('balta_id', baltaId).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
-    _adminStanduri = standuri || [];
+    var standRes = await sb.from('standuri').select('id, nume').eq('balta_id', baltaId).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
+    _adminStanduri = standRes.data || [];
+
+    var baltaRes = await sb.from('balti').select('id, ora_zi_start, ora_zi_stop, ora_noapte_start').eq('id', baltaId).single();
+    _adminBalta = baltaRes.data || { ora_zi_start: '06:00', ora_zi_stop: '18:00', ora_noapte_start: '18:00' };
+
+    try {
+      var reguliRes = await sb.rpc('citeste_reguli_program_balta', { p_balta_id: baltaId });
+      _adminReguli = reguliRes.error ? [] : (reguliRes.data || []);
+    } catch (e) { _adminReguli = []; }
 
     renderTabAdminCurent();
   }
@@ -566,6 +702,8 @@
     if (_adminTabCurent === 'cereri') return renderTabCereri();
     if (_adminTabCurent === 'calendar') return renderTabCalendar();
     if (_adminTabCurent === 'manual') return renderTabManual();
+    if (_adminTabCurent === 'moderare') return renderTabModerare();
+    if (_adminTabCurent === 'program') return renderTabProgram();
   }
 
   async function fetchRezervariBalta() {
@@ -593,7 +731,7 @@
       if (!cereri.length) { setModalBody('<div class="rez-empty">Nicio cerere în așteptare.</div>'); return; }
       setModalBody(cereri.map(function (r) {
         return '<div class="rez-list-item">' +
-          '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-in_asteptare">în așteptare</span></div>' +
+          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-in_asteptare">în așteptare</span></div>' +
           '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
           '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
           '<div style="display:flex;gap:8px;margin-top:8px;">' +
@@ -771,11 +909,13 @@
       '<div><span class="rez-badge rez-badge-' + r.status + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
-      (r.confirmat_24h_la ? '<div style="color:#22c55e;font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div style="color:#94a3b8;font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
+      (r.confirmat_24h_la ? '<div class="rez-text-ok" style="font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2" style="font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
       (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
       (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
+      '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
+    randeazaBlocNotaPescar(document.getElementById('rez-cal-detail-nota'), _adminBaltaId, r.user_id, r.telefon_client);
 
     var b = document.getElementById('rez-neprezentare-' + r.id);
     if (b) b.onclick = async function () {
@@ -804,62 +944,406 @@
     };
   }
 
+  // ── Notă privată pe pescar + blocare — rundă 12 (§29 pct. 2+3) ─────────────
+  // Bloc reutilizabil (textarea + checkbox „Blocat" + buton „Salvează"),
+  // randat atât în modalul de detaliu al unei rezervări din Gantt (§26), cât
+  // și în tab-ul nou „Moderare" (o dată per pescar din listă) — SINGURUL loc
+  // unde se construiește acest UI, ca să nu diveargă. `userId`/`telefon`
+  // identifică pescarul exact ca peste tot în modul (user_id XOR telefon).
+  var _notaSeq = 0;
+  async function randeazaBlocNotaPescar(containerEl, baltaId, userId, telefon) {
+    if (!containerEl) return;
+    var meu = 'rez-nota-' + (++_notaSeq);
+    containerEl.innerHTML = '<div class="rez-empty" style="padding:8px 0;text-align:left;">Se încarcă nota...</div>';
+    var nota = { text: '', blocat: false };
+    try {
+      var res = await sb.rpc('citeste_nota_pescar', { p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon });
+      if (!res.error && res.data && res.data.length) nota = res.data[0];
+    } catch (e) { /* fără notă existentă — pornim de la gol */ }
+
+    containerEl.innerHTML =
+      '<div class="rez-field" style="margin-top:10px;margin-bottom:8px;">' +
+        '<label>📝 Notă privată (vizibilă doar ție)</label>' +
+        '<textarea id="' + meu + '-text" rows="2" style="width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;color:var(--zc-text-primary,#f1f5f9);font-size:13.5px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(nota.text || '') + '</textarea>' +
+      '</div>' +
+      '<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;">' +
+        '<input type="checkbox" id="' + meu + '-blocat"' + (nota.blocat ? ' checked' : '') + '> 🚫 Blocat de la rezervări la această baltă' +
+      '</label>' +
+      '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button">Salvează nota</button>';
+
+    document.getElementById(meu + '-save').onclick = async function () {
+      var btn = this;
+      var text = document.getElementById(meu + '-text').value.trim();
+      var blocat = document.getElementById(meu + '-blocat').checked;
+      btn.disabled = true; var txtOrig = btn.textContent; btn.textContent = 'Se salvează...';
+      try {
+        var res2 = await sb.rpc('seteaza_nota_pescar', {
+          p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon,
+          p_text: text, p_blocat: blocat
+        });
+        if (res2.error) throw res2.error;
+        toast('✓ Notă salvată.');
+      } catch (e) {
+        toast(e.message || 'Eroare la salvarea notei.', true);
+      }
+      btn.disabled = false; btn.textContent = txtOrig;
+    };
+  }
+
+  // ── Tab „Moderare" — listă de pescari (cei care au rezervat vreodată la
+  // balta + cei adăugați manual, fără rezervare, doar ca să li se pună o
+  // notă/blocare din timp), cu blocare manuală + notă, independent de a avea
+  // sau nu o rezervare activă (§29 pct. 3). Folosește exact același bloc de
+  // notă ca modalul de detaliu din Gantt (`randeazaBlocNotaPescar`).
+  async function renderTabModerare() {
+    setModalBody('<div class="rez-empty">Se încarcă...</div>');
+    try {
+      var toate = await fetchRezervariBalta();
+      var noteRes = await sb.rpc('listeaza_note_pescari', { p_balta_id: _adminBaltaId });
+      if (noteRes.error) throw noteRes.error;
+      var note = noteRes.data || [];
+
+      function cheie(userId, tel) { return userId ? ('u:' + userId) : ('t:' + tel); }
+
+      var harta = {};
+      toate.forEach(function (r) {
+        if (!r.user_id && !r.telefon_client) return;
+        var k = cheie(r.user_id, r.telefon_client);
+        if (!harta[k]) {
+          harta[k] = {
+            userId: r.user_id || null,
+            telefon: r.user_id ? null : r.telefon_client,
+            nume: r.user_id ? (r.pescar_username || r.pescar_zoda_id || 'Pescar') : (r.nume_client || 'Client telefonic'),
+            text: '', blocat: false
+          };
+        }
+      });
+      note.forEach(function (n) {
+        var k = cheie(n.pescar_user_id, n.pescar_telefon);
+        if (harta[k]) {
+          harta[k].text = n.text; harta[k].blocat = n.blocat;
+        } else {
+          harta[k] = {
+            userId: n.pescar_user_id, telefon: n.pescar_telefon,
+            nume: n.pescar_username || n.pescar_telefon || 'Pescar',
+            text: n.text, blocat: n.blocat
+          };
+        }
+      });
+
+      var lista = Object.keys(harta).map(function (k) { return harta[k]; });
+      lista.sort(function (a, b) {
+        if (a.blocat !== b.blocat) return a.blocat ? -1 : 1;
+        if (!!a.text !== !!b.text) return a.text ? -1 : 1;
+        return (a.nume || '').localeCompare(b.nume || '', 'ro');
+      });
+
+      var htmlAdd =
+        '<div class="rez-field" style="border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:12px;margin-bottom:16px;">' +
+          '<label>Adaugă pescar după telefon (chiar fără nicio rezervare încă)</label>' +
+          '<div style="display:flex;gap:8px;">' +
+            '<input type="tel" id="rez-mod-add-tel" placeholder="07xx xxx xxx" style="flex:1;">' +
+            '<button class="rez-btn" id="rez-mod-add-btn" type="button" style="width:auto;padding:9px 16px;white-space:nowrap;">Adaugă</button>' +
+          '</div>' +
+        '</div>';
+
+      var htmlLista = lista.length ? lista.map(function (p, idx) {
+        return '<div class="rez-list-item">' +
+          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
+            (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
+          '</div>' +
+          '<div id="rez-mod-nota-' + idx + '"></div>' +
+        '</div>';
+      }).join('') : '<div class="rez-empty">Niciun pescar încă — adaugă unul după telefon mai sus, sau apare automat aici după prima lui rezervare/cerere.</div>';
+
+      setModalBody(htmlAdd + htmlLista);
+
+      lista.forEach(function (p, idx) {
+        randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon);
+      });
+
+      document.getElementById('rez-mod-add-btn').onclick = async function () {
+        var tel = document.getElementById('rez-mod-add-tel').value.trim();
+        if (!tel) { toast('Introdu un număr de telefon.', true); return; }
+        try {
+          var res = await sb.rpc('seteaza_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: null, p_pescar_telefon: tel, p_text: '', p_blocat: false });
+          if (res.error) throw res.error;
+          toast('✓ Adăugat.');
+          renderTabModerare();
+        } catch (e) { toast(e.message || 'Eroare.', true); }
+      };
+    } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
+  }
+
+  // ── Tab „Adaugă manual" — redesenat la rundă 12 (§29 pct. 5+6):
+  // (5) grila de standuri clickabile (ca sub harta din balta.html), în loc de
+  // select-ul cu scroll, cu buton „Selectează tot" în modul multiplu;
+  // (6) doar dată (nu și oră) — ora rezultă din tipul partidei + orele de
+  // ancoră ale bălții, exact ca în modalul pescarului (`calculeazaIntervalSesiune`,
+  // aceeași funcție, ca logica să nu diveargă între cele două locuri).
+  var _manualSelectie = []; // array de stand_id, ordinea nu contează
+  var _manualTip = '24h';
+
+  // ── Tab „Program sezonier" — rundă 12 (§29 pct. 7) ──────────────────────────
+  // CRUD pentru `reguli_program_balta`: intervale orare zi/noapte pe sezon +
+  // blocare partide 24h/24h+ (permanent sau pe interval de date). Regulile
+  // citite aici (`citeste_reguli_program_balta`) sunt EXACT aceleași folosite
+  // de modalul pescarului (balta.html) și de tab-ul „Adaugă manual" de mai
+  // sus, prin `calculeazaIntervalSesiune`/`motivIndisponibilSesiune` — nu
+  // există o a doua copie a logicii de rezolvare.
+  function fmtDataScurta(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null; }
+
+  async function renderTabProgram() {
+    setModalBody('<div class="rez-empty">Se încarcă...</div>');
+    try {
+      var res = await sb.rpc('citeste_reguli_program_balta', { p_balta_id: _adminBaltaId });
+      if (res.error) throw res.error;
+      _adminReguli = res.data || [];
+
+      var htmlLista = _adminReguli.length ? _adminReguli.map(function (r) {
+        var interval = (r.data_start || r.data_sfarsit)
+          ? (fmtDataScurta(r.data_start) || 'oricând') + ' → ' + (fmtDataScurta(r.data_sfarsit) || 'fără sfârșit')
+          : 'permanentă';
+        var oreParti = [];
+        if (r.ora_zi_start || r.ora_zi_stop) oreParti.push('Zi: ' + (r.ora_zi_start || '?').slice(0, 5) + '–' + (r.ora_zi_stop || '?').slice(0, 5));
+        if (r.ora_noapte_start) oreParti.push('Noapte: de la ' + r.ora_noapte_start.slice(0, 5));
+        return '<div class="rez-list-item">' +
+          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.nume || '(fără nume)') +
+            (r.blocheaza_24h ? ' <span class="rez-badge rez-badge-neprezentat">blochează 24h/personalizat</span>' : '') +
+          '</div>' +
+          '<div style="margin:4px 0;">📅 ' + escH(interval) + '</div>' +
+          (oreParti.length ? '<div style="margin:4px 0;">🕐 ' + escH(oreParti.join(' · ')) + '</div>' : '') +
+          '<button class="rez-btn rez-btn-danger" style="margin-top:8px;width:auto;padding:7px 14px;" id="rez-prog-sterge-' + r.id + '">Șterge regula</button>' +
+        '</div>';
+      }).join('') : '<div class="rez-empty">Nicio regulă sezonieră încă — balta folosește orele de bază, tot anul.</div>';
+
+      var htmlForm =
+        '<div class="rez-field" style="border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:12px;margin-bottom:16px;">' +
+          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);margin-bottom:10px;">Regulă nouă</div>' +
+          '<div class="rez-field"><label>Nume (opțional, doar pentru tine)</label><input type="text" id="rez-prog-nume" placeholder="ex. Sezon rece"></div>' +
+          '<div style="display:flex;gap:10px;">' +
+            '<div class="rez-field" style="flex:1;"><label>De la data (gol = fără limită)</label><input type="date" id="rez-prog-data-start"></div>' +
+            '<div class="rez-field" style="flex:1;"><label>Până la data (gol = fără limită)</label><input type="date" id="rez-prog-data-sfarsit"></div>' +
+          '</div>' +
+          '<div style="display:flex;gap:10px;">' +
+            '<div class="rez-field" style="flex:1;"><label>Ora start Zi</label><input type="time" id="rez-prog-ora-zi-start"></div>' +
+            '<div class="rez-field" style="flex:1;"><label>Ora stop Zi</label><input type="time" id="rez-prog-ora-zi-stop"></div>' +
+            '<div class="rez-field" style="flex:1;"><label>Ora start Noapte</label><input type="time" id="rez-prog-ora-noapte"></div>' +
+          '</div>' +
+          '<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;">' +
+            '<input type="checkbox" id="rez-prog-blocheaza" style="width:auto;flex:0 0 auto;"> 🚫 Blochează partidele de 24h/personalizat în acest interval' +
+          '</label>' +
+          '<div style="font-size:11.5px;color:var(--zc-text-dim,#4b5563);margin-bottom:10px;">Lasă orele goale dacă regula servește doar la blocarea 24h, fără să schimbe programul de zi/noapte.</div>' +
+          '<button class="rez-btn" id="rez-prog-adauga" type="button">Adaugă regula</button>' +
+        '</div>';
+
+      setModalBody(htmlForm + htmlLista);
+
+      _adminReguli.forEach(function (r) {
+        var btn = document.getElementById('rez-prog-sterge-' + r.id);
+        if (btn) btn.onclick = async function () {
+          if (!confirm('Sigur ștergi regula „' + (r.nume || '(fără nume)') + '"?')) return;
+          try {
+            var delRes = await sb.rpc('sterge_regula_program', { p_id: r.id, p_balta_id: _adminBaltaId });
+            if (delRes.error) throw delRes.error;
+            toast('Regulă ștearsă.');
+            renderTabProgram();
+          } catch (e) { toast(e.message || 'Eroare.', true); }
+        };
+      });
+
+      document.getElementById('rez-prog-adauga').onclick = async function () {
+        var btnEl = this;
+        var nume = document.getElementById('rez-prog-nume').value.trim() || null;
+        var dataStart = document.getElementById('rez-prog-data-start').value || null;
+        var dataSfarsit = document.getElementById('rez-prog-data-sfarsit').value || null;
+        var oraZiStart = document.getElementById('rez-prog-ora-zi-start').value || null;
+        var oraZiStop = document.getElementById('rez-prog-ora-zi-stop').value || null;
+        var oraNoapte = document.getElementById('rez-prog-ora-noapte').value || null;
+        var blocheaza = document.getElementById('rez-prog-blocheaza').checked;
+
+        if (!oraZiStart && !oraZiStop && !oraNoapte && !blocheaza) {
+          toast('Completează cel puțin o oră sau bifează blocarea 24h.', true);
+          return;
+        }
+        if (dataStart && dataSfarsit && dataSfarsit < dataStart) {
+          toast('Data de sfârșit nu poate fi înainte de data de start.', true);
+          return;
+        }
+
+        btnEl.disabled = true; btnEl.textContent = 'Se salvează...';
+        try {
+          var addRes = await sb.rpc('seteaza_regula_program', {
+            p_id: null, p_balta_id: _adminBaltaId, p_nume: nume,
+            p_data_start: dataStart, p_data_sfarsit: dataSfarsit,
+            p_ora_zi_start: oraZiStart, p_ora_zi_stop: oraZiStop, p_ora_noapte_start: oraNoapte,
+            p_blocheaza_24h: blocheaza
+          });
+          if (addRes.error) throw addRes.error;
+          toast('✓ Regulă adăugată.');
+          renderTabProgram();
+        } catch (e) {
+          toast(e.message || 'Eroare la salvare.', true);
+          btnEl.disabled = false; btnEl.textContent = 'Adaugă regula';
+        }
+      };
+    } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
+  }
+
   function renderTabManual() {
-    var standOptions = _adminStanduri.map(function (s) { return '<option value="' + s.id + '">' + escH(s.nume) + '</option>'; }).join('');
+    _manualSelectie = [];
+    _manualTip = '24h';
+    var minDateStr = toDateInputValue(new Date()); // admin nu are restricția de 16h a pescarului
+
     var html =
       '<div class="rez-field">' +
         '<label><input type="checkbox" id="rez-manual-multiplu"> Rezervare multiplă (grup/concurs — mai multe standuri)</label>' +
       '</div>' +
-      '<div class="rez-field" id="rez-manual-stand-wrap">' +
-        '<label id="rez-manual-stand-label">Stand</label>' +
-        '<select id="rez-manual-stand">' + standOptions + '</select>' +
+      '<div class="rez-field">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+          '<label id="rez-manual-stand-label" style="margin:0;">Stand</label>' +
+          '<button type="button" class="rez-btn rez-btn-secondary" id="rez-manual-selall" style="display:none;width:auto;padding:4px 12px;font-size:12px;">Selectează tot</button>' +
+        '</div>' +
+        '<div class="rez-stand-grid" id="rez-manual-stand-grid"></div>' +
       '</div>' +
-      '<div class="rez-field"><label>Tip partidă</label><select id="rez-manual-tip"><option value="12h">Zi</option><option value="24h" selected>24h</option><option value="personalizat">Personalizat</option></select></div>' +
-      '<div class="rez-field"><label>Data/ora început</label><input type="datetime-local" id="rez-manual-start"></div>' +
-      '<div class="rez-field"><label>Data/ora sfârșit</label><input type="datetime-local" id="rez-manual-sfarsit"></div>' +
+      '<div class="rez-field"><label>Tip partidă</label>' +
+        '<div class="rez-tip-row" id="rez-manual-tip-row"></div>' +
+      '</div>' +
+      '<div id="rez-manual-avert-tip"></div>' +
+      '<div id="rez-manual-date-fields"></div>' +
       '<div class="rez-field"><label>Nume client</label><input type="text" id="rez-manual-nume" placeholder="opțional"></div>' +
       '<div class="rez-field"><label>Telefon client</label><input type="text" id="rez-manual-telefon" placeholder="opțional"></div>' +
-      '<button class="rez-btn" id="rez-manual-submit">Adaugă rezervarea</button>';
+      '<button class="rez-btn" id="rez-manual-submit" disabled>Adaugă rezervarea</button>';
     setModalBody(html);
+
+    function randeazaStandGrid() {
+      var grid = document.getElementById('rez-manual-stand-grid');
+      grid.innerHTML = _adminStanduri.map(function (s, idx) {
+        var selectat = _manualSelectie.indexOf(s.id) !== -1;
+        var eticheta = s.nume || ('Stand ' + (idx + 1));
+        return '<div class="rez-stand-cell' + (selectat ? ' selectat' : '') + '" data-stand-id="' + s.id + '">' + escH(eticheta) + '</div>';
+      }).join('');
+      Array.prototype.forEach.call(grid.querySelectorAll('.rez-stand-cell'), function (cell) {
+        cell.onclick = function () {
+          var id = parseInt(cell.dataset.standId, 10);
+          if (_adminMultiplu) {
+            var i = _manualSelectie.indexOf(id);
+            if (i === -1) _manualSelectie.push(id); else _manualSelectie.splice(i, 1);
+          } else {
+            _manualSelectie = [id];
+          }
+          randeazaStandGrid();
+          updateSubmitState();
+        };
+      });
+    }
+
+    function randeazaTipRow() {
+      var b = _adminBalta || {};
+      document.getElementById('rez-manual-tip-row').innerHTML =
+        '<div class="rez-tip-card' + (_manualTip === '12h' ? ' active' : '') + '" data-tip="12h"><div class="rez-tip-card-title">Zi</div><div class="rez-tip-desc">' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + '–' + escH((b.ora_zi_stop || '18:00').slice(0, 5)) + '</div></div>' +
+        '<div class="rez-tip-card' + (_manualTip === '24h' ? ' active' : '') + '" data-tip="24h"><div class="rez-tip-card-title">24 ore</div><div class="rez-tip-desc">de la ' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + '</div></div>' +
+        '<div class="rez-tip-card' + (_manualTip === 'personalizat' ? ' active' : '') + '" data-tip="personalizat"><div class="rez-tip-card-title">Personalizat</div><div class="rez-tip-desc">24h sau mai mult</div></div>';
+      document.getElementById('rez-manual-tip-row').onclick = function (e) {
+        var card = e.target.closest('.rez-tip-card');
+        if (!card) return;
+        _manualTip = card.dataset.tip;
+        randeazaTipRow();
+        randeazaDateFields();
+        updateSubmitState();
+      };
+    }
+
+    function randeazaDateFields() {
+      var b = _adminBalta || {};
+      var html2;
+      if (_manualTip === 'personalizat') {
+        html2 =
+          '<div class="rez-field"><label>Din data</label><input type="date" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
+      } else {
+        html2 = '<div class="rez-field"><label>Data</label><input type="date" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+      }
+      document.getElementById('rez-manual-date-fields').innerHTML = html2;
+      ['rez-manual-data-start', 'rez-manual-data-sfarsit', 'rez-manual-mom-start', 'rez-manual-mom-sfarsit'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.onchange = function () { actualizeazaAvertizareManual(); updateSubmitState(); };
+      });
+      actualizeazaAvertizareManual();
+    }
+
+    function actualizeazaAvertizareManual() {
+      var dataStartInput = document.getElementById('rez-manual-data-start');
+      var avertEl = document.getElementById('rez-manual-avert-tip');
+      if (!avertEl) return;
+      var motiv = dataStartInput ? motivIndisponibilSesiune(_adminBalta || {}, _manualTip, dataStartInput.value, _adminReguli) : null;
+      avertEl.innerHTML = motiv ? '<div class="rez-text-warn" style="font-size:12.5px;margin:-6px 0 12px;">⚠️ ' + escH(motiv) + '</div>' : '';
+    }
+
+    function calculeazaIntervalManual() {
+      var dataStartInput = document.getElementById('rez-manual-data-start');
+      if (!dataStartInput || !dataStartInput.value) return null;
+      if (_manualTip === 'personalizat') {
+        var dataSfarsitInput = document.getElementById('rez-manual-data-sfarsit');
+        var momStart = document.getElementById('rez-manual-mom-start').value;
+        var momSfarsit = document.getElementById('rez-manual-mom-sfarsit').value;
+        return calculeazaIntervalSesiune(_adminBalta || {}, _manualTip, dataStartInput.value, dataSfarsitInput ? dataSfarsitInput.value : null, momStart, momSfarsit, _adminReguli);
+      }
+      return calculeazaIntervalSesiune(_adminBalta || {}, _manualTip, dataStartInput.value, null, null, null, _adminReguli);
+    }
+
+    function updateSubmitState() {
+      var btn = document.getElementById('rez-manual-submit');
+      if (!btn) return;
+      btn.disabled = !(_manualSelectie.length > 0 && calculeazaIntervalManual());
+    }
 
     var multiCheck = document.getElementById('rez-manual-multiplu');
     multiCheck.onchange = function () {
       _adminMultiplu = multiCheck.checked;
-      var wrap = document.getElementById('rez-manual-stand-wrap');
-      document.getElementById('rez-manual-stand-label').textContent = _adminMultiplu ? 'Standuri (ține Ctrl/Cmd apăsat pentru mai multe)' : 'Stand';
-      var sel = document.getElementById('rez-manual-stand');
-      sel.multiple = _adminMultiplu;
+      document.getElementById('rez-manual-stand-label').textContent = _adminMultiplu ? 'Standuri' : 'Stand';
+      document.getElementById('rez-manual-selall').style.display = _adminMultiplu ? '' : 'none';
+      if (!_adminMultiplu && _manualSelectie.length > 1) _manualSelectie = _manualSelectie.slice(0, 1);
+      randeazaStandGrid();
+      updateSubmitState();
     };
+
+    document.getElementById('rez-manual-selall').onclick = function () {
+      _manualSelectie = _adminStanduri.map(function (s) { return s.id; });
+      randeazaStandGrid();
+      updateSubmitState();
+    };
+
+    randeazaStandGrid();
+    randeazaTipRow();
+    randeazaDateFields();
+    updateSubmitState();
 
     document.getElementById('rez-manual-submit').onclick = async function () {
       var btn = this;
-      var standSel = document.getElementById('rez-manual-stand');
-      var standIds = _adminMultiplu
-        ? Array.from(standSel.selectedOptions).map(function (o) { return parseInt(o.value, 10); })
-        : [parseInt(standSel.value, 10)];
-      var tip = document.getElementById('rez-manual-tip').value;
-      var startVal = document.getElementById('rez-manual-start').value;
-      var sfarsitVal = document.getElementById('rez-manual-sfarsit').value;
+      var standIds = _manualSelectie.slice();
+      var interval = calculeazaIntervalManual();
       var nume = document.getElementById('rez-manual-nume').value.trim() || null;
       var telefon = document.getElementById('rez-manual-telefon').value.trim() || null;
 
-      if (!standIds.length || !startVal || !sfarsitVal) { toast('Completează standul și intervalul.', true); return; }
-      var dataStart = new Date(startVal), dataSfarsit = new Date(sfarsitVal);
-      if (dataSfarsit <= dataStart) { toast('Interval invalid.', true); return; }
+      if (!standIds.length) { toast('Alege cel puțin un stand.', true); return; }
+      if (!interval) { toast('Alege o dată validă.', true); return; }
 
       btn.disabled = true; btn.textContent = 'Se salvează...';
       try {
         var res;
         if (_adminMultiplu && standIds.length > 1) {
           res = await sb.rpc('adauga_rezervare_multipla_admin', {
-            p_stand_ids: standIds, p_tip_sesiune: tip,
-            p_data_start: dataStart.toISOString(), p_data_sfarsit: dataSfarsit.toISOString(),
+            p_stand_ids: standIds, p_tip_sesiune: _manualTip,
+            p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString(),
             p_nume_client: nume, p_telefon_client: telefon
           });
         } else {
           res = await sb.rpc('adauga_rezervare_manuala', {
-            p_stand_id: standIds[0], p_tip_sesiune: tip,
-            p_data_start: dataStart.toISOString(), p_data_sfarsit: dataSfarsit.toISOString(),
+            p_stand_id: standIds[0], p_tip_sesiune: _manualTip,
+            p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString(),
             p_nume_client: nume, p_telefon_client: telefon
           });
         }
@@ -869,6 +1353,7 @@
       } catch (e) {
         toast(e.message || 'Eroare la salvare.', true);
         btn.disabled = false; btn.textContent = 'Adaugă rezervarea';
+        updateSubmitState();
       }
     };
   }
