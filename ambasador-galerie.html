@@ -171,11 +171,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .spinner{width:40px;height:40px;border:3px solid var(--zc-border);border-top-color:#38bdf8;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* LIGHTBOX */
-#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;align-items:center;justify-content:center;padding:20px;}
-#lightbox.open{display:flex;}
-#lightbox img{max-width:100%;max-height:90vh;border-radius:8px;}
-#lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:31px;cursor:pointer;background:none;border:none;line-height:1;}
+/* LIGHTBOX — fs-modal e stilizat integral inline (aceeași componentă ca pe restul platformei) */
 
 @media(min-width:769px){
   .poze-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
@@ -202,9 +198,11 @@ html[data-theme="light"] .logo-img-light{display:block;}
   <div id="continut"><div class="empty-state">Se încarcă...</div></div>
 </div>
 
-<div id="lightbox" onclick="closeLightbox()">
-  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src=""/>
+<div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;">
+  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
+  <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
 <script>
@@ -218,15 +216,33 @@ function escH(str) {
   return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function openLightbox(url) {
-  document.getElementById('lightbox-img').src = url;
-  document.getElementById('lightbox').classList.add('open');
+// ── LIGHTBOX FULLSCREEN — aceeași componentă (fs-modal) ca pe index.html/
+// balta.html/pescar.html. Aici galeria = toate pozele documentate de
+// ambasador pentru aceeași baltă (grupul din care face parte poza apăsată),
+// deci săgețile ◀▶ navighează prin ele fără să iasă din lightbox.
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+function openFS(src, gallery, idx) {
+  if (!src && !(gallery && gallery.length)) return;
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
 }
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() {
+  document.getElementById('fs-modal').style.display = 'none';
+  document.getElementById('fs-img').src = '';
+  _fsGallery = [];
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'Escape') closeFS();
 });
 
 async function boot() {
@@ -274,15 +290,21 @@ async function boot() {
 
   continutEl.innerHTML = Object.entries(grupuri).map(function(entry) {
     const baltaId = entry[0], g = entry[1];
+    // Galeria completă a acestui grup (o baltă) — cf. buildFotoClickCaptura din
+    // balta.html/index.html/pescar.html: ghilimelele duble din JSON trebuie
+    // înlocuite cu &quot; înainte de a fi inserate într-un atribut HTML.
+    const galUrls = g.poze.map(function(p) { return p.url; });
+    const galJson = JSON.stringify(galUrls).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     return '' +
       '<div class="balta-sectiune">' +
         '<div class="balta-titlu">🏕️ <a href="balta.html?id=' + baltaId + '">' + escH(g.nume) + '</a> ' +
           '<span style="color:var(--zc-text-secondary);font-weight:500;font-size:13px;">(' + g.poze.length + ' ' + (g.poze.length === 1 ? 'poză' : 'poze') + ')</span>' +
         '</div>' +
         '<div class="poze-grid">' +
-          g.poze.map(function(p) {
+          g.poze.map(function(p, idx) {
+            const urlEsc = escH(p.url).replace(/'/g, "\\'");
             return '' +
-              '<div class="poza-thumb" onclick="openLightbox(\'' + escH(p.url) + '\')">' +
+              '<div class="poza-thumb" onclick="openFS(\'' + urlEsc + '\',' + galJson + ',' + idx + ')">' +
                 '<img src="' + escH(p.url) + '" loading="lazy"/>' +
                 (p.standuri?.nume ? '<div class="poza-stand-label">' + escH(p.standuri.nume) + '</div>' : '') +
               '</div>';
