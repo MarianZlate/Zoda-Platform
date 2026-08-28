@@ -272,6 +272,23 @@
       .rez-btn-secondary{background:transparent;border:1px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);}
       .rez-btn-danger{background:#7f1d1d;color:#fecaca;}
       .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);}
+      .rez-blocare-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;}
+      .rez-text-small{font-size:12px;}
+      .rez-btn-anuleaza-mic{margin:8px auto 0;width:70%;display:block;padding:6px 16px;}
+      /* Modalul de detaliu al unei rezervări (renderCalendarDetail) — text
+         mărit cu 12% + centrat, cerere explicită a lui Marian (rundă 18),
+         ca totul să fie mai vizibil dintr-o privire. Scopat strict la acest
+         modal (clasă adăugată doar acolo) — restul locurilor unde apar
+         aceleași clase (.rez-badge, .rez-tel-btn etc., ex. tab-ul Cereri)
+         rămân la mărimea implicită. */
+      .rez-detail-mare{font-size:15.1px;text-align:center;}
+      .rez-detail-mare .rez-badge{font-size:12.3px;}
+      .rez-detail-mare .rez-tel-btn{font-size:14px;}
+      .rez-detail-mare .rez-strike{font-size:12.9px;}
+      .rez-detail-mare .rez-text-small{font-size:13.4px;}
+      .rez-detail-mare .rez-field label{font-size:14px;}
+      .rez-detail-mare .rez-field textarea{font-size:15.1px !important;text-align:left;}
+      .rez-detail-mare .rez-blocare-label{font-size:14px;justify-content:center;}
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
       .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
       .rez-badge-confirmata{background:rgba(56,189,248,.15);color:#0369a1;}
@@ -943,6 +960,20 @@
 
       setModalBody(html);
 
+      // Centrare automată pe ziua curentă (rundă 18, cerere explicită a lui
+      // Marian) — la deschidere, grid-ul pornea mereu scrollat la extrema
+      // stângă (începutul ferestrei de o săptămână în urmă, §38), deci "azi"
+      // era adesea în afara ecranului, la dreapta. Poziția absolută a liniei
+      // de "azi" în interiorul containerului scrollabil e LABEL_W (coloana
+      // fixă cu numele standului, care nu se scrollează) + offsetPx(azi)
+      // (poziția ei pe axa timpului); centrăm asta în lățimea vizibilă a
+      // containerului, în loc să pornim de la 0.
+      var scrollEl = document.querySelector('.rez-cal-scroll');
+      if (scrollEl) {
+        var scrollDorit = (LABEL_W + todayOffset) - (scrollEl.clientWidth / 2);
+        scrollEl.scrollLeft = Math.max(0, scrollDorit);
+      }
+
       Array.prototype.forEach.call(document.querySelectorAll('.rez-cal-bar'), function (bar) {
         bar.onclick = function () {
           var id = parseInt(bar.dataset.rezId, 10);
@@ -976,13 +1007,13 @@
     // — n-are sens să "anulezi" ceva deja trecut, acolo intervine strike-ul).
     var arataNeprezentare = r.status === 'confirmata' && sEnd < acum;
     var arataAnuleaza = r.status === 'confirmata' && sEnd >= acum;
-    var bodyHtml = '<div class="rez-list-item" style="margin-bottom:0;">' +
+    var bodyHtml = '<div class="rez-list-item rez-detail-mare" style="margin-bottom:0;">' +
       '<div><span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
       '<div style="margin:4px 0;">' + fmtDataOraColorat(r.data_start) + ' → ' + fmtDataOraColorat(r.data_sfarsit) + '</div>' +
-      (r.confirmat_24h_la ? '<div class="rez-text-ok" style="font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2" style="font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
+      (r.confirmat_24h_la ? '<div class="rez-text-ok rez-text-small">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2 rez-text-small">⏳ Neconfirmat încă</div>' : '')) +
       (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
-      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;padding:7px 16px;" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
+      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger rez-btn-anuleaza-mic" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
       '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
@@ -1037,7 +1068,7 @@
         '<label>📝 Notă privată (vizibilă doar ție)</label>' +
         '<textarea id="' + meu + '-text" rows="2" style="width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;color:var(--zc-text-primary,#f1f5f9);font-size:13.5px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(nota.text || '') + '</textarea>' +
       '</div>' +
-      '<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;">' +
+      '<label class="rez-blocare-label">' +
         '<input type="checkbox" id="' + meu + '-blocat"' + (nota.blocat ? ' checked' : '') + '> 🚫 Blocat de la rezervări la această baltă' +
       '</label>' +
       '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button">Salvează nota</button>';
