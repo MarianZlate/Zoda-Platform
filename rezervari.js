@@ -135,10 +135,10 @@
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
-      .rez-cal-scroll{overflow-x:auto;overflow-y:hidden;border:1px solid #1e293b;border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-scroll{overflow:auto;max-height:60vh;border:1px solid #1e293b;border-radius:10px;-webkit-overflow-scrolling:touch;}
       .rez-cal-row{display:flex;border-bottom:1px solid #1e293b;}
       .rez-cal-row:last-child{border-bottom:none;}
-      .rez-cal-header-row{display:flex;border-bottom:1px solid #1e293b;background:#0a0f1a;}
+      .rez-cal-header-row{display:flex;border-bottom:1px solid #1e293b;background:#0a0f1a;position:sticky;top:0;z-index:3;}
       .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:11.5px;font-weight:700;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:#0a0f1a;border-right:1px solid #1e293b;display:flex;align-items:center;z-index:2;}
       .rez-cal-corner{background:#0a0f1a;}
       .rez-cal-track{position:relative;flex-shrink:0;height:34px;}
@@ -152,7 +152,6 @@
       .rez-cal-bar.confirmata{background:rgba(34,197,94,.35);border:1.5px solid #22c55e;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.35);border:1.5px solid #ef4444;}
       .rez-cal-bar.selectat{outline:2px solid #38bdf8;outline-offset:1px;}
-      .rez-cal-detail{margin-top:12px;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -169,8 +168,15 @@
   // înainte, nu neapărat scroll liber.
   var _rezScrollLockPrev = null;
 
-  function deschideModalGeneric(titlu, bodyHtml, tabsHtml) {
+  // `bodyId` e opțional (implicit 'rez-modal-body') — folosit doar când acest
+  // modal se deschide PESTE o pagină care are deja un element cu acel id (ex.
+  // panoul de rezervări din rezervari-admin.html, care ține conținutul
+  // tab-urilor tocmai în `#rez-modal-body`) — ca să nu apară două elemente cu
+  // același id în document. Vezi `renderCalendarDetail()`, care deschide
+  // detaliul unei rezervări ca modal peste Gantt, cu `bodyId` distinct.
+  function deschideModalGeneric(titlu, bodyHtml, tabsHtml, bodyId) {
     injectStylesOnce();
+    bodyId = bodyId || 'rez-modal-body';
     var backdrop = document.createElement('div');
     backdrop.className = 'rez-modal-backdrop';
     backdrop.id = 'rez-modal-backdrop';
@@ -178,7 +184,7 @@
       '<div class="rez-modal">' +
         '<div class="rez-modal-hdr"><h3>' + escH(titlu) + '</h3><button class="rez-modal-close" onclick="RezervariUI._closeModal()">✕</button></div>' +
         (tabsHtml || '') +
-        '<div class="rez-modal-body" id="rez-modal-body">' + bodyHtml + '</div>' +
+        '<div class="rez-modal-body" id="' + bodyId + '">' + bodyHtml + '</div>' +
       '</div>';
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
@@ -693,8 +699,7 @@
             '<div class="rez-cal-track rez-cal-daynums" style="width:' + trackW + 'px;">' + headerCells + '</div>' +
           '</div>' +
           randuriStanduri +
-        '</div>' +
-        '<div id="rez-cal-detail"></div>';
+        '</div>';
 
       setModalBody(html);
 
@@ -713,33 +718,37 @@
     } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
   }
 
-  // Panoul de detaliu care apare sub grila Gantt când se apasă pe o bară —
-  // păstrează exact conținutul vechii cartele din listă (identitate, telefon,
-  // interval, status confirmare, butonul de neprezentare).
+  // Detaliul unei rezervări apăsate pe Gantt — un modal propriu-zis (nu un
+  // panou randat sub grid), ca balta_admin să-l vadă instant, fără să mai
+  // dea scroll până jos de tot să ajungă la el (mai ales dacă balta are
+  // multe standuri și tocmai a apăsat pe o bară de pe ultimul rând). Folosim
+  // `deschideModalGeneric` cu un `bodyId` propriu (`rez-cal-detail-body`),
+  // distinct de `rez-modal-body` — acela e deja ocupat de containerul
+  // persistent al tab-urilor din rezervari-admin.html, care rămâne pe ecran
+  // în spatele acestui modal.
   function renderCalendarDetail(r) {
-    var panel = document.getElementById('rez-cal-detail');
-    if (!panel) return;
     var sEnd = new Date(r.data_sfarsit);
     var arataNeprezentare = r.status === 'confirmata' && sEnd < new Date();
-    panel.innerHTML = '<div class="rez-list-item">' +
-      '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(r.status) + '</span></div>' +
-      '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
+    var bodyHtml = '<div class="rez-list-item" style="margin-bottom:0;">' +
+      '<div><span class="rez-badge rez-badge-' + r.status + '" style="margin-left:0;">' + escH(r.status) + '</span></div>' +
+      '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.confirmat_24h_la ? '<div style="color:#22c55e;font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div style="color:#94a3b8;font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
       (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
     '</div>';
-    var b = document.getElementById('rez-neprezentare-' + r.id);
-    if (b) b.onclick = function () { marcheazaNeprezentare(r.id); };
-  }
+    deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
 
-  async function marcheazaNeprezentare(id) {
-    if (!confirm('Sigur marchezi neprezentare? Pescarul primește un strike.')) return;
-    try {
-      var res = await sb.rpc('marcheaza_neprezentare', { p_rezervare_id: id });
-      if (res.error) throw res.error;
-      toast('Strike acordat.');
-      renderTabCalendar();
-    } catch (e) { toast(e.message || 'Eroare.', true); }
+    var b = document.getElementById('rez-neprezentare-' + r.id);
+    if (b) b.onclick = async function () {
+      if (!confirm('Sigur marchezi neprezentare? Pescarul primește un strike.')) return;
+      try {
+        var res = await sb.rpc('marcheaza_neprezentare', { p_rezervare_id: r.id });
+        if (res.error) throw res.error;
+        toast('Strike acordat.');
+        closeModal();
+        renderTabCalendar();
+      } catch (e) { toast(e.message || 'Eroare.', true); }
+    };
   }
 
   function renderTabManual() {
