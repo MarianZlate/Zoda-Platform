@@ -5296,6 +5296,11 @@ async function loadNotifPanel() {
     let url;
     if (n.tip === 'captura_respinsa' && meta.captura_id) {
       url = `cont.html?captura_respinsa=${meta.captura_id}`;
+    } else if (n.tip === 'rezervare_noua' && meta.balta_id) {
+      // Cerere nouă de rezervare (balta_admin) — duce direct în modalul de
+      // gestionare din cont.html (tab "Cereri"), nu pe pagina bălții. Vezi
+      // handler-ul `rez_admin` din boot() în cont.html.
+      url = `cont.html?rez_admin=${meta.balta_id}`;
     } else if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) {
       url = `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
     } else if (meta.balta_id && meta.comentariu_tip) {
