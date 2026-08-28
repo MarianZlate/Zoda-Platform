@@ -262,6 +262,13 @@
       .rez-dot.ocupat{background:#ef4444;}
       .rez-dot.selectat{background:#38bdf8;}
       .rez-stand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;}
+      /* Când grila de standuri afișează un mesaj în loc de celule (dată
+         nevalidă, blocată sezonier, eroare) — mesajul e un singur element
+         .rez-empty injectat direct în containerul grid, care altfel l-ar
+         plasa într-o singură coloană de ~72px (lățimea minimă a unei
+         celule de stand), făcând textul lung să se rupă absurd de îngust,
+         literă cu literă aproape. Îl întindem pe toată lățimea grilei. */
+      .rez-stand-grid > .rez-empty{grid-column:1 / -1;}
       .rez-stand-cell{border:1.5px solid var(--zc-border,#1e293b);border-radius:9px;padding:10px 6px;text-align:center;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--zc-text-primary,#f1f5f9);background:var(--zc-bg-panel,#111827);}
       .rez-stand-cell.liber{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);}
       .rez-stand-cell.partial{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4);}
