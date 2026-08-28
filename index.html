@@ -2250,6 +2250,12 @@ async function goToAdmin(e) {
   window.location.href = 'admin.html';
 }
 
+async function goToRezervariAdmin(e) {
+  e.preventDefault();
+  saveIndexState();
+  window.location.href = 'rezervari-admin.html';
+}
+
 // La deschidere, adăugăm o intrare în istoric — astfel butonul "înapoi" al
 // telefonului închide modalul (consumă intrarea din istoric) în loc să scoată
 // userul din aplicație. La închidere din X, dăm history.back() ca să curățăm
@@ -5060,6 +5066,25 @@ async function updateNavForUser(user) {
   const adminBadge = adminPendingCount > 0
     ? `<span class="nav-bell-badge">${adminPendingCount > 99 ? '99+' : adminPendingCount}</span>` : '';
 
+  // Linkul "📅 Rezervări" — echivalentul lui "⚙️ Admin" de mai sus, dar pentru
+  // balta_admin (rundă 7, 2026-08-28: panoul de rezervări a devenit o pagină
+  // separată, rezervari-admin.html, nu mai e un modal ascuns în cont.html).
+  // Un zoda_admin poate administra și el o baltă (cf. cont.html/loadBaltiAdmin),
+  // deci verificăm după balta administrată, nu doar după rol. Verificare
+  // ieftină (doar existența a cel puțin o baltă) — dacă vreuna calificată are
+  // sau nu panoul de rezervări efectiv activ se decide oricum pe pagina
+  // dedicată, la deschidere.
+  let showRezervariLink = false;
+  if (currentRole === 'balta_admin' || isAdmin) {
+    try {
+      const zodaIdForCheck = profile?.zoda_id;
+      if (zodaIdForCheck) {
+        const { count } = await sb.from('balti').select('id', { count: 'exact', head: true }).eq('admin_zoda_id', zodaIdForCheck);
+        showRezervariLink = (count || 0) > 0;
+      }
+    } catch(e) {}
+  }
+
   // Numărul de notificări necitite a fost deja citit mai sus, în paralel cu rolul și profilul
   const unreadCount = notifResult?.count || 0;
 
@@ -5069,6 +5094,7 @@ async function updateNavForUser(user) {
   area.innerHTML = `
     <div class="nav-user">
       ${isAdmin ? `<a href="#" onclick="goToAdmin(event)" class="nav-admin-badge" style="text-decoration:none;cursor:pointer;position:relative;" title="Panou de administrare">⚙️ <span class="nav-label">Admin</span>${adminBadge}</a>` : ''}
+      ${showRezervariLink ? `<a href="#" onclick="goToRezervariAdmin(event)" class="nav-admin-badge" style="text-decoration:none;cursor:pointer;position:relative;" title="Panou de rezervări">📅 <span class="nav-label">Rezervări</span></a>` : ''}
       <div class="nav-bell" onclick="toggleNotifPanel()" title="Notificări" id="nav-bell-btn">
         🔔${bellBadge}
       </div>
@@ -5297,10 +5323,10 @@ async function loadNotifPanel() {
     if (n.tip === 'captura_respinsa' && meta.captura_id) {
       url = `cont.html?captura_respinsa=${meta.captura_id}`;
     } else if (n.tip === 'rezervare_noua' && meta.balta_id) {
-      // Cerere nouă de rezervare (balta_admin) — duce direct în modalul de
-      // gestionare din cont.html (tab "Cereri"), nu pe pagina bălții. Vezi
-      // handler-ul `rez_admin` din boot() în cont.html.
-      url = `cont.html?rez_admin=${meta.balta_id}`;
+      // Cerere nouă de rezervare (balta_admin) — duce direct în panoul
+      // dedicat de rezervări (pagină separată, cf. rundă 7), tab "Cereri",
+      // nu pe pagina bălții.
+      url = `rezervari-admin.html?balta=${meta.balta_id}`;
     } else if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) {
       url = `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
     } else if (meta.balta_id && meta.comentariu_tip) {
