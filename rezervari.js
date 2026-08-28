@@ -275,6 +275,11 @@
       .rez-blocare-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;}
       .rez-text-small{font-size:12px;}
       .rez-btn-anuleaza-mic{margin:8px auto 0;width:70%;display:block;padding:6px 16px;}
+      /* Buton „Șterge" pe cardurile din Moderare (rundă 19) — înălțime
+         redusă cu 30% față de un buton normal (padding vertical 6px→4px,
+         font aliniat la 12.5px), ca să fie la fel de înalt ca pastila de
+         telefon (.rez-tel-btn) de lângă el, cerere explicită a lui Marian. */
+      .rez-btn-sterge-mic{width:auto;padding:4px 12px;font-size:12.5px;white-space:nowrap;}
       /* Modalul de detaliu al unei rezervări (renderCalendarDetail) — text
          mărit cu 12% + centrat, cerere explicită a lui Marian (rundă 18),
          ca totul să fie mai vizibil dintr-o privire. Scopat strict la acest
@@ -1193,7 +1198,7 @@
               (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
               telBtn +
             '</div>' +
-            '<button class="rez-btn rez-btn-danger" id="rez-mod-sterge-' + idx + '" type="button" style="width:auto;padding:6px 12px;white-space:nowrap;">🗑️ Șterge</button>' +
+            '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
           '</div>' +
           '<div id="rez-mod-nota-' + idx + '"></div>' +
         '</div>';
