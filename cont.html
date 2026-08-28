@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="rezervari.js?v=20260828f" defer></script>
+<script src="rezervari.js?v=20260828g" defer></script>
 <script>
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
@@ -1679,17 +1679,6 @@ async function boot() {
     }
   }
 
-  // Deep-link dintr-o notificare de cerere nouă de rezervare (vezi notifUrl())
-  // — deschide direct modalul de gestionare a rezervărilor bălții respective,
-  // pe tab-ul "Cereri" (implicit în deschideModalAdmin), nu doar pagina bălții.
-  const rezAdminBaltaId = new URLSearchParams(location.search).get('rez_admin');
-  if (rezAdminBaltaId) {
-    const balta = _baltiAdminData.find(b => String(b.id) === String(rezAdminBaltaId));
-    if (balta && window.RezervariUI) {
-      RezervariUI.deschideModalAdmin(balta.id, balta.nume);
-    }
-  }
-
   // Deep-link din banda de "activitate nouă în urmăriri" de pe index.html
   if (new URLSearchParams(location.search).get('scroll') === 'evenimente') {
     toggleEvenimenteUrmaririPanel();
@@ -1708,9 +1697,9 @@ function notifUrl(n) {
   const meta = n.meta || {};
   if (n.tip === 'captura_respinsa' && meta.captura_id) return `cont.html?captura_respinsa=${meta.captura_id}`;
   // Notificarea de cerere nouă de rezervare merge la balta_admin — trebuie să-l
-  // ducă direct în modalul de gestionare a rezervărilor (tab-ul "Cereri", cel
-  // implicit), nu pe pagina publică a bălții. Vezi handler-ul `rez_admin` din boot().
-  if (n.tip === 'rezervare_noua' && meta.balta_id) return `cont.html?rez_admin=${meta.balta_id}`;
+  // ducă direct în panoul dedicat de rezervări (pagină separată, cf. rundă 7),
+  // pe tab-ul "Cereri" (implicit acolo), nu pe pagina publică a bălții.
+  if (n.tip === 'rezervare_noua' && meta.balta_id) return `rezervari-admin.html?balta=${meta.balta_id}`;
   if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) return `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
   // Notificări de comentarii/reacții — duc direct la comentariul exact (sau
   // la tab-ul potrivit din overlay, dacă notificarea nu ține de un comentariu
@@ -2179,7 +2168,6 @@ async function loadBaltiAdmin() {
   }
 
   _baltiAdminIds = balti.map(b => b.id);
-  _baltiAdminData = balti;
 
   // Panoul "📅 Rezervări" rămâne vizibil cât timp rezervare_mod = 'zoda', SAU
   // — chiar dacă zoda_admin a comutat pe "fără rezervare"/"site extern" —
@@ -2243,7 +2231,7 @@ async function loadBaltiAdmin() {
         <button class="btn-add-captura" onclick="openCaptura(${b.id}, '${escH(b.nume).replace(/'/g,"\\'")}')">+ Adaugă captură</button>
         <a href="balta.html?id=${b.id}&edit=1" target="_blank" style="background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">↗ Vezi balta</a>
         <button onclick="openModerareModal(${b.id}, '${escH(b.nume).replace(/'/g,"\\'")}')" style="background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='#ef4444'" onmouseout="this.style.borderColor='var(--zc-border)'">🛡️ Moderare</button>
-        ${panouRezervariMap[b.id] ? `<button onclick="RezervariUI.deschideModalAdmin(${b.id}, '${escH(b.nume).replace(/'/g,"\\'")}')" style="background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">📅 Rezervări</button>` : ''}
+        ${panouRezervariMap[b.id] ? `<a href="rezervari-admin.html?balta=${b.id}" style="background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:13px;font-weight:600;padding:9px 14px;border-radius:8px;cursor:pointer;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">📅 Rezervări</a>` : ''}
       </div>
       ${checklistHtml}
     </div>`;
@@ -2485,7 +2473,6 @@ async function trimiteSprebAprobare(baltaId, btn) {
 
 // ── CAPTURI RESPINSE (balta_admin) ─────────────────────────────────────────────
 let _baltiAdminIds = [];
-let _baltiAdminData = []; // { id, nume, ... } — folosit de deep-link-ul rez_admin din boot()
 
 function toggleCapturiRespinsePanel() {
   const body = document.getElementById('cr-body');
