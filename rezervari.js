@@ -1105,13 +1105,31 @@
   // în spatele acestui modal.
   function renderCalendarDetail(r) {
     var acum = new Date();
+    var sStart = new Date(r.data_start);
     var sEnd = new Date(r.data_sfarsit);
-    // Cele două acțiuni sunt mereu exclusive: o rezervare confirmată deja
-    // trecută (neonorată încă) primește "Nu s-a prezentat"; una confirmată,
-    // încă în curs sau viitoare, poate fi anulată de balta_admin (RPC-ul
-    // `anuleaza_rezervare_admin` acceptă oricum doar in_asteptare/confirmata
-    // — n-are sens să "anulezi" ceva deja trecut, acolo intervine strike-ul).
-    var arataNeprezentare = r.status === 'confirmata' && sEnd < acum;
+    // Rundă 25 — cerere explicită a lui Marian: până acum, "Nu s-a
+    // prezentat" apărea DOAR după ce rezervarea se termina complet
+    // (sEnd < acum), iar "Anulează" doar cât timp era încă în curs/viitoare
+    // — cele două se excludeau mereu. Problemă reală: dacă pescarul nu
+    // apărea și balta_admin anula rezervarea la 1-2 ore de la începutul ei
+    // (ca să elibereze standul pentru altcineva), statusul devenea 'anulata'
+    // — nu mai era 'confirmata' — deci butonul de neprezentare nu mai putea
+    // apărea NICIODATĂ pentru acea rezervare, chiar și după ce ora ei de
+    // sfârșit trecea; strike-ul devenea imposibil de dat.
+    //
+    // Fix: "Nu s-a prezentat" e disponibil de la ÎNCEPUTUL rezervării (nu de
+    // la sfârșit), cât timp e încă 'confirmata' — balta_admin poate deci
+    // să-l apese oricând după ce a decis, pe teren, că pescarul nu vine
+    // (ex. la 1-2 ore de la ora de start), FĂRĂ să mai fie nevoit să anuleze
+    // întâi (și să piardă opțiunea). De reținut: `marcheaza_neprezentare`
+    // schimbă statusul din 'confirmata' în 'neprezentat' — asta, singură,
+    // eliberează automat standul (constraint-ul anti-suprapunere din §3 se
+    // aplică DOAR rândurilor 'confirmata'), deci în cazul obișnuit nici nu
+    // mai e nevoie de un "Anulează" separat ca să elibereze locul.
+    // "Anulează" rămâne disponibil în paralel, tot pe rezervarea în curs —
+    // pentru cazul opus, când balta_admin vrea doar să elibereze standul
+    // FĂRĂ să dea strike (ex. pescarul a anunțat din timp o întârziere).
+    var arataNeprezentare = r.status === 'confirmata' && sStart <= acum;
     var arataAnuleaza = r.status === 'confirmata' && sEnd >= acum;
     var bodyHtml = '<div class="rez-list-item rez-detail-mare" style="margin-bottom:0;">' +
       '<div><span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
