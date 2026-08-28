@@ -217,7 +217,7 @@
       .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
       .rez-tip-card-title{font-size:13.5px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
       .rez-tip-desc{font-size:11px;color:var(--zc-text-secondary-2,#94a3b8);margin-top:2px;}
-      .rez-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--zc-text-secondary-2,#94a3b8);margin:2px 0 10px;}
+      .rez-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12.3px;color:var(--zc-text-secondary-2,#94a3b8);margin:2px 0 10px;}
       .rez-legend span{display:flex;align-items:center;gap:4px;}
       .rez-dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
       .rez-dot.liber{background:#22c55e;}
@@ -251,20 +251,20 @@
       .rez-cal-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);}
       .rez-cal-row:last-child{border-bottom:none;}
       .rez-cal-header-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);background:var(--zc-bg,#0a0f1a);position:sticky;top:0;z-index:3;}
-      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:11.5px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
+      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
       .rez-cal-corner{background:var(--zc-bg,#0a0f1a);}
       .rez-cal-track{position:relative;flex-shrink:0;height:34px;}
       .rez-cal-daynums{height:auto;display:flex;}
-      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:10.5px;color:var(--zc-text-muted,#64748b);border-right:1px solid var(--zc-border,rgba(30,41,59,.5));padding:4px 0;}
+      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:1px solid var(--zc-border,rgba(30,41,59,.5));padding:4px 0;}
       .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
       .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
-      .rez-cal-luna{font-size:9px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
+      .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 1px;}
       .rez-cal-bar.confirmata{background:rgba(34,197,94,.4);border:1.5px solid #16a34a;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
       .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
-      .rez-cal-bar-dur{font-size:9px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
+      .rez-cal-bar-dur{font-size:10.1px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
       /* ── Variante DARK — culorile de mai sus (badge-uri, telefon, tab activ,
          ziua curentă din calendar, durata de pe bară) sunt alese să fie
          lizibile pe fundal DESCHIS (mai saturate/închise la culoare, cf.
@@ -842,13 +842,16 @@
           // Durata reală (data_sfarsit - data_start), nu tip_sesiune — la
           // 'personalizat' intervalul poate fi orice, nu doar 12h/24h.
           var oreDurata = Math.round((dataSfarsit - dataStart) / 3600000);
-          // Sub ~18px (mai puțin de ~11h la scara actuală) bara e prea
+          // Sub ~20px (mai puțin de ~12h la scara actuală) bara e prea
           // îngustă chiar și pentru un text minuscul — rămâne doar culoarea
           // + tooltip-ul (title) cu intervalul complet. Peste acest prag
           // (include și rezervările de 12h, cf. feedback Marian) arătăm
           // durata, cu font mai mic decât restul textelor din grid ca să
-          // încapă și pe bare relativ înguste.
-          var durataHtml = width >= 18 ? '<span class="rez-cal-bar-dur">' + oreDurata + 'h</span>' : '';
+          // încapă și pe bare relativ înguste. Prag ușor ridicat (18→20px)
+          // când fontul din Gantt a crescut cu 12% (rundă 12, punct de
+          // accesibilitate cerut de Marian) — ca textul să încapă la fel
+          // de curat ca înainte, fără să atingă marginile barei.
+          var durataHtml = width >= 20 ? '<span class="rez-cal-bar-dur">' + oreDurata + 'h</span>' : '';
           return '<div class="' + clasa + '" data-rez-id="' + r.id + '" style="left:' + left + 'px;width:' + width + 'px;" title="' +
             escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '">' + durataHtml + '</div>';
         }).join('');
