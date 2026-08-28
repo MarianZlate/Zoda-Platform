@@ -134,6 +134,24 @@
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
+      .rez-cal-scroll{overflow-x:auto;overflow-y:hidden;border:1px solid #1e293b;border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-row{display:flex;border-bottom:1px solid #1e293b;}
+      .rez-cal-row:last-child{border-bottom:none;}
+      .rez-cal-header-row{display:flex;border-bottom:1px solid #1e293b;background:#0a0f1a;}
+      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:11.5px;font-weight:700;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:#0a0f1a;border-right:1px solid #1e293b;display:flex;align-items:center;z-index:2;}
+      .rez-cal-corner{background:#0a0f1a;}
+      .rez-cal-track{position:relative;flex-shrink:0;height:34px;}
+      .rez-cal-daynums{height:auto;display:flex;}
+      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:10.5px;color:#64748b;border-right:1px solid rgba(30,41,59,.5);padding:4px 0;}
+      .rez-cal-daycell.weekend{background:rgba(148,163,184,.06);}
+      .rez-cal-daycell.azi{color:#38bdf8;font-weight:800;}
+      .rez-cal-luna{font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;}
+      .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
+      .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;}
+      .rez-cal-bar.confirmata{background:rgba(34,197,94,.35);border:1.5px solid #22c55e;}
+      .rez-cal-bar.neprezentat{background:rgba(239,68,68,.35);border:1.5px solid #ef4444;}
+      .rez-cal-bar.selectat{outline:2px solid #38bdf8;outline-offset:1px;}
+      .rez-cal-detail{margin-top:12px;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -573,30 +591,134 @@
     } catch (e) { toast(e.message || 'Eroare.', true); }
   }
 
+  // ── Calendar — cronologie tip Gantt ─────────────────────────────────────────
+  // Un rând per stand (toate standurile bălții, chiar și cele fără rezervări
+  // active acum), zilele orizontal, rezervările ca bare colorate poziționate
+  // pe o axă de timp în pixeli. Gândit ca să rămână lizibil și cu 20+
+  // rezervări active simultan — dintr-o privire se vede ce stand e liber și
+  // când, fără să mai deschizi fiecare rezervare pe rând.
+  var DAY_W = 40;   // px pe zi, pe axa orizontală
+  var LABEL_W = 78; // px, coloana fixă (sticky) cu numele standului
+  var _calRezervari = [];
+  var _calSelectedId = null;
+
+  function startOfDay(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function diffZile(a, b) { return (b.getTime() - a.getTime()) / 86400000; }
+
   async function renderTabCalendar() {
     setModalBody('<div class="rez-empty">Se încarcă...</div>');
     try {
       var toate = await fetchRezervariBalta();
-      var relevante = toate.filter(function (r) { return r.status === 'confirmata' || r.status === 'neprezentat'; })
-        .sort(function (a, b) { return new Date(b.data_start) - new Date(a.data_start); });
-      if (!relevante.length) { setModalBody('<div class="rez-empty">Nicio rezervare confirmată încă.</div>'); return; }
       var acum = new Date();
-      setModalBody(relevante.map(function (r) {
-        var sEnd = new Date(r.data_sfarsit);
-        var arataNeprezentare = r.status === 'confirmata' && sEnd < acum;
-        return '<div class="rez-list-item">' +
-          '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(r.status) + '</span></div>' +
-          '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
-          '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
-          (r.confirmat_24h_la ? '<div style="color:#22c55e;font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div style="color:#94a3b8;font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
-          (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
-        '</div>';
-      }).join(''));
+      var pragVechi = new Date(acum.getTime() - 24 * 3600 * 1000);
+      var relevante = toate.filter(function (r) {
+        return (r.status === 'confirmata' || r.status === 'neprezentat') && new Date(r.data_sfarsit) >= pragVechi;
+      });
+      _calRezervari = relevante;
+      _calSelectedId = null;
+
+      if (!_adminStanduri.length) { setModalBody('<div class="rez-empty">Această baltă nu are încă standuri definite.</div>'); return; }
+
+      // ── Intervalul afișat: azi → azi+14 zile, extins dacă e nevoie ca să
+      // cuprindă toate rezervările curente/viitoare, plafonat la 60 de zile
+      // ca lățimea grilei să nu explodeze pe cazuri extreme.
+      var azi = startOfDay(acum);
+      var rangeStart = azi;
+      var rangeEnd = new Date(azi.getTime() + 14 * 86400000);
       relevante.forEach(function (r) {
-        var b = document.getElementById('rez-neprezentare-' + r.id);
-        if (b) b.onclick = function () { marcheazaNeprezentare(r.id); };
+        var s = startOfDay(new Date(r.data_start));
+        var e = new Date(startOfDay(new Date(r.data_sfarsit)).getTime() + 86400000);
+        if (s < rangeStart) rangeStart = s;
+        if (e > rangeEnd) rangeEnd = e;
+      });
+      var MAX_ZILE = 60;
+      if (diffZile(rangeStart, rangeEnd) > MAX_ZILE) rangeEnd = new Date(rangeStart.getTime() + MAX_ZILE * 86400000);
+
+      var totalZile = Math.round(diffZile(rangeStart, rangeEnd));
+      var trackW = totalZile * DAY_W;
+
+      function offsetPx(d) { return diffZile(rangeStart, d) * DAY_W; }
+
+      // ── Rândul de antet: numărul zilei + eticheta lunii la schimbarea ei ──
+      var headerCells = '';
+      for (var i = 0; i < totalZile; i++) {
+        var ziua = new Date(rangeStart.getTime() + i * 86400000);
+        var esteWeekend = (ziua.getDay() === 0 || ziua.getDay() === 6);
+        var esteAzi = ziua.getTime() === azi.getTime();
+        var esteInceputLuna = (ziua.getDate() === 1 || i === 0);
+        headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '">' +
+          (esteInceputLuna ? '<div class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</div>' : '') +
+          '<div>' + ziua.getDate() + '</div>' +
+        '</div>';
+      }
+
+      var todayOffset = offsetPx(azi);
+      var todayLine = (todayOffset >= 0 && todayOffset <= trackW) ? '<div class="rez-cal-today-line" style="left:' + todayOffset + 'px;"></div>' : '';
+
+      // ── Un rând per stand (toate, inclusiv fără rezervări acum) ──
+      var randuriStanduri = _adminStanduri.map(function (stand) {
+        var reznStand = relevante.filter(function (r) { return r.stand_id === stand.id; });
+        var bareHtml = reznStand.map(function (r) {
+          var left = Math.max(0, offsetPx(new Date(r.data_start)));
+          var right = Math.min(trackW, offsetPx(new Date(r.data_sfarsit)));
+          var width = Math.max(14, right - left);
+          var clasa = 'rez-cal-bar ' + r.status + (r.id === _calSelectedId ? ' selectat' : '');
+          return '<div class="' + clasa + '" data-rez-id="' + r.id + '" style="left:' + left + 'px;width:' + width + 'px;" title="' +
+            escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '"></div>';
+        }).join('');
+        return '<div class="rez-cal-row">' +
+          '<div class="rez-cal-label" title="' + escH(stand.nume || '') + '">' + escH(stand.nume || '') + '</div>' +
+          '<div class="rez-cal-track" style="width:' + trackW + 'px;">' + bareHtml + todayLine + '</div>' +
+        '</div>';
+      }).join('');
+
+      var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
+
+      var html = notaGoala +
+        '<div class="rez-legend"><span><i class="rez-dot" style="background:#22c55e;"></i>Confirmată</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
+        '<div class="rez-cal-scroll">' +
+          '<div class="rez-cal-header-row">' +
+            '<div class="rez-cal-label rez-cal-corner"></div>' +
+            '<div class="rez-cal-track rez-cal-daynums" style="width:' + trackW + 'px;">' + headerCells + '</div>' +
+          '</div>' +
+          randuriStanduri +
+        '</div>' +
+        '<div id="rez-cal-detail"></div>';
+
+      setModalBody(html);
+
+      Array.prototype.forEach.call(document.querySelectorAll('.rez-cal-bar'), function (bar) {
+        bar.onclick = function () {
+          var id = parseInt(bar.dataset.rezId, 10);
+          _calSelectedId = id;
+          Array.prototype.forEach.call(document.querySelectorAll('.rez-cal-bar'), function (b) {
+            b.classList.toggle('selectat', parseInt(b.dataset.rezId, 10) === id);
+          });
+          var gasita = null;
+          for (var j = 0; j < _calRezervari.length; j++) { if (_calRezervari[j].id === id) { gasita = _calRezervari[j]; break; } }
+          if (gasita) renderCalendarDetail(gasita);
+        };
       });
     } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
+  }
+
+  // Panoul de detaliu care apare sub grila Gantt când se apasă pe o bară —
+  // păstrează exact conținutul vechii cartele din listă (identitate, telefon,
+  // interval, status confirmare, butonul de neprezentare).
+  function renderCalendarDetail(r) {
+    var panel = document.getElementById('rez-cal-detail');
+    if (!panel) return;
+    var sEnd = new Date(r.data_sfarsit);
+    var arataNeprezentare = r.status === 'confirmata' && sEnd < new Date();
+    panel.innerHTML = '<div class="rez-list-item">' +
+      '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(r.status) + '</span></div>' +
+      '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
+      '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
+      (r.confirmat_24h_la ? '<div style="color:#22c55e;font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div style="color:#94a3b8;font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
+      (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
+    '</div>';
+    var b = document.getElementById('rez-neprezentare-' + r.id);
+    if (b) b.onclick = function () { marcheazaNeprezentare(r.id); };
   }
 
   async function marcheazaNeprezentare(id) {
