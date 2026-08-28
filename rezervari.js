@@ -57,6 +57,19 @@
       ' ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Variantă cu data și ora colorate diferit (rundă 17, cerere explicită a
+  // lui Marian) — ca cele două să se distingă instant dintr-o privire în
+  // modalul de detaliu al unei rezervări, fără să se confunde cu culorile
+  // deja folosite pentru status (albastru/verde/roșu, §38). Un singur loc
+  // de formatare, ca cele două stiluri să rămână sincronizate peste tot.
+  function fmtDataOraColorat(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    var dataStr = d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var oraStr = d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+    return '<span class="rez-data-part">' + dataStr + '</span> <span class="rez-ora-part">' + oraStr + '</span>';
+  }
+
   // Eticheta afișată pentru fiecare status de rezervare — separată de valoarea
   // brută din baza de date (`rezervari.status`), ca să putem alege un cuvânt
   // care nu se confundă cu alte concepte din UI. În particular, 'confirmata'
@@ -221,6 +234,9 @@
       .rez-text-ok{color:#15803d;}
       .rez-text-warn{color:#b45309;}
       .rez-text-muted2{color:var(--zc-text-secondary-2,#94a3b8);}
+      .rez-nume-pescar{font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
+      .rez-data-part{font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
+      .rez-ora-part{font-weight:800;color:#7c3aed;}
       .rez-modal{background:var(--zc-bg,#0a0f1a);border:1px solid var(--zc-border,#1e293b);border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
       .rez-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:0;background:var(--zc-bg,#0a0f1a);z-index:2;}
       .rez-modal-hdr h3{margin:0;font-size:16px;color:var(--zc-text-primary,#f1f5f9);font-weight:800;}
@@ -310,6 +326,7 @@
       html:not([data-theme="light"]) .rez-toast.err{color:#fca5a5;}
       html:not([data-theme="light"]) .rez-text-ok{color:#22c55e;}
       html:not([data-theme="light"]) .rez-text-warn{color:#f59e0b;}
+      html:not([data-theme="light"]) .rez-ora-part{color:#a78bfa;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -761,7 +778,10 @@
     var telefon = r.telefon_client
       ? ' <a class="rez-tel-btn" href="tel:' + escH(r.telefon_client) + '"><span>📞</span>' + escH(r.telefon_client) + '</a>'
       : '';
-    return escH(nume) + telefon + strikeHtml;
+    // Numele — mai vizibil (bold + culoare de text puternică) decât restul
+    // rândului, cerere explicită a lui Marian (rundă 17): identitatea
+    // pescarului trebuie să iasă în evidență dintr-o privire, în ambele teme.
+    return '<span class="rez-nume-pescar">' + escH(nume) + '</span>' + telefon + strikeHtml;
   }
 
   async function renderTabCereri() {
@@ -959,10 +979,10 @@
     var bodyHtml = '<div class="rez-list-item" style="margin-bottom:0;">' +
       '<div><span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
-      '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
+      '<div style="margin:4px 0;">' + fmtDataOraColorat(r.data_start) + ' → ' + fmtDataOraColorat(r.data_sfarsit) + '</div>' +
       (r.confirmat_24h_la ? '<div class="rez-text-ok" style="font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2" style="font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
       (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
-      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
+      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;padding:7px 16px;" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
       '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
