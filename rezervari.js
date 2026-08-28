@@ -130,6 +130,7 @@
       .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#ef4444;}
       .rez-strike{color:#f59e0b;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid #1e293b;position:sticky;top:57px;background:#0a0f1a;z-index:1;}
+      .rez-tabs-page{display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1e293b;margin-bottom:16px;}
       .rez-tab{background:none;border:none;color:#94a3b8;font-weight:700;font-size:13px;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;}
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
@@ -497,21 +498,31 @@
     } catch (e) { toast(e.message || 'Eroare.', true); }
   }
 
-  // ── 4. Panoul balta_admin (cont.html) ───────────────────────────────────────
+  // ── 4. Panoul balta_admin ────────────────────────────────────────────────
+  // De la rundă 7 (2026-08-28), panoul nu mai e un modal deschis din cont.html
+  // — e randat direct într-un container dintr-o pagină dedicată,
+  // `rezervari-admin.html` (motivul: mai mult spațiu pe ecran, esențial mai
+  // ales pentru cronologia Gantt din tab-ul Calendar, care avea nevoie de
+  // scroll orizontal excesiv într-un modal de 520px). Restul funcțiilor de
+  // mai jos (renderTabCereri/renderTabCalendar/renderTabManual etc.) rămân
+  // neschimbate — știau deja să scrie doar în `#rez-modal-body`/`.rez-tab`,
+  // indiferent dacă părintele e un modal sau un container simplu de pagină.
   var _adminBaltaId = null;
   var _adminBaltaNume = null;
   var _adminTabCurent = 'cereri';
   var _adminStanduri = [];
   var _adminMultiplu = false;
 
-  async function deschideModalAdmin(baltaId, baltaNume) {
+  async function randeazaPanouAdmin(baltaId, baltaNume, containerEl) {
+    injectStylesOnce();
     _adminBaltaId = baltaId; _adminBaltaNume = baltaNume; _adminTabCurent = 'cereri'; _adminMultiplu = false;
-    var tabsHtml = '<div class="rez-tabs">' +
+
+    containerEl.innerHTML = '<div class="rez-tabs-page">' +
       '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri</button>' +
       '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
-      '</div>';
-    deschideModalGeneric('📅 Rezervări — ' + baltaNume, '<div class="rez-empty">Se încarcă...</div>', tabsHtml);
+      '</div>' +
+      '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div>';
 
     var { data: standuri } = await sb.from('standuri').select('id, nume').eq('balta_id', baltaId).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
     _adminStanduri = standuri || [];
@@ -805,7 +816,7 @@
     renderButonBalta: renderButonBalta,
     renderButonStand: renderButonStand,
     deschideModalRezervarileMele: deschideModalRezervarileMele,
-    deschideModalAdmin: deschideModalAdmin,
+    randeazaPanouAdmin: randeazaPanouAdmin,
     _closeModal: closeModal,
     _schimbaTabAdmin: schimbaTabAdmin
   };
