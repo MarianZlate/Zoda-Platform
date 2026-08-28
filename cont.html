@@ -1679,6 +1679,17 @@ async function boot() {
     }
   }
 
+  // Deep-link dintr-o notificare de cerere nouă de rezervare (vezi notifUrl())
+  // — deschide direct modalul de gestionare a rezervărilor bălții respective,
+  // pe tab-ul "Cereri" (implicit în deschideModalAdmin), nu doar pagina bălții.
+  const rezAdminBaltaId = new URLSearchParams(location.search).get('rez_admin');
+  if (rezAdminBaltaId) {
+    const balta = _baltiAdminData.find(b => String(b.id) === String(rezAdminBaltaId));
+    if (balta && window.RezervariUI) {
+      RezervariUI.deschideModalAdmin(balta.id, balta.nume);
+    }
+  }
+
   // Deep-link din banda de "activitate nouă în urmăriri" de pe index.html
   if (new URLSearchParams(location.search).get('scroll') === 'evenimente') {
     toggleEvenimenteUrmaririPanel();
@@ -1696,6 +1707,10 @@ let _notifPage = 1;
 function notifUrl(n) {
   const meta = n.meta || {};
   if (n.tip === 'captura_respinsa' && meta.captura_id) return `cont.html?captura_respinsa=${meta.captura_id}`;
+  // Notificarea de cerere nouă de rezervare merge la balta_admin — trebuie să-l
+  // ducă direct în modalul de gestionare a rezervărilor (tab-ul "Cereri", cel
+  // implicit), nu pe pagina publică a bălții. Vezi handler-ul `rez_admin` din boot().
+  if (n.tip === 'rezervare_noua' && meta.balta_id) return `cont.html?rez_admin=${meta.balta_id}`;
   if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) return `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
   // Notificări de comentarii/reacții — duc direct la comentariul exact (sau
   // la tab-ul potrivit din overlay, dacă notificarea nu ține de un comentariu
@@ -2164,6 +2179,7 @@ async function loadBaltiAdmin() {
   }
 
   _baltiAdminIds = balti.map(b => b.id);
+  _baltiAdminData = balti;
 
   // Panoul "📅 Rezervări" rămâne vizibil cât timp rezervare_mod = 'zoda', SAU
   // — chiar dacă zoda_admin a comutat pe "fără rezervare"/"site extern" —
@@ -2469,6 +2485,7 @@ async function trimiteSprebAprobare(baltaId, btn) {
 
 // ── CAPTURI RESPINSE (balta_admin) ─────────────────────────────────────────────
 let _baltiAdminIds = [];
+let _baltiAdminData = []; // { id, nume, ... } — folosit de deep-link-ul rez_admin din boot()
 
 function toggleCapturiRespinsePanel() {
   const body = document.getElementById('cr-body');
