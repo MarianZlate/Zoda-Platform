@@ -557,6 +557,14 @@ th,td{padding:8px 6px;}
         <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">🏆 Top 10 bălți după vizite (în interval)</div>
         <div id="stats-top-balti">Se încarcă...</div>
       </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">📅 Top bălți după rezervări (în interval)</div>
+        <div id="stats-top-balti-rezervari">Se încarcă...</div>
+      </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">🚫 Suspendări rezervări (cazier — vizibil doar aici)</div>
+        <div id="stats-suspendari">Se încarcă...</div>
+      </div>
     </div>
   </div>
 
@@ -2093,6 +2101,7 @@ async function loadStatistici() {
     { count: totalPublic },
     { count: totalBasic },
     { count: totalUnlisted },
+    { data: statsRezervari },
   ] = await Promise.all([
     sb.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
     sb.from('capturi').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
@@ -2103,7 +2112,12 @@ async function loadStatistici() {
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','public'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','basic'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','unlisted'),
+    // Rezervările au RLS fără policy pt. client — acces doar prin RPC-uri
+    // admin-only (verifică zoda_admin în interior). Vezi rezervari.js pentru
+    // fluxul pescar/balta_admin; astea sunt doar agregate, la nivel de platformă.
+    sb.rpc('admin_statistici_rezervari', { p_de_la: deLa, p_pana_la: panaLaExclusiv }),
   ]);
+  const rezStats = (statsRezervari && statsRezervari[0]) || { total_cereri:0, confirmate:0, respinse:0, anulate:0, neprezentari:0 };
 
   const cereriUnice = new Set((cereriData||[]).map(c => c.meta?.balta_id)).size;
   const totalVizite = (vizite||[]).length;
@@ -2120,6 +2134,10 @@ async function loadStatistici() {
     { label: '✅ Bălți publice (acum)', val: totalPublic||0 },
     { label: '🔍 Bălți basic (acum)', val: totalBasic||0 },
     { label: '🔒 Bălți unlisted (acum)', val: totalUnlisted||0 },
+    { label: '📅 Cereri rezervare', val: rezStats.total_cereri||0 },
+    { label: '✅ Rezervări confirmate', val: rezStats.confirmate||0 },
+    { label: '✕ Rezervări respinse', val: rezStats.respinse||0 },
+    { label: '🚫 Neprezentări', val: rezStats.neprezentari||0 },
   ];
   grid.innerHTML = cards.map(c => `
     <div class="balta-admin-card" style="text-align:center;padding:16px 10px;">
@@ -2133,8 +2151,7 @@ async function loadStatistici() {
   const topIds = Object.entries(countByBalta).sort((a,b) => b[1]-a[1]).slice(0,10);
   if (!topIds.length) {
     topEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Nicio vizită înregistrată în acest interval.</div>';
-    return;
-  }
+  } else {
   const { data: baltiNume } = await sb.from('balti').select('id,nume,judet').in('id', topIds.map(t => +t[0]));
   const numeMap = {};
   (baltiNume||[]).forEach(b => { numeMap[b.id] = b; });
@@ -2146,6 +2163,43 @@ async function loadStatistici() {
         <button onclick="genereazaRaportBalta(${id})" title="Descarcă raport PDF" style="background:transparent;border:1px solid #1e293b;color:#94a3b8;font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;">📄</button>
       </div>
     </div>`).join('');
+  }
+
+  // Top bălți după rezervări în interval — RPC admin-only (rezervari are RLS
+  // fără policy pt. client, vezi migrarea de rezervări).
+  const topRezEl = document.getElementById('stats-top-balti-rezervari');
+  const { data: topRez } = await sb.rpc('admin_top_balti_rezervari', { p_de_la: deLa, p_pana_la: panaLaExclusiv, p_limita: 10 });
+  if (!topRez || !topRez.length) {
+    topRezEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Nicio rezervare creată în acest interval.</div>';
+  } else {
+    const { data: baltiNumeRez } = await sb.from('balti').select('id,nume,judet').in('id', topRez.map(t => t.balta_id));
+    const numeMapRez = {};
+    (baltiNumeRez||[]).forEach(b => { numeMapRez[b.id] = b; });
+    topRezEl.innerHTML = topRez.map((t, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMapRez[t.balta_id]?.nume || 'Baltă #'+t.balta_id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMapRez[t.balta_id]?.judet||'')}</span></div>
+        <div style="font-weight:800;color:#38bdf8;font-size:15px;">${t.nr_rezervari}</div>
+      </div>`).join('');
+  }
+
+  // Cazier suspendări — vizibil doar aici (admin.html = zoda_admin only,
+  // verificat deja în bootAdmin()). Niciodată în cont.html / balta_admin.
+  const suspEl = document.getElementById('stats-suspendari');
+  const { data: suspendari, error: suspErr } = await sb.rpc('admin_listeaza_suspendari');
+  if (suspErr) {
+    suspEl.innerHTML = `<div style="color:#f87171;font-size:13px;">⚠️ ${escH(suspErr.message)}</div>`;
+  } else if (!suspendari || !suspendari.length) {
+    suspEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Niciun pescar suspendat până acum.</div>';
+  } else {
+    suspEl.innerHTML = suspendari.map((s, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${escH(s.username||'—')} <span style="color:#4b5563;font-size:12.9px;">· ${escH(s.zoda_id||'')}</span></div>
+        <div style="text-align:right;">
+          <div style="font-size:12.9px;color:#94a3b8;">${new Date(s.data_start).toLocaleDateString('ro-RO')} → ${new Date(s.data_sfarsit).toLocaleDateString('ro-RO')}</div>
+          <div style="font-size:11px;font-weight:700;color:${s.activa?'#f87171':'#4b5563'};">${s.activa ? '● activă' : '○ expirată'}</div>
+        </div>
+      </div>`).join('');
+  }
 }
 
 async function loadAprobari() {
@@ -4170,6 +4224,19 @@ function buildEditBody(b, ext) {
     </div>
     <div class="fg"><label>💰 TARIFE</label><textarea id="e-tarife" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.tarife||'')}</textarea></div>
     <div class="fg"><label>📋 REGULAMENT</label><textarea id="e-regulament" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.regulament||'')}</textarea></div>
+    <div class="fg">
+      <label>📅 REZERVĂRI ONLINE</label>
+      <select id="e-rezervare-mod" onchange="document.getElementById('e-rezervare-url-wrap').style.display = this.value==='extern' ? 'block' : 'none';" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+        <option value="fara_rezervare" ${(b.rezervare_mod||'fara_rezervare')==='fara_rezervare'?'selected':''}>Fără rezervare online</option>
+        <option value="zoda" ${b.rezervare_mod==='zoda'?'selected':''}>Prin Zoda (sistemul intern)</option>
+        <option value="extern" ${b.rezervare_mod==='extern'?'selected':''}>Site extern (link către site-ul propriu al bălții)</option>
+      </select>
+      <div style="font-size:11px;color:#4b5563;margin-top:4px;">Doar zoda_admin decide asta — balta_admin nu poate schimba singur modul, trebuie să vă contacteze.</div>
+    </div>
+    <div class="fg" id="e-rezervare-url-wrap" style="display:${b.rezervare_mod==='extern'?'block':'none'};">
+      <label>LINK SITE EXTERN DE REZERVĂRI</label>
+      <input type="url" id="e-rezervare-url-extern" value="${escHtml(b.rezervare_url_extern||'')}" placeholder="https://..."/>
+    </div>
     <div class="fg"><label>ADMINISTRATOR BALTĂ (ZODA-ID)</label><input type="text" id="e-admin-zoda-id" value="${escHtml(b.admin_zoda_id||'')}" placeholder="ex: ZODA-1042" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Setând acest câmp, utilizatorul cu ZODA-ID-ul respectiv primește rolul de administrator al acestei bălți și poate trimite cereri de capturi.</div></div>
     <div class="fg"><label>🎥 AMBASADOR (ZODA-ID)</label><input type="text" id="e-ambasador-zoda-id" value="${escHtml(b.ambasador_zoda_id||'')}" placeholder="ex: ZODA-1077" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Persoana care documentează fizic balta (foto, video, detalii standuri). Apare creditată public pe pagina băltii. Nu are drepturi de administrare — orice modificare trimisă de el așteaptă aprobarea ta în tab-ul „Ambasadori".</div></div>
     <div class="fg">
@@ -4917,6 +4984,8 @@ async function saveEditBalta() {
     whatsapp:       document.getElementById('e-wa')?.value.trim()             || '',
     tarife:         document.getElementById('e-tarife')?.value.trim()         || '',
     regulament:     document.getElementById('e-regulament')?.value.trim()     || '',
+    rezervare_mod:  document.getElementById('e-rezervare-mod')?.value          || 'fara_rezervare',
+    rezervare_url_extern: document.getElementById('e-rezervare-url-extern')?.value.trim() || null,
     drum_yt:        document.getElementById('e-drum-yt')?.value.trim()        || '',
     admin_zoda_id:  document.getElementById('e-admin-zoda-id')?.value.trim() || null,
     ambasador_zoda_id: document.getElementById('e-ambasador-zoda-id')?.value.trim() || null,
