@@ -76,6 +76,27 @@
     return harta[status] || status;
   }
 
+  // Nivelul de „încredere" al unei rezervări `confirmata` (aprobate) — 3
+  // culori distincte, cerute explicit de Marian (rundă 16): ALBASTRU
+  // (implicit) = aprobată de balta_admin, dar pescarul nu și-a confirmat
+  // încă prezența; VERDE = fie adăugată direct de balta_admin (`sursa
+  // === 'manual_admin'` — n-are cum să mai fie "neconfirmată", admin-ul a
+  // introdus-o direct, nu există pescar cu cont care s-o confirme), fie
+  // aprobată ȘI confirmată de pescar (`confirmat_24h_la` setat). ROȘU
+  // (`neprezentat`) e deja tratat separat, nu trece prin funcția asta.
+  // Un singur loc de decizie, folosit atât la badge-uri cât și la barele
+  // din Gantt, ca să nu diveargă între ele.
+  function esteRezervareVerde(r) {
+    return r.sursa === 'manual_admin' || !!r.confirmat_24h_la;
+  }
+
+  // Clasele CSS de adăugat unui badge/unei bare pentru o rezervare
+  // `confirmata` — clasa de bază (`confirmata`) rămâne albastră (stilul
+  // implicit din foaia de stil injectată), iar `.verde` o suprascrie.
+  function claseNivelIncredere(r) {
+    return esteRezervareVerde(r) ? ' verde' : '';
+  }
+
   function toDateInputValue(d) {
     var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
@@ -238,6 +259,7 @@
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
       .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
       .rez-badge-confirmata{background:rgba(56,189,248,.15);color:#0369a1;}
+      .rez-badge-confirmata.verde{background:rgba(34,197,94,.15);color:#15803d;}
       .rez-badge-anulata,.rez-badge-respinsa,.rez-badge-expirata{background:rgba(148,163,184,.18);color:var(--zc-text-secondary,#94a3b8);}
       .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#dc2626;}
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
@@ -262,6 +284,7 @@
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 1px;}
       .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
+      .rez-cal-bar.confirmata.verde{background:rgba(34,197,94,.4);border-color:#16a34a;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
       .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
       .rez-cal-bar-dur{font-size:10.1px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
@@ -276,6 +299,7 @@
       html:not([data-theme="light"]) .rez-stand-cell.selectat{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-badge-in_asteptare{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-badge-confirmata{color:#38bdf8;}
+      html:not([data-theme="light"]) .rez-badge-confirmata.verde{color:#22c55e;}
       html:not([data-theme="light"]) .rez-badge-neprezentat{color:#ef4444;}
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
@@ -637,7 +661,7 @@
     var arataConfirma = r.status === 'confirmata' && !r.confirmat_24h_la && (start - acum) <= 24 * 3600 * 1000 && start > acum;
     var arataAnuleaza = (r.status === 'in_asteptare' || r.status === 'confirmata') && (start - acum) >= 24 * 3600 * 1000;
     return '<div class="rez-list-item">' +
-      '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(statusLabel(r.status)) + '</span></div>' +
+      '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.motiv_anulare ? '<div class="rez-text-warn">Motiv: ' + escH(r.motiv_anulare) + '</div>' : '') +
       (r.confirmat_24h_la ? '<div class="rez-text-ok">✓ Prezență confirmată</div>' : '') +
@@ -802,7 +826,12 @@
     try {
       var toate = await fetchRezervariBalta();
       var acum = new Date();
-      var pragVechi = new Date(acum.getTime() - 24 * 3600 * 1000);
+      // Prag de istorie — extins de la 24h la O SĂPTĂMÂNĂ (2026-08-28, rundă
+      // 16, la cererea lui Marian): rezervările deja încheiate — inclusiv
+      // cele marcate "neprezentat" — rămân vizibile în Gantt încă 7 zile
+      // după ce s-au terminat, ca balta_admin să poată vedea istoricul
+      // recent dintr-o privire, nu doar rezervările curente/viitoare.
+      var pragVechi = new Date(acum.getTime() - 7 * 24 * 3600 * 1000);
       var relevante = toate.filter(function (r) {
         return (r.status === 'confirmata' || r.status === 'neprezentat') && new Date(r.data_sfarsit) >= pragVechi;
       });
@@ -811,11 +840,13 @@
 
       if (!_adminStanduri.length) { setModalBody('<div class="rez-empty">Această baltă nu are încă standuri definite.</div>'); return; }
 
-      // ── Intervalul afișat: azi → azi+14 zile, extins dacă e nevoie ca să
-      // cuprindă toate rezervările curente/viitoare, plafonat la 60 de zile
-      // ca lățimea grilei să nu explodeze pe cazuri extreme.
+      // ── Intervalul afișat: (azi - 7 zile) → azi+14 zile — o săptămână de
+      // istoric mereu vizibilă implicit (rundă 16), extins în plus dacă e
+      // nevoie ca să cuprindă rezervări chiar mai vechi/mai îndepărtate,
+      // plafonat la 60 de zile ca lățimea grilei să nu explodeze pe cazuri
+      // extreme.
       var azi = startOfDay(acum);
-      var rangeStart = azi;
+      var rangeStart = new Date(azi.getTime() - 7 * 86400000);
       var rangeEnd = new Date(azi.getTime() + 14 * 86400000);
       relevante.forEach(function (r) {
         var s = startOfDay(new Date(r.data_start));
@@ -855,7 +886,7 @@
           var left = Math.max(0, offsetPx(dataStart));
           var right = Math.min(trackW, offsetPx(dataSfarsit));
           var width = Math.max(14, right - left);
-          var clasa = 'rez-cal-bar ' + r.status + (r.id === _calSelectedId ? ' selectat' : '');
+          var clasa = 'rez-cal-bar ' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + (r.id === _calSelectedId ? ' selectat' : '');
           // Durata reală (data_sfarsit - data_start), nu tip_sesiune — la
           // 'personalizat' intervalul poate fi orice, nu doar 12h/24h.
           var oreDurata = Math.round((dataSfarsit - dataStart) / 3600000);
@@ -881,7 +912,7 @@
       var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
 
       var html = notaGoala +
-        '<div class="rez-legend"><span><i class="rez-dot" style="background:#38bdf8;"></i>Confirmată (aprobată)</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
+        '<div class="rez-legend"><span><i class="rez-dot" style="background:#38bdf8;"></i>Aprobată</span><span><i class="rez-dot" style="background:#22c55e;"></i>Confirmată</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
         '<div class="rez-cal-scroll">' +
           '<div class="rez-cal-header-row">' +
             '<div class="rez-cal-label rez-cal-corner"></div>' +
@@ -926,7 +957,7 @@
     var arataNeprezentare = r.status === 'confirmata' && sEnd < acum;
     var arataAnuleaza = r.status === 'confirmata' && sEnd >= acum;
     var bodyHtml = '<div class="rez-list-item" style="margin-bottom:0;">' +
-      '<div><span class="rez-badge rez-badge-' + r.status + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
+      '<div><span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.confirmat_24h_la ? '<div class="rez-text-ok" style="font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2" style="font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
