@@ -59,6 +59,25 @@
       ' ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Eticheta afișată pentru fiecare status de rezervare — separată de valoarea
+  // brută din baza de date (`rezervari.status`), ca să putem alege un cuvânt
+  // care nu se confundă cu alte concepte din UI. În particular, 'confirmata'
+  // (adică balta_admin a APROBAT cererea) afișa literal "confirmata", ușor de
+  // confundat cu "✓ Confirmat de pescar" (`confirmat_24h_la` — pescarul își
+  // confirmă prezența cu 24h înainte, un concept total diferit) — de-aici
+  // "aprobată" în loc de "confirmata".
+  function statusLabel(status) {
+    var harta = {
+      confirmata: 'aprobată',
+      in_asteptare: 'în așteptare',
+      anulata: 'anulată',
+      respinsa: 'respinsă',
+      expirata: 'expirată',
+      neprezentat: 'neprezentat'
+    };
+    return harta[status] || status;
+  }
+
   function toDateInputValue(d) {
     var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
@@ -477,7 +496,7 @@
     var arataConfirma = r.status === 'confirmata' && !r.confirmat_24h_la && (start - acum) <= 24 * 3600 * 1000 && start > acum;
     var arataAnuleaza = (r.status === 'in_asteptare' || r.status === 'confirmata') && (start - acum) >= 24 * 3600 * 1000;
     return '<div class="rez-list-item">' +
-      '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(r.status) + '</span></div>' +
+      '<div style="font-weight:700;color:#f1f5f9;">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + '">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.motiv_anulare ? '<div style="color:#f59e0b;">Motiv: ' + escH(r.motiv_anulare) + '</div>' : '') +
       (r.confirmat_24h_la ? '<div style="color:#22c55e;">✓ Prezență confirmată</div>' : '') +
@@ -739,14 +758,22 @@
   // persistent al tab-urilor din rezervari-admin.html, care rămâne pe ecran
   // în spatele acestui modal.
   function renderCalendarDetail(r) {
+    var acum = new Date();
     var sEnd = new Date(r.data_sfarsit);
-    var arataNeprezentare = r.status === 'confirmata' && sEnd < new Date();
+    // Cele două acțiuni sunt mereu exclusive: o rezervare confirmată deja
+    // trecută (neonorată încă) primește "Nu s-a prezentat"; una confirmată,
+    // încă în curs sau viitoare, poate fi anulată de balta_admin (RPC-ul
+    // `anuleaza_rezervare_admin` acceptă oricum doar in_asteptare/confirmata
+    // — n-are sens să "anulezi" ceva deja trecut, acolo intervine strike-ul).
+    var arataNeprezentare = r.status === 'confirmata' && sEnd < acum;
+    var arataAnuleaza = r.status === 'confirmata' && sEnd >= acum;
     var bodyHtml = '<div class="rez-list-item" style="margin-bottom:0;">' +
-      '<div><span class="rez-badge rez-badge-' + r.status + '" style="margin-left:0;">' + escH(r.status) + '</span></div>' +
+      '<div><span class="rez-badge rez-badge-' + r.status + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.confirmat_24h_la ? '<div style="color:#22c55e;font-size:12px;">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div style="color:#94a3b8;font-size:12px;">⏳ Neconfirmat încă</div>' : '')) +
       (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
+      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
 
@@ -757,6 +784,20 @@
         var res = await sb.rpc('marcheaza_neprezentare', { p_rezervare_id: r.id });
         if (res.error) throw res.error;
         toast('Strike acordat.');
+        closeModal();
+        renderTabCalendar();
+      } catch (e) { toast(e.message || 'Eroare.', true); }
+    };
+
+    var a = document.getElementById('rez-cal-anuleaza-' + r.id);
+    if (a) a.onclick = async function () {
+      var motiv = prompt('Motiv anulare (obligatoriu — pescarul va fi notificat):');
+      if (motiv === null) return; // a apăsat Cancel la prompt
+      if (!motiv.trim()) { toast('Motivul anulării e obligatoriu.', true); return; }
+      try {
+        var res = await sb.rpc('anuleaza_rezervare_admin', { p_rezervare_id: r.id, p_motiv: motiv.trim() });
+        if (res.error) throw res.error;
+        toast('Rezervare anulată.');
         closeModal();
         renderTabCalendar();
       } catch (e) { toast(e.message || 'Eroare.', true); }
