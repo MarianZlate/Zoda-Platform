@@ -116,7 +116,6 @@
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
-      #ib-rez-btn{display:flex;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;}
       .rez-stand-pick{display:block;width:100%;text-align:left;background:#111827;border:1px solid #1e293b;border-radius:9px;padding:11px 14px;margin-bottom:8px;color:#f1f5f9;font-size:14.5px;font-weight:600;cursor:pointer;}
       .rez-stand-pick:hover{border-color:#38bdf8;}
     `;
@@ -153,23 +152,33 @@
   }
 
   // ── 0. Butonul de pe pagina bălții (nivel baltă, nu doar în overlay-ul
-  // standului) — apelat din renderPage() în balta.html cu (BALTA, containerEl).
-  function renderButonBalta(balta, containerEl) {
-    if (!containerEl) return;
+  // standului) — apelat din renderPage() în balta.html cu (BALTA). Folosește
+  // două elemente STATICE din balta.html (btn-rezervari / btn-rezervari-extern),
+  // câte unul pentru fiecare mod posibil — nu injectăm markup dinamic aici,
+  // ca butonul să rămână copil direct al grid-ului #ib-actions-grid și să
+  // primească automat exact același stil ca Tarife/Regulament (regulile CSS
+  // de-acolo sunt pe selector de copil direct, `> a, > button`).
+  function renderButonBalta(balta) {
+    var btnZoda = document.getElementById('btn-rezervari');
+    var btnExtern = document.getElementById('btn-rezervari-extern');
+    if (!btnZoda || !btnExtern) return;
+
     var mod = balta && balta.rezervare_mod;
-    if (!mod || mod === 'fara_rezervare') { containerEl.innerHTML = ''; return; }
+    btnZoda.style.display = 'none';
+    btnExtern.style.display = 'none';
+
+    if (!mod || mod === 'fara_rezervare') return;
 
     if (mod === 'extern') {
-      if (!balta.rezervare_url_extern) { containerEl.innerHTML = ''; return; }
-      containerEl.innerHTML = '<a id="ib-rez-btn" href="' + escH(balta.rezervare_url_extern) +
-        '" target="_blank" rel="noopener"><span class="ib-ic">📅</span><span>↗ Rezervări</span></a>';
+      if (!balta.rezervare_url_extern) return;
+      btnExtern.href = balta.rezervare_url_extern;
+      btnExtern.style.display = 'flex';
       return;
     }
 
     // mod === 'zoda'
-    containerEl.innerHTML = '<button id="ib-rez-btn"><span class="ib-ic">📅</span><span>Rezervări</span></button>';
-    var btn = containerEl.querySelector('#ib-rez-btn');
-    btn.onclick = function () { deschideModalAlegeStand(balta); };
+    btnZoda.style.display = 'flex';
+    btnZoda.onclick = function () { deschideModalAlegeStand(balta); };
   }
 
   // Pornind de la butonul general de pe pagina bălții (nu de pe un stand
