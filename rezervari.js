@@ -141,6 +141,15 @@
     document.head.appendChild(style);
   }
 
+  // Blochează scroll-ul paginii din spate cât timp modalul e deschis — pe
+  // mobil, fără asta, gestul de scroll pe conținutul modalului "scapă" des pe
+  // pagina de dedesubt. Salvăm valoarea anterioară a lui body.style.overflow
+  // (nu o resetăm orbește la '') ca să nu deblocăm din greșeală pagina dacă
+  // modalul de rezervare a fost deschis peste overlay-ul unui stand, care
+  // își pune singur propriul lock — la închidere, restaurăm exact ce era
+  // înainte, nu neapărat scroll liber.
+  var _rezScrollLockPrev = null;
+
   function deschideModalGeneric(titlu, bodyHtml, tabsHtml) {
     injectStylesOnce();
     var backdrop = document.createElement('div');
@@ -154,12 +163,20 @@
       '</div>';
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    if (_rezScrollLockPrev === null) {
+      _rezScrollLockPrev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
     return backdrop;
   }
 
   function closeModal() {
     var el = document.getElementById('rez-modal-backdrop');
     if (el) el.remove();
+    if (_rezScrollLockPrev !== null) {
+      document.body.style.overflow = _rezScrollLockPrev;
+      _rezScrollLockPrev = null;
+    }
   }
 
   function setModalBody(html) {
