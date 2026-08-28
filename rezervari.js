@@ -148,10 +148,11 @@
       .rez-cal-daycell.azi{color:#38bdf8;font-weight:800;}
       .rez-cal-luna{font-size:9px;color:#475569;text-transform:uppercase;font-weight:700;}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
-      .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;}
+      .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 3px;}
       .rez-cal-bar.confirmata{background:rgba(34,197,94,.35);border:1.5px solid #22c55e;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.35);border:1.5px solid #ef4444;}
       .rez-cal-bar.selectat{outline:2px solid #38bdf8;outline-offset:1px;}
+      .rez-cal-bar-dur{font-size:10px;font-weight:800;color:#f1f5f9;white-space:nowrap;pointer-events:none;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -676,12 +677,19 @@
       var randuriStanduri = _adminStanduri.map(function (stand) {
         var reznStand = relevante.filter(function (r) { return r.stand_id === stand.id; });
         var bareHtml = reznStand.map(function (r) {
-          var left = Math.max(0, offsetPx(new Date(r.data_start)));
-          var right = Math.min(trackW, offsetPx(new Date(r.data_sfarsit)));
+          var dataStart = new Date(r.data_start), dataSfarsit = new Date(r.data_sfarsit);
+          var left = Math.max(0, offsetPx(dataStart));
+          var right = Math.min(trackW, offsetPx(dataSfarsit));
           var width = Math.max(14, right - left);
           var clasa = 'rez-cal-bar ' + r.status + (r.id === _calSelectedId ? ' selectat' : '');
+          // Durata reală (data_sfarsit - data_start), nu tip_sesiune — la
+          // 'personalizat' intervalul poate fi orice, nu doar 12h/24h.
+          var oreDurata = Math.round((dataSfarsit - dataStart) / 3600000);
+          // Sub ~26px bara e prea îngustă ca textul să încapă lizibil —
+          // rămâne doar culoarea + tooltip-ul (title) cu intervalul complet.
+          var durataHtml = width >= 26 ? '<span class="rez-cal-bar-dur">' + oreDurata + 'h</span>' : '';
           return '<div class="' + clasa + '" data-rez-id="' + r.id + '" style="left:' + left + 'px;width:' + width + 'px;" title="' +
-            escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '"></div>';
+            escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '">' + durataHtml + '</div>';
         }).join('');
         return '<div class="rez-cal-row">' +
           '<div class="rez-cal-label" title="' + escH(stand.nume || '') + '">' + escH(stand.nume || '') + '</div>' +
