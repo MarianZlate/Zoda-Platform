@@ -595,8 +595,25 @@
   }
 
   // ── 3. "Rezervările mele" (pescar, cont.html) ───────────────────────────────
+  // `deschideModalRezervarileMele()` deschide modalul (creează backdrop-ul,
+  // o singură dată) — restul e delegat lui `incarcaRezervarileMele()`, care
+  // doar reumple `#rez-modal-body`-ul deja existent. Separarea asta e
+  // intenționată: `confirmaPrezenta`/`anuleazaMea` de mai jos trebuiau doar
+  // să RE-ÎNCARCE lista în modalul deja deschis, dar apelau înainte
+  // `deschideModalRezervarileMele()` direct — care crea un al DOILEA
+  // `#rez-modal-backdrop` (id duplicat!) peste primul, încă deschis.
+  // `setModalBody()`/`closeModal()` folosesc `getElementById`, care
+  // întoarce mereu PRIMUL element cu acel id din DOM — deci actualizau
+  // (sau închideau) modalul vechi, invizibil, dedesubt, în timp ce cel nou,
+  // vizibil deasupra, rămânea blocat pe „Se încarcă..." la nesfârșit —
+  // exact bug-ul semnalat de Marian (2026-08-28, rundă 15).
   async function deschideModalRezervarileMele() {
     deschideModalGeneric('Rezervările mele', '<div class="rez-empty">Se încarcă...</div>');
+    await incarcaRezervarileMele();
+  }
+
+  async function incarcaRezervarileMele() {
+    setModalBody('<div class="rez-empty">Se încarcă...</div>');
     try {
       var res = await sb.rpc('listeaza_rezervari_mele');
       if (res.error) throw res.error;
@@ -634,7 +651,7 @@
       var res = await sb.rpc('confirma_prezenta_24h', { p_rezervare_id: id });
       if (res.error) throw res.error;
       toast('✓ Prezență confirmată!');
-      deschideModalRezervarileMele();
+      incarcaRezervarileMele();
     } catch (e) { toast(e.message || 'Eroare.', true); }
   }
 
@@ -644,7 +661,7 @@
       var res = await sb.rpc('anuleaza_rezervare_pescar', { p_rezervare_id: id });
       if (res.error) throw res.error;
       toast('Rezervare anulată.');
-      deschideModalRezervarileMele();
+      incarcaRezervarileMele();
     } catch (e) { toast(e.message || 'Eroare.', true); }
   }
 
