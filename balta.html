@@ -530,6 +530,21 @@ html[data-theme="light"] .logo-img-light{display:block;}
   #btn-share-balta-mobile{display:none;}
   /* pe desktop, tot ce ține de contact/acțiuni revine la un rând simplu */
   .balta-hero-glow{height:64px;margin-bottom:-12px;}
+  /* Numele bălții + badge-ul de tagline (premium) — pe rândul lui propriu,
+     deasupra butoanelor (cerere Marian). Înainte, acest bloc (nume+tagline+
+     locație) era `flex:1;min-width:0` în același rând `flex-wrap` cu
+     rândul de acțiuni (telefon/FB/WA + Tarife/Regulament/Rezervări/etc.) —
+     pe lățimi de ecran nu foarte mari, rândul de acțiuni (multe butoane,
+     lățime "auto") lua tot spațiul, iar blocul cu numele, având voie să se
+     micșoreze oricât (`min-width:0`), ajungea strivit într-o coloană
+     îngustă — numele bălții se rupea literă cu literă pe mai multe rânduri.
+     `flex:1 0 100%` îl forțează să ocupe tot rândul disponibil în
+     containerul `flex-wrap` al `.info-bar`, împingând automat restul
+     (telefon/FB/WA + butoanele) pe rândul următor. `!important` e necesar
+     — elementul are `flex:1;min-width:0` ca stil INLINE (păstrat pentru
+     mobil, unde comportamentul rămâne cel vechi), iar un stil inline bate
+     mereu o regulă din foaia de stil externă care nu e `!important`. */
+  .ib-title-row{flex:1 0 100% !important;min-width:100% !important;}
   .ib-contact-row{width:auto;margin-top:0;}
   .ib-contact-row #btn-fb,.ib-contact-row #btn-wa{width:auto;height:auto;padding:7px 12px!important;}
   #ib-actions-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:0;width:auto;}
@@ -757,7 +772,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
     <button id="btn-inima-balta" onclick="toggleInimaBalta()" title="Apreciază balta" style="position:absolute;top:12px;right:14px;z-index:2;display:flex;align-items:center;gap:5px;background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-strong);font-size:12px;font-weight:700;padding:6px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;">
       <span id="inima-icon-balta">🤍</span> <span id="inima-label-balta">Apreciază</span> <span id="inima-count-balta">0</span>
     </button>
-    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+    <div class="ib-title-row" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
       <span style="font-size:22px;"></span>
       <div>
         <a id="ib-parent-link" href="#" style="display:none;font-size:12.5px;font-weight:600;color:#38bdf8;text-decoration:none;margin-bottom:2px;">← <span id="ib-parent-nume"></span></a>
