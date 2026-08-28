@@ -315,19 +315,64 @@
       .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#dc2626;}
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
-      .rez-tabs-page{display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--zc-border,#1e293b);margin-bottom:16px;}
-      .rez-tab{background:none;border:none;color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;}
-      .rez-tab.active{color:#0891b2;border-bottom-color:#38bdf8;}
+      /* Bara de tab-uri a panoului admin (Cereri/Calendar/Adaugă manual/
+         Moderare/Program sezonier) — rundă 22: pe mobil, cu 'flex-wrap:wrap'
+         de dinainte, tab-ul cel mai lung ("Program sezonier") sărea des
+         singur pe rândul al doilea; izolat, fără vecini și fără vreun
+         fundal/bordură propriu (doar text + o linie de subliniere pe cel
+         activ), nu se mai citea deloc ca buton — arăta ca un simplu titlu.
+         Fix: (1) tab-urile au acum fundal+bordură+colțuri rotunjite proprii
+         — un „pill" — ca să se recunoască drept clickabile indiferent de
+         context, izolate sau nu; (2) bara nu se mai rupe pe mai multe
+         rânduri — derulează orizontal ('overflow-x:auto'), la fel ca
+         Gantt-ul de mai jos, un gest deja familiar în acest panou. */
+      .rez-tabs-page{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:16px;}
+      .rez-tab{flex:0 0 auto;white-space:nowrap;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer;border-radius:9px;}
+      .rez-tab.active{color:#0891b2;background:rgba(56,189,248,.12);border-color:#38bdf8;}
       .rez-empty{text-align:center;color:var(--zc-text-dim,#4b5563);font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:var(--zc-accent-dark,#0e7490);color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
-      .rez-cal-scroll{overflow:auto;max-height:60vh;border:1px solid var(--zc-border,#1e293b);border-radius:10px;-webkit-overflow-scrolling:touch;}
-      .rez-cal-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);}
-      .rez-cal-row:last-child{border-bottom:none;}
-      .rez-cal-header-row{display:flex;border-bottom:1px solid var(--zc-border,#1e293b);background:var(--zc-bg,#0a0f1a);position:sticky;top:0;z-index:3;}
-      .rez-cal-label{flex:0 0 78px;width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
-      .rez-cal-corner{background:var(--zc-bg,#0a0f1a);}
-      .rez-cal-track{position:relative;flex-shrink:0;height:34px;}
-      .rez-cal-daynums{height:auto;display:flex;}
+      /* Grila Gantt (Calendar) — rundă 22: rescrisă de la „un 'display:flex'
+         per rând" la CSS Grid, cu TOATE celulele (eticheta fiecărui stand +
+         track-ul lui, plus colțul și rândul de zile din antet) copii DIRECȚI
+         ai '.rez-cal-scroll' (containerul cu 'overflow:auto'), nu înfășurate
+         fiecare într-un '<div class="rez-cal-row">' intermediar ca înainte.
+         Motiv: coloana de eticheta ('.rez-cal-label', 'position:sticky;
+         left:0') nu rămânea deloc fixă la scroll orizontal pe mobil — se
+         scrola liniar odată cu restul, exact ca și cum sticky nici n-ar fi
+         fost aplicat. Cauza, confirmată izolat: 'position:sticky' cu
+         'left'/'right' nu funcționează corect dacă elementul sticky are UN
+         SINGUR PĂRINTE INTERMEDIAR între el și strămoșul care scrolează
+         efectiv (aici, fostul '.rez-cal-row') — indiferent dacă acel părinte
+         e flex, inline-block sau block simplu. Cu Grid, eticheta e copil
+         direct al containerului care scrolează, deci sticky funcționează
+         corect (verificat și izolat, într-o pagină minimală de test, și
+         direct în Gantt, cu scroll real, în Playwright). Coloanele grilei
+         (78px + lățimea track-ului, în px) se setează dinamic, inline, la
+         randare ('renderTabCalendar'), pentru că depind de intervalul de
+         zile afișat. */
+      .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1px solid var(--zc-border,#1e293b);border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);border-bottom:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
+      /* Rândul de antet (colț + zile) — sticky pe verticală (rămâne vizibil
+         la scroll în jos), fundal opac ca să acopere rândurile care trec pe
+         sub el. Colțul ('.rez-cal-corner', care combină și clasa
+         '.rez-cal-label') trebuie să fie sticky pe AMBELE axe și cu z-index
+         cel mai mare — e „intersecția" celor două benzi fixe. */
+      .rez-cal-header-cell{position:sticky;top:0;z-index:3;background:var(--zc-bg,#0a0f1a);background-image:none;}
+      .rez-cal-corner{z-index:4;}
+      /* Liniile verticale de separare între zile, în rândurile de date —
+         desenate ca fundal repetitiv (nu elemente noi per zi), la fiecare
+         DAY_W (40px), aliniate exact cu marginile celulelor din antet
+         ('.rez-cal-daycell', care au propriul 'border-right'). Înainte,
+         aceste linii nu existau deloc în rândurile de date — doar bordura
+         containerului, vizibilă doar la marginea din dreapta a ultimelor
+         zile vizibile, dădea impresia de "linie doar la ultimele zile". */
+      .rez-cal-track{position:relative;height:34px;border-bottom:1px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 39px, var(--zc-border,rgba(30,41,59,.5)) 39px, var(--zc-border,rgba(30,41,59,.5)) 40px);}
+      .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
+      /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
+         suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
+         propriile celule cu 'border-right', cf. '.rez-cal-daycell'; ordinea
+         contează, ambele reguli au aceeași specificitate). */
+      .rez-cal-daynums{height:auto;display:flex;background-image:none;}
       .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:1px solid var(--zc-border,rgba(30,41,59,.5));padding:4px 0;}
       .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
       .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
@@ -979,21 +1024,23 @@
           return '<div class="' + clasa + '" data-rez-id="' + r.id + '" style="left:' + left + 'px;width:' + width + 'px;" title="' +
             escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '">' + durataHtml + '</div>';
         }).join('');
-        return '<div class="rez-cal-row">' +
-          '<div class="rez-cal-label" title="' + escH(stand.nume || '') + '">' + escH(stand.nume || '') + '</div>' +
-          '<div class="rez-cal-track" style="width:' + trackW + 'px;">' + bareHtml + todayLine + '</div>' +
-        '</div>';
+        // Celule copii DIRECTE ale `.rez-cal-scroll` (nu mai există un
+        // `<div class="rez-cal-row">` care să le înfășoare) — cf. notei din
+        // CSS (§44/rundă 22): eticheta trebuie să fie copil direct al
+        // containerului care scrolează, altfel `position:sticky;left:0` nu
+        // ține pe scroll orizontal. Grid-ul pune automat eticheta + track-ul
+        // pe același rând vizual (2 coloane fixate mai jos, pe container).
+        return '<div class="rez-cal-label" title="' + escH(stand.nume || '') + '">' + escH(stand.nume || '') + '</div>' +
+               '<div class="rez-cal-track">' + bareHtml + todayLine + '</div>';
       }).join('');
 
       var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
 
       var html = notaGoala +
         '<div class="rez-legend"><span><i class="rez-dot" style="background:#38bdf8;"></i>Aprobată</span><span><i class="rez-dot" style="background:#22c55e;"></i>Confirmată</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
-        '<div class="rez-cal-scroll">' +
-          '<div class="rez-cal-header-row">' +
-            '<div class="rez-cal-label rez-cal-corner"></div>' +
-            '<div class="rez-cal-track rez-cal-daynums" style="width:' + trackW + 'px;">' + headerCells + '</div>' +
-          '</div>' +
+        '<div class="rez-cal-scroll" style="grid-template-columns:' + LABEL_W + 'px ' + trackW + 'px;">' +
+          '<div class="rez-cal-label rez-cal-corner rez-cal-header-cell"></div>' +
+          '<div class="rez-cal-track rez-cal-daynums rez-cal-header-cell">' + headerCells + '</div>' +
           randuriStanduri +
         '</div>';
 
