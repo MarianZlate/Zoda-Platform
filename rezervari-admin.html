@@ -126,8 +126,6 @@ html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Sego
 html[data-theme="light"] .logo-img-dark{display:none;}
 html[data-theme="light"] .logo-img-light{display:block;}
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.logout-btn{background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-dim);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;}
-.logout-btn:hover{border-color:#ef4444;color:#ef4444;}
 .back-btn{background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:3px;white-space:nowrap;}
 .back-btn:hover{border-color:var(--zc-accent-dark);color:var(--zc-text-primary);}
 
@@ -183,7 +181,6 @@ html[data-theme="light"] .logo-img-light{display:block;}
     </a>
     <div class="hdr-right">
       <a class="back-btn" href="cont.html">← Contul meu</a>
-      <button class="logout-btn" onclick="doLogout()">Ieși</button>
     </div>
   </div>
 </div>
@@ -249,11 +246,6 @@ async function rezLogin() {
 function showLoginErr(msg) {
   const el = document.getElementById('login-err');
   el.textContent = '⚠️ ' + msg; el.style.display = 'block';
-}
-
-async function doLogout() {
-  await sb.auth.signOut();
-  window.location.href = 'index.html';
 }
 
 // ── SCREENS ──────────────────────────────────────────────────────────────────
