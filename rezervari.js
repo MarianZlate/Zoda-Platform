@@ -97,9 +97,25 @@
       .rez-field{margin-bottom:14px;}
       .rez-field label{display:block;font-size:12.5px;font-weight:700;color:#94a3b8;margin-bottom:5px;}
       .rez-field input, .rez-field select{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:9px 11px;color:#f1f5f9;font-size:15px;outline:none;box-sizing:border-box;}
-      .rez-radio-row{display:flex;gap:8px;flex-wrap:wrap;}
-      .rez-radio-opt{flex:1;min-width:100px;border:1.5px solid #1e293b;border-radius:9px;padding:9px 10px;cursor:pointer;text-align:center;font-size:13px;font-weight:700;color:#94a3b8;}
-      .rez-radio-opt.active{border-color:#38bdf8;color:#38bdf8;background:rgba(56,189,248,.08);}
+      #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
+      .rez-tip-row{display:flex;gap:8px;flex-wrap:wrap;}
+      .rez-tip-card{flex:1;min-width:100px;border:1.5px solid #1e293b;border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
+      .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
+      .rez-tip-card-title{font-size:13.5px;font-weight:800;color:#f1f5f9;}
+      .rez-tip-desc{font-size:11px;color:#94a3b8;margin-top:2px;}
+      .rez-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:#94a3b8;margin:2px 0 10px;}
+      .rez-legend span{display:flex;align-items:center;gap:4px;}
+      .rez-dot{display:inline-block;width:9px;height:9px;border-radius:50%;}
+      .rez-dot.liber{background:#22c55e;}
+      .rez-dot.partial{background:#f59e0b;}
+      .rez-dot.ocupat{background:#ef4444;}
+      .rez-dot.selectat{background:#38bdf8;}
+      .rez-stand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;}
+      .rez-stand-cell{border:1.5px solid #1e293b;border-radius:9px;padding:10px 6px;text-align:center;font-size:12.5px;font-weight:700;cursor:pointer;color:#f1f5f9;background:#111827;}
+      .rez-stand-cell.liber{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);}
+      .rez-stand-cell.partial{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.4);}
+      .rez-stand-cell.ocupat{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#64748b;cursor:not-allowed;}
+      .rez-stand-cell.selectat{background:rgba(56,189,248,.18);border-color:#38bdf8;color:#38bdf8;}
       .rez-btn{background:#0e7490;color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border:none;border-radius:9px;cursor:pointer;width:100%;}
       .rez-btn:disabled{opacity:.5;cursor:not-allowed;}
       .rez-btn-secondary{background:transparent;border:1px solid #1e293b;color:#94a3b8;}
@@ -116,8 +132,6 @@
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
-      .rez-stand-pick{display:block;width:100%;text-align:left;background:#111827;border:1px solid #1e293b;border-radius:9px;padding:11px 14px;margin-bottom:8px;color:#f1f5f9;font-size:14.5px;font-weight:600;cursor:pointer;}
-      .rez-stand-pick:hover{border-color:#38bdf8;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -178,38 +192,7 @@
 
     // mod === 'zoda'
     btnZoda.style.display = 'flex';
-    btnZoda.onclick = function () { deschideModalAlegeStand(balta); };
-  }
-
-  // Pornind de la butonul general de pe pagina bălții (nu de pe un stand
-  // anume): dacă balta are un singur stand, sărim direct la cererea de
-  // rezervare; dacă are mai multe, lăsăm pescarul să aleagă standul.
-  async function deschideModalAlegeStand(balta) {
-    deschideModalGeneric('Alege standul', '<div class="rez-empty">Se încarcă...</div>');
-    try {
-      var res = await sb.from('standuri').select('id, nume').eq('balta_id', balta.id).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
-      var standuri = res.data || [];
-      if (!standuri.length) {
-        setModalBody('<div class="rez-empty">Această baltă nu are încă standuri definite.</div>');
-        return;
-      }
-      if (standuri.length === 1) {
-        closeModal();
-        deschideModalCerere(balta, standuri[0]);
-        return;
-      }
-      setModalBody(standuri.map(function (s) {
-        return '<button class="rez-stand-pick" id="rez-pick-' + s.id + '">' + escH(s.nume || ('Stand ' + s.id)) + '</button>';
-      }).join(''));
-      standuri.forEach(function (s) {
-        document.getElementById('rez-pick-' + s.id).onclick = function () {
-          closeModal();
-          deschideModalCerere(balta, s);
-        };
-      });
-    } catch (e) {
-      setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>');
-    }
+    btnZoda.onclick = function () { deschideModalRezervare(balta, null); };
   }
 
   // ── 1. Butonul de pe standul din balta.html ─────────────────────────────────
@@ -229,87 +212,70 @@
     // mod === 'zoda'
     containerEl.innerHTML = '<button id="rez-stand-btn">📅 Rezervă acest stand</button>';
     var btn = containerEl.querySelector('#rez-stand-btn');
-    btn.onclick = function () { deschideModalCerere(balta, stand); };
+    btn.onclick = function () { deschideModalRezervare(balta, stand); };
   }
 
   // ── 2. Modal cerere rezervare (pescar) ──────────────────────────────────────
-  async function deschideModalCerere(balta, stand) {
+  // Modal unic, apelat fie de pe pagina bălții (standPreselectat = null —
+  // pescarul alege standul din grilă), fie din overlay-ul unui stand anume
+  // (standPreselectat = acel stand, pre-bifat în grilă dar schimbabil).
+  // Layout aliniat cu referința trimisă de Marian: nume prefill din cont,
+  // fără câmp de email, dată + tip rezervare, grilă vizuală de standuri
+  // colorată după disponibilitate (liber/parțial/ocupat), buton de confirmare.
+  async function deschideModalRezervare(balta, standPreselectat) {
     var uid = await getCurrentUserId();
     if (!uid) {
       toast('Trebuie să fii autentificat pentru a rezerva.', true);
       return;
     }
 
+    deschideModalGeneric('Rezervă stand', '<div class="rez-empty">Se încarcă...</div>');
+
+    var numeUser = '';
+    var standuri = [];
+    try {
+      var profRes = await sb.from('user_profiles').select('username').eq('id', uid).single();
+      numeUser = (profRes && profRes.data && profRes.data.username) || '';
+      var standRes = await sb.from('standuri').select('id, nume').eq('balta_id', balta.id).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
+      standuri = standRes.data || [];
+    } catch (e) {
+      setModalBody('<div class="rez-empty">Eroare la încărcare: ' + escH(e.message) + '</div>');
+      return;
+    }
+
+    if (!standuri.length) {
+      setModalBody('<div class="rez-empty">Această baltă nu are încă standuri definite.</div>');
+      return;
+    }
+
     var minDate = new Date(Date.now() + 16 * 3600 * 1000);
     var minDateStr = toDateInputValue(minDate);
+    var tipCurent = '12h';
+    var standSelectatId = (standPreselectat && standuri.some(function (s) { return s.id === standPreselectat.id; })) ? standPreselectat.id : null;
 
     var body =
-      '<div class="rez-field"><label>Ce stand</label><div style="color:#f1f5f9;font-weight:700;">' + escH(stand && stand.nume ? stand.nume : ('Stand ' + (stand && stand.id))) + '</div></div>' +
-      '<div class="rez-field"><label>Tip partidă</label>' +
-        '<div class="rez-radio-row" id="rez-tip-row">' +
-          '<div class="rez-radio-opt active" data-tip="12h">Zi (' + escH(balta.ora_zi_start || '06:00').slice(0,5) + '–' + escH(balta.ora_zi_stop || '18:00').slice(0,5) + ')</div>' +
-          '<div class="rez-radio-opt" data-tip="24h">24h (' + escH(balta.ora_noapte_start || '18:00').slice(0,5) + '–' + escH(balta.ora_noapte_start || '18:00').slice(0,5) + ')</div>' +
-          '<div class="rez-radio-opt" data-tip="personalizat">Personalizat (24h+)</div>' +
+      '<div class="rez-field"><label>Nume complet</label><input type="text" id="rez-nume" value="' + escH(numeUser) + '" readonly></div>' +
+      '<div class="rez-field"><label>Telefon de contact *</label><input type="tel" id="rez-telefon" placeholder="07xx xxx xxx" required></div>' +
+      '<div class="rez-field"><label>Tip rezervare</label>' +
+        '<div class="rez-tip-row" id="rez-tip-row">' +
+          '<div class="rez-tip-card active" data-tip="12h"><div class="rez-tip-card-title">Zi</div><div class="rez-tip-desc">' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + '–' + escH((balta.ora_zi_stop || '18:00').slice(0, 5)) + '</div></div>' +
+          '<div class="rez-tip-card" data-tip="24h"><div class="rez-tip-card-title">24 ore</div><div class="rez-tip-desc">de la ' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + '</div></div>' +
+          '<div class="rez-tip-card" data-tip="personalizat"><div class="rez-tip-card-title">Personalizat</div><div class="rez-tip-desc">24h sau mai mult</div></div>' +
         '</div>' +
       '</div>' +
       '<div id="rez-date-fields"></div>' +
-      '<div id="rez-disponibilitate" class="rez-field"></div>' +
-      '<div class="rez-field"><label>Telefon de contact *</label><input type="tel" id="rez-telefon" placeholder="07xx xxx xxx" required></div>' +
-      '<button class="rez-btn" id="rez-submit-btn">Trimite cererea</button>' +
+      '<div class="rez-field"><label>Stand</label>' +
+        '<div class="rez-legend"><span><i class="rez-dot liber"></i>Liber</span><span><i class="rez-dot partial"></i>Parțial (tot disponibil)</span><span><i class="rez-dot ocupat"></i>Ocupat</span><span><i class="rez-dot selectat"></i>Selectat</span></div>' +
+        '<div class="rez-stand-grid" id="rez-stand-grid"></div>' +
+      '</div>' +
+      '<button class="rez-btn" id="rez-submit-btn" disabled>Trimite cererea</button>' +
       '<div style="font-size:11.5px;color:#4b5563;margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
 
-    deschideModalGeneric('Rezervă stand', body);
+    setModalBody(body);
 
-    var tipCurent = '12h';
-    function renderDateFields() {
-      var html = '';
-      if (tipCurent === 'personalizat') {
-        html =
-          '<div class="rez-field"><label>Din data</label><input type="date" id="rez-data-start" min="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment început</label><select id="rez-mom-start"><option value="zi">Dimineață (' + escH((balta.ora_zi_start||'06:00').slice(0,5)) + ')</option><option value="noapte">Seară (' + escH((balta.ora_noapte_start||'18:00').slice(0,5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" id="rez-data-sfarsit" min="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-mom-sfarsit"><option value="zi">Dimineață (' + escH((balta.ora_zi_start||'06:00').slice(0,5)) + ')</option><option value="noapte" selected>Seară (' + escH((balta.ora_noapte_start||'18:00').slice(0,5)) + ')</option></select></div>';
-      } else {
-        html = '<div class="rez-field"><label>Data</label><input type="date" id="rez-data-start" min="' + minDateStr + '"></div>';
-      }
-      document.getElementById('rez-date-fields').innerHTML = html;
-      var dsEl = document.getElementById('rez-data-start');
-      if (dsEl) dsEl.onchange = actualizeazaDisponibilitate;
-      var dfEl = document.getElementById('rez-data-sfarsit');
-      if (dfEl) dfEl.onchange = actualizeazaDisponibilitate;
-    }
-
-    async function actualizeazaDisponibilitate() {
-      var el = document.getElementById('rez-disponibilitate');
-      if (!el) return;
-      try {
-        var res = await sb.rpc('citeste_disponibilitate_stand', { p_stand_id: stand.id });
-        var rows = res && res.data ? res.data : [];
-        if (!rows.length) { el.innerHTML = '<div style="color:#22c55e;font-size:12.5px;">Nicio rezervare existentă în următoarele 90 de zile.</div>'; return; }
-        el.innerHTML = '<label>Deja ocupat/în cerere pe acest stand</label>' + rows.map(function (r) {
-          var eticheta = r.status === 'confirmata' ? 'ocupat' : 'în așteptare (posibil liber)';
-          return '<div style="font-size:12.5px;color:#94a3b8;margin-bottom:3px;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + ' — ' + eticheta + '</div>';
-        }).join('');
-      } catch (e) { el.innerHTML = ''; }
-    }
-
-    renderDateFields();
-    actualizeazaDisponibilitate();
-
-    document.getElementById('rez-tip-row').addEventListener('click', function (e) {
-      var opt = e.target.closest('.rez-radio-opt');
-      if (!opt) return;
-      document.querySelectorAll('#rez-tip-row .rez-radio-opt').forEach(function (o) { o.classList.remove('active'); });
-      opt.classList.add('active');
-      tipCurent = opt.dataset.tip;
-      renderDateFields();
-    });
-
-    document.getElementById('rez-submit-btn').onclick = async function () {
-      var btn = this;
+    function calculeazaInterval() {
       var dataStartInput = document.getElementById('rez-data-start');
-      if (!dataStartInput || !dataStartInput.value) { toast('Alege o dată.', true); return; }
-
+      if (!dataStartInput || !dataStartInput.value) return null;
       var dataStart, dataSfarsit;
       if (tipCurent === '12h') {
         dataStart = combinaDataOra(dataStartInput.value, balta.ora_zi_start || '06:00');
@@ -319,23 +285,114 @@
         dataSfarsit = new Date(dataStart.getTime() + 24 * 3600 * 1000);
       } else {
         var dataSfarsitInput = document.getElementById('rez-data-sfarsit');
-        if (!dataSfarsitInput || !dataSfarsitInput.value) { toast('Alege și data de sfârșit.', true); return; }
+        if (!dataSfarsitInput || !dataSfarsitInput.value) return null;
         var momStart = document.getElementById('rez-mom-start').value;
         var momSfarsit = document.getElementById('rez-mom-sfarsit').value;
         dataStart = combinaDataOra(dataStartInput.value, momStart === 'noapte' ? (balta.ora_noapte_start || '18:00') : (balta.ora_zi_start || '06:00'));
         dataSfarsit = combinaDataOra(dataSfarsitInput.value, momSfarsit === 'noapte' ? (balta.ora_noapte_start || '18:00') : (balta.ora_zi_start || '06:00'));
       }
+      if (dataSfarsit <= dataStart) return null;
+      return { start: dataStart, sfarsit: dataSfarsit };
+    }
 
-      if (dataSfarsit <= dataStart) { toast('Interval invalid — data de sfârșit trebuie să fie după cea de început.', true); return; }
+    function renderDateFields() {
+      var html = '';
+      if (tipCurent === 'personalizat') {
+        html =
+          '<div class="rez-field"><label>Din data</label><input type="date" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Moment început</label><select id="rez-mom-start"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" id="rez-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-mom-sfarsit"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
+      } else {
+        html = '<div class="rez-field"><label>Data rezervării</label><input type="date" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+      }
+      document.getElementById('rez-date-fields').innerHTML = html;
+      ['rez-data-start', 'rez-data-sfarsit', 'rez-mom-start', 'rez-mom-sfarsit'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.onchange = actualizeazaGrid;
+      });
+    }
 
+    var _dispToken = 0;
+    async function actualizeazaGrid() {
+      var grid = document.getElementById('rez-stand-grid');
+      if (!grid) return;
+      var interval = calculeazaInterval();
+      updateSubmitState();
+      if (!interval) {
+        grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">Alege o dată validă pentru a vedea disponibilitatea standurilor.</div>';
+        return;
+      }
+      grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">Se verifică disponibilitatea...</div>';
+      var myToken = ++_dispToken;
+      var statusMap = {};
+      try {
+        var res = await sb.rpc('citeste_disponibilitate_balta', {
+          p_balta_id: balta.id, p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString()
+        });
+        if (myToken !== _dispToken) return;
+        if (res.error) throw res.error;
+        (res.data || []).forEach(function (r) { statusMap[r.stand_id] = r.status; });
+      } catch (e) {
+        if (myToken !== _dispToken) return;
+        grid.innerHTML = '<div class="rez-empty" style="padding:10px 0;">Nu am putut verifica disponibilitatea. Încearcă din nou.</div>';
+        return;
+      }
+      if (standSelectatId != null && statusMap[standSelectatId] === 'ocupat') standSelectatId = null;
+      randeazaGrid(statusMap);
+    }
+
+    function randeazaGrid(statusMap) {
+      var grid = document.getElementById('rez-stand-grid');
+      if (!grid) return;
+      grid.innerHTML = standuri.map(function (s, idx) {
+        var status = statusMap[s.id] || 'liber';
+        var ocupat = status === 'ocupat';
+        var clasa = (!ocupat && s.id === standSelectatId) ? 'selectat' : status;
+        var eticheta = s.nume || ('Stand ' + (idx + 1));
+        return '<div class="rez-stand-cell ' + clasa + '" data-stand-id="' + s.id + '">' + escH(eticheta) + '</div>';
+      }).join('');
+      Array.prototype.forEach.call(grid.querySelectorAll('.rez-stand-cell:not(.ocupat)'), function (cell) {
+        cell.onclick = function () {
+          standSelectatId = parseInt(cell.dataset.standId, 10);
+          randeazaGrid(statusMap);
+        };
+      });
+      updateSubmitState();
+    }
+
+    function updateSubmitState() {
+      var submitBtn = document.getElementById('rez-submit-btn');
+      if (!submitBtn) return;
+      submitBtn.disabled = !(standSelectatId != null && calculeazaInterval());
+    }
+
+    renderDateFields();
+    actualizeazaGrid();
+
+    document.getElementById('rez-tip-row').addEventListener('click', function (e) {
+      var card = e.target.closest('.rez-tip-card');
+      if (!card) return;
+      document.querySelectorAll('#rez-tip-row .rez-tip-card').forEach(function (c) { c.classList.remove('active'); });
+      card.classList.add('active');
+      tipCurent = card.dataset.tip;
+      renderDateFields();
+      actualizeazaGrid();
+    });
+
+    document.getElementById('rez-submit-btn').onclick = async function () {
+      var btnEl = this;
+      var interval = calculeazaInterval();
+      if (!interval) { toast('Alege o dată validă.', true); return; }
+      if (standSelectatId == null) { toast('Alege un stand din grilă.', true); return; }
       var telefon = (document.getElementById('rez-telefon').value || '').trim();
       if (!telefon) { toast('Completează un număr de telefon de contact.', true); return; }
 
-      btn.disabled = true; btn.textContent = 'Se trimite...';
+      btnEl.disabled = true; btnEl.textContent = 'Se trimite...';
       try {
         var res = await sb.rpc('creeaza_cerere_rezervare', {
-          p_stand_id: stand.id, p_tip_sesiune: tipCurent,
-          p_data_start: dataStart.toISOString(), p_data_sfarsit: dataSfarsit.toISOString(),
+          p_stand_id: standSelectatId, p_tip_sesiune: tipCurent,
+          p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString(),
           p_telefon_client: telefon
         });
         if (res.error) throw res.error;
@@ -343,7 +400,8 @@
         closeModal();
       } catch (e) {
         toast(e.message || 'Eroare la trimiterea cererii.', true);
-        btn.disabled = false; btn.textContent = 'Trimite cererea';
+        btnEl.textContent = 'Trimite cererea';
+        actualizeazaGrid();
       }
     };
   }
