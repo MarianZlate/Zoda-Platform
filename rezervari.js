@@ -115,7 +115,10 @@
       .rez-tab{background:none;border:none;color:#94a3b8;font-weight:700;font-size:13px;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;}
       .rez-tab.active{color:#38bdf8;border-bottom-color:#38bdf8;}
       .rez-empty{text-align:center;color:#4b5563;font-size:13.5px;padding:20px 0;}
-      #rez-stand-btn{margin-top:10px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:14px;padding:10px;border:none;border-radius:9px;cursor:pointer;}
+      #rez-stand-btn{margin-top:12px;width:100%;background:#0e7490;color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
+      #ib-rez-btn{display:flex;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none;}
+      .rez-stand-pick{display:block;width:100%;text-align:left;background:#111827;border:1px solid #1e293b;border-radius:9px;padding:11px 14px;margin-bottom:8px;color:#f1f5f9;font-size:14.5px;font-weight:600;cursor:pointer;}
+      .rez-stand-pick:hover{border-color:#38bdf8;}
     `;
     var style = document.createElement('style');
     style.id = 'rez-styles';
@@ -149,6 +152,57 @@
     if (body) body.innerHTML = html;
   }
 
+  // ── 0. Butonul de pe pagina bălții (nivel baltă, nu doar în overlay-ul
+  // standului) — apelat din renderPage() în balta.html cu (BALTA, containerEl).
+  function renderButonBalta(balta, containerEl) {
+    if (!containerEl) return;
+    var mod = balta && balta.rezervare_mod;
+    if (!mod || mod === 'fara_rezervare') { containerEl.innerHTML = ''; return; }
+
+    if (mod === 'extern') {
+      if (!balta.rezervare_url_extern) { containerEl.innerHTML = ''; return; }
+      containerEl.innerHTML = '<a id="ib-rez-btn" href="' + escH(balta.rezervare_url_extern) +
+        '" target="_blank" rel="noopener"><span class="ib-ic">📅</span><span>↗ Rezervări</span></a>';
+      return;
+    }
+
+    // mod === 'zoda'
+    containerEl.innerHTML = '<button id="ib-rez-btn"><span class="ib-ic">📅</span><span>Rezervări</span></button>';
+    var btn = containerEl.querySelector('#ib-rez-btn');
+    btn.onclick = function () { deschideModalAlegeStand(balta); };
+  }
+
+  // Pornind de la butonul general de pe pagina bălții (nu de pe un stand
+  // anume): dacă balta are un singur stand, sărim direct la cererea de
+  // rezervare; dacă are mai multe, lăsăm pescarul să aleagă standul.
+  async function deschideModalAlegeStand(balta) {
+    deschideModalGeneric('Alege standul', '<div class="rez-empty">Se încarcă...</div>');
+    try {
+      var res = await sb.from('standuri').select('id, nume').eq('balta_id', balta.id).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
+      var standuri = res.data || [];
+      if (!standuri.length) {
+        setModalBody('<div class="rez-empty">Această baltă nu are încă standuri definite.</div>');
+        return;
+      }
+      if (standuri.length === 1) {
+        closeModal();
+        deschideModalCerere(balta, standuri[0]);
+        return;
+      }
+      setModalBody(standuri.map(function (s) {
+        return '<button class="rez-stand-pick" id="rez-pick-' + s.id + '">' + escH(s.nume || ('Stand ' + s.id)) + '</button>';
+      }).join(''));
+      standuri.forEach(function (s) {
+        document.getElementById('rez-pick-' + s.id).onclick = function () {
+          closeModal();
+          deschideModalCerere(balta, s);
+        };
+      });
+    } catch (e) {
+      setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>');
+    }
+  }
+
   // ── 1. Butonul de pe standul din balta.html ─────────────────────────────────
   // Apelat din openOverlay(id) în balta.html cu (BALTA, standObj, containerEl).
   function renderButonStand(balta, stand, containerEl) {
@@ -177,7 +231,7 @@
       return;
     }
 
-    var minDate = new Date(Date.now() + 24 * 3600 * 1000);
+    var minDate = new Date(Date.now() + 16 * 3600 * 1000);
     var minDateStr = toDateInputValue(minDate);
 
     var body =
@@ -191,8 +245,9 @@
       '</div>' +
       '<div id="rez-date-fields"></div>' +
       '<div id="rez-disponibilitate" class="rez-field"></div>' +
+      '<div class="rez-field"><label>Telefon de contact *</label><input type="tel" id="rez-telefon" placeholder="07xx xxx xxx" required></div>' +
       '<button class="rez-btn" id="rez-submit-btn">Trimite cererea</button>' +
-      '<div style="font-size:11.5px;color:#4b5563;margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 24h înainte. Balta trebuie să aprobe cererea.</div>';
+      '<div style="font-size:11.5px;color:#4b5563;margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
 
     deschideModalGeneric('Rezervă stand', body);
 
@@ -264,11 +319,15 @@
 
       if (dataSfarsit <= dataStart) { toast('Interval invalid — data de sfârșit trebuie să fie după cea de început.', true); return; }
 
+      var telefon = (document.getElementById('rez-telefon').value || '').trim();
+      if (!telefon) { toast('Completează un număr de telefon de contact.', true); return; }
+
       btn.disabled = true; btn.textContent = 'Se trimite...';
       try {
         var res = await sb.rpc('creeaza_cerere_rezervare', {
           p_stand_id: stand.id, p_tip_sesiune: tipCurent,
-          p_data_start: dataStart.toISOString(), p_data_sfarsit: dataSfarsit.toISOString()
+          p_data_start: dataStart.toISOString(), p_data_sfarsit: dataSfarsit.toISOString(),
+          p_telefon_client: telefon
         });
         if (res.error) throw res.error;
         toast('✓ Cerere trimisă! Balta va răspunde în curând.');
@@ -533,6 +592,7 @@
 
   // ── API public ───────────────────────────────────────────────────────────
   global.RezervariUI = {
+    renderButonBalta: renderButonBalta,
     renderButonStand: renderButonStand,
     deschideModalRezervarileMele: deschideModalRezervarileMele,
     deschideModalAdmin: deschideModalAdmin,
