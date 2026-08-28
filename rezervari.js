@@ -98,6 +98,8 @@
       .rez-field label{display:block;font-size:12.5px;font-weight:700;color:#94a3b8;margin-bottom:5px;}
       .rez-field input, .rez-field select{width:100%;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:9px 11px;color:#f1f5f9;font-size:15px;outline:none;box-sizing:border-box;}
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
+      .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#38bdf8;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
+      .rez-tel-btn:hover{background:rgba(56,189,248,.18);}
       .rez-tip-row{display:flex;gap:8px;flex-wrap:wrap;}
       .rez-tip-card{flex:1;min-width:100px;border:1.5px solid #1e293b;border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
       .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
@@ -505,7 +507,9 @@
     var strikeHtml = (r.strike_uri_active && r.strike_uri_active > 0)
       ? ' <span class="rez-strike">⚠️ ' + r.strike_uri_active + ' strike' + (r.strike_uri_active > 1 ? '-uri' : '') + ' activ' + (r.strike_uri_active > 1 ? 'e' : '') + '</span>'
       : '';
-    var telefon = r.telefon_client ? (' · 📞 ' + escH(r.telefon_client)) : '';
+    var telefon = r.telefon_client
+      ? ' <a class="rez-tel-btn" href="tel:' + escH(r.telefon_client) + '"><span>📞</span>' + escH(r.telefon_client) + '</a>'
+      : '';
     return escH(nume) + telefon + strikeHtml;
   }
 
