@@ -238,9 +238,21 @@
       .rez-data-part{font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
       .rez-ora-part{font-weight:800;color:#15803d;}
       .rez-modal{background:var(--zc-bg,#0a0f1a);border:1px solid var(--zc-border,#1e293b);border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
-      .rez-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:0;background:var(--zc-bg,#0a0f1a);z-index:2;}
-      .rez-modal-hdr h3{margin:0;font-size:16px;color:var(--zc-text-primary,#f1f5f9);font-weight:800;}
-      .rez-modal-close{background:none;border:none;color:var(--zc-text-secondary-2,#94a3b8);font-size:20px;cursor:pointer;line-height:1;}
+      .rez-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:0;background:var(--zc-bg,#0a0f1a);z-index:2;gap:10px;}
+      .rez-modal-hdr h3{margin:0;font-size:16px;color:var(--zc-text-primary,#f1f5f9);font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .rez-modal-close{background:none;border:none;color:var(--zc-text-secondary-2,#94a3b8);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;}
+      /* Acțiune principală în header-ul modalului (rundă 23) — Marian a
+         semnalat că butonul "Trimite cererea" jos de tot, sub grila de
+         standuri, nu era intuitiv: trebuia scrollat tot modalul ca să-l
+         găsești. Mutat în header, lângă ✕, mereu vizibil (header-ul e deja
+         'position:sticky;top:0', deci rămâne pe ecran indiferent cât ai
+         scrollat conținutul de sub el). Grupat cu ✕ într-un wrapper propriu
+         ('.rez-modal-hdr-actions') ca 'justify-content:space-between' de pe
+         '.rez-modal-hdr' să nu împingă butonul undeva la mijloc, între titlu
+         și ✕ — title-ul ia tot spațiul rămas ('flex:1', cu elipsis dacă e
+         prea lung), iar acțiunile stau grupate compact la dreapta. */
+      .rez-modal-hdr-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+      .rez-btn-header{width:auto;padding:8px 14px;font-size:13.5px;border-radius:8px;}
       .rez-modal-body{padding:16px 18px;}
       .rez-field{margin-bottom:14px;}
       .rez-field label{display:block;font-size:12.5px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:5px;}
@@ -436,7 +448,12 @@
   // tab-urilor tocmai în `#rez-modal-body`) — ca să nu apară două elemente cu
   // același id în document. Vezi `renderCalendarDetail()`, care deschide
   // detaliul unei rezervări ca modal peste Gantt, cu `bodyId` distinct.
-  function deschideModalGeneric(titlu, bodyHtml, tabsHtml, bodyId) {
+  // `headerExtra` (opțional, rundă 23) — HTML pentru o acțiune principală
+  // afișată în header, lângă ✕ (ex. butonul „Trimite" al modalului de
+  // rezervare al pescarului — vezi `deschideModalRezervare`) — mereu
+  // vizibilă, fără scroll, spre deosebire de un buton pus la finalul unui
+  // formular lung. Opțională: modalele care n-o folosesc rămân neschimbate.
+  function deschideModalGeneric(titlu, bodyHtml, tabsHtml, bodyId, headerExtra) {
     injectStylesOnce();
     bodyId = bodyId || 'rez-modal-body';
     var backdrop = document.createElement('div');
@@ -444,7 +461,7 @@
     backdrop.id = 'rez-modal-backdrop';
     backdrop.innerHTML =
       '<div class="rez-modal">' +
-        '<div class="rez-modal-hdr"><h3>' + escH(titlu) + '</h3><button class="rez-modal-close" onclick="RezervariUI._closeModal()">✕</button></div>' +
+        '<div class="rez-modal-hdr"><h3>' + escH(titlu) + '</h3><div class="rez-modal-hdr-actions">' + (headerExtra || '') + '<button class="rez-modal-close" onclick="RezervariUI._closeModal()">✕</button></div></div>' +
         (tabsHtml || '') +
         '<div class="rez-modal-body" id="' + bodyId + '">' + bodyHtml + '</div>' +
       '</div>';
@@ -539,7 +556,8 @@
       return;
     }
 
-    deschideModalGeneric('Rezervă stand', '<div class="rez-empty">Se încarcă...</div>');
+    deschideModalGeneric('Rezervă stand', '<div class="rez-empty">Se încarcă...</div>', null, null,
+      '<button class="rez-btn rez-btn-header" id="rez-submit-btn" disabled>Trimite</button>');
 
     var numeUser = '';
     var standuri = [];
@@ -587,7 +605,9 @@
         '<div class="rez-legend"><span><i class="rez-dot liber"></i>Liber</span><span><i class="rez-dot partial"></i>Parțial (tot disponibil)</span><span><i class="rez-dot ocupat"></i>Ocupat</span><span><i class="rez-dot selectat"></i>Selectat</span></div>' +
         '<div class="rez-stand-grid" id="rez-stand-grid"></div>' +
       '</div>' +
-      '<button class="rez-btn" id="rez-submit-btn" disabled>Trimite cererea</button>' +
+      // Butonul de trimitere (`#rez-submit-btn`) NU mai e aici — a fost mutat
+      // în header-ul modalului (rundă 23), cf. `deschideModalGeneric` mai
+      // sus, ca să rămână vizibil fără scroll pe formulare lungi.
       '<div style="font-size:11.5px;color:var(--zc-text-dim,#4b5563);margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
 
     setModalBody(body);
@@ -720,7 +740,7 @@
         closeModal();
       } catch (e) {
         toast(e.message || 'Eroare la trimiterea cererii.', true);
-        btnEl.textContent = 'Trimite cererea';
+        btnEl.textContent = 'Trimite';
         actualizeazaGrid();
       }
     };
