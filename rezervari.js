@@ -287,6 +287,12 @@
          font aliniat la 12.5px), ca să fie la fel de înalt ca pastila de
          telefon (.rez-tel-btn) de lângă el, cerere explicită a lui Marian. */
       .rez-btn-sterge-mic{width:auto;padding:4px 12px;font-size:12.5px;white-space:nowrap;}
+      /* Sugestii de conturi Zoda la completarea numelui clientului în tab-ul
+         „Adaugă manual" (rundă 20) — dropdown ancorat sub câmpul de nume. */
+      .rez-autocomplete-list{position:absolute;left:0;right:0;top:100%;margin-top:2px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;max-height:170px;overflow-y:auto;z-index:5;display:none;box-shadow:0 8px 20px rgba(0,0,0,.35);}
+      .rez-autocomplete-item{padding:8px 10px;cursor:pointer;font-size:13px;color:var(--zc-text-primary,#f1f5f9);}
+      .rez-autocomplete-item:hover{background:var(--zc-bg-tint,#0c3a4d);}
+      .rez-autocomplete-item + .rez-autocomplete-item{border-top:1px solid var(--zc-border,#1e293b);}
       /* Modalul de detaliu al unei rezervări (renderCalendarDetail) — text
          mărit cu 12% + centrat, cerere explicită a lui Marian (rundă 18),
          ca totul să fie mai vizibil dintr-o privire. Scopat strict la acest
@@ -1150,7 +1156,15 @@
         if (!harta[k]) {
           harta[k] = {
             userId: r.user_id || null,
-            telefon: r.user_id ? null : r.telefon_client,
+            // Telefonul de contact de pe rezervare — păstrat pentru
+            // afișare/căutare (rundă 20) indiferent dacă pescarul are cont
+            // sau nu (până acum se păstra doar pentru cei fără cont, deci
+            // un pescar cu cont nu avea nici buton de telefon, nici nu
+            // putea fi găsit prin căutare după telefon în „Moderare”).
+            // Rămâne folosit ca identitate (pentru RPC-uri) doar când NU
+            // există userId — locurile care-l trimit la server îl ignoră
+            // oricum când userId e prezent (`p.userId ? null : p.telefon`).
+            telefon: r.telefon_client || null,
             numeImplicit: numeImplicitPescar(r),
             numeCustom: null,
             text: '', blocat: false
@@ -1195,41 +1209,66 @@
           '</div>' +
         '</div>';
 
-      var htmlLista = lista.length ? lista.map(function (p, idx) {
-        var telBtn = p.telefon
-          ? ' <a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
-          : '';
-        return '<div class="rez-list-item">' +
-          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
-            '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
-              (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
-              telBtn +
-            '</div>' +
-            '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
-          '</div>' +
-          '<div id="rez-mod-nota-' + idx + '"></div>' +
+      // Căutare (rundă 20) — filtru simplu, client-side, pe lista deja
+      // încărcată (nu mai e nevoie de niciun RPC nou pentru asta) — după
+      // nume (custom sau implicit) sau telefon. Randarea listei e separată
+      // într-o funcție proprie, apelată o dată la deschidere (fără filtru)
+      // și apoi la fiecare tastă din câmpul de căutare, ca să nu trebuiască
+      // reluat fetch-ul de fiecare dată.
+      var htmlSearch =
+        '<div class="rez-field">' +
+          '<input type="text" id="rez-mod-search" placeholder="🔍 Caută după nume sau telefon...">' +
         '</div>';
-      }).join('') : '<div class="rez-empty">Niciun pescar încă — adaugă unul după telefon mai sus, sau apare automat aici după prima lui rezervare/cerere.</div>';
 
-      setModalBody(htmlAdd + htmlLista);
+      function randeazaListaModerare(query) {
+        var q = (query || '').trim().toLowerCase();
+        var filtrata = !q ? lista : lista.filter(function (p) {
+          return (p.nume || '').toLowerCase().indexOf(q) !== -1 || (p.telefon || '').toLowerCase().indexOf(q) !== -1;
+        });
 
-      lista.forEach(function (p, idx) {
-        randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
-        var btnSterge = document.getElementById('rez-mod-sterge-' + idx);
-        if (btnSterge) btnSterge.onclick = async function () {
-          // Ștergerea elimină doar notița/numele custom/blocarea (rândul din
-          // note_pescari) — NU și istoricul de rezervări al pescarului; dacă a
-          // rezervat vreodată, reapare aici (fără nume custom/blocare) data
-          // viitoare când se deschide tab-ul.
-          if (!confirm('Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Rezervările lui existente nu sunt afectate.')) return;
-          try {
-            var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
-            if (resD.error) throw resD.error;
-            toast('✓ Șters.');
-            renderTabModerare();
-          } catch (e) { toast(e.message || 'Eroare la ștergere.', true); }
-        };
-      });
+        var htmlLista = filtrata.length ? filtrata.map(function (p, idx) {
+          var telBtn = p.telefon
+            ? ' <a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
+            : '';
+          return '<div class="rez-list-item">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+              '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
+                (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
+                telBtn +
+              '</div>' +
+              '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
+            '</div>' +
+            '<div id="rez-mod-nota-' + idx + '"></div>' +
+          '</div>';
+        }).join('') : (q
+          ? '<div class="rez-empty">Niciun pescar găsit pentru „' + escH(query.trim()) + '".</div>'
+          : '<div class="rez-empty">Niciun pescar încă — adaugă unul după telefon mai sus, sau apare automat aici după prima lui rezervare/cerere.</div>');
+
+        document.getElementById('rez-mod-lista').innerHTML = htmlLista;
+
+        filtrata.forEach(function (p, idx) {
+          randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
+          var btnSterge = document.getElementById('rez-mod-sterge-' + idx);
+          if (btnSterge) btnSterge.onclick = async function () {
+            // Ștergerea elimină doar notița/numele custom/blocarea (rândul din
+            // note_pescari) — NU și istoricul de rezervări al pescarului; dacă a
+            // rezervat vreodată, reapare aici (fără nume custom/blocare) data
+            // viitoare când se deschide tab-ul.
+            if (!confirm('Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Rezervările lui existente nu sunt afectate.')) return;
+            try {
+              var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
+              if (resD.error) throw resD.error;
+              toast('✓ Șters.');
+              renderTabModerare();
+            } catch (e) { toast(e.message || 'Eroare la ștergere.', true); }
+          };
+        });
+      }
+
+      setModalBody(htmlAdd + htmlSearch + '<div id="rez-mod-lista"></div>');
+      randeazaListaModerare('');
+
+      document.getElementById('rez-mod-search').oninput = function () { randeazaListaModerare(this.value); };
 
       document.getElementById('rez-mod-add-btn').onclick = async function () {
         var tel = document.getElementById('rez-mod-add-tel').value.trim();
@@ -1381,10 +1420,54 @@
       '</div>' +
       '<div id="rez-manual-avert-tip"></div>' +
       '<div id="rez-manual-date-fields"></div>' +
-      '<div class="rez-field"><label>Nume client</label><input type="text" id="rez-manual-nume" placeholder="opțional"></div>' +
+      '<div class="rez-field" style="position:relative;">' +
+        '<label>Nume client</label>' +
+        '<input type="text" id="rez-manual-nume" placeholder="opțional — scrie ca să vezi sugestii de conturi Zoda" autocomplete="off">' +
+        '<div class="rez-autocomplete-list" id="rez-manual-nume-sugestii"></div>' +
+      '</div>' +
       '<div class="rez-field"><label>Telefon client</label><input type="text" id="rez-manual-telefon" placeholder="opțional"></div>' +
       '<button class="rez-btn" id="rez-manual-submit" disabled>Adaugă rezervarea</button>';
     setModalBody(html);
+
+    // ── Sugestii de conturi Zoda pe măsură ce se scrie numele (rundă 20) ──────
+    // Doar ajutor la scriere — alegerea unei sugestii completează exact
+    // numele contului în câmp, NU leagă rezervarea de acel cont (rămâne o
+    // rezervare manuală, nume_client/telefon_client, ca și până acum — vezi
+    // nota din 2026-08-28_runda20_cauta_pescari.sql pentru motiv).
+    (function initSugestiiNume() {
+      var numeInput = document.getElementById('rez-manual-nume');
+      var sugestiiEl = document.getElementById('rez-manual-nume-sugestii');
+      if (!numeInput || !sugestiiEl) return;
+      var _sugestiiToken = 0;
+      var _sugestiiTimer = null;
+      function ascundeSugestii() { sugestiiEl.innerHTML = ''; sugestiiEl.style.display = 'none'; }
+      numeInput.oninput = function () {
+        var query = numeInput.value.trim();
+        var myToken = ++_sugestiiToken;
+        clearTimeout(_sugestiiTimer);
+        if (query.length < 2) { ascundeSugestii(); return; }
+        _sugestiiTimer = setTimeout(async function () {
+          try {
+            var res = await sb.rpc('cauta_pescari_cont', { p_balta_id: _adminBaltaId, p_query: query });
+            if (myToken !== _sugestiiToken) return;
+            var rezultate = (!res.error && res.data) ? res.data : [];
+            if (!rezultate.length) { ascundeSugestii(); return; }
+            sugestiiEl.innerHTML = rezultate.map(function (p) {
+              return '<div class="rez-autocomplete-item" data-nume="' + escH(p.username || '') + '">' + escH(p.username || '(fără nume)') +
+                (p.zoda_id ? ' <span style="opacity:.6;">· ' + escH(p.zoda_id) + '</span>' : '') + '</div>';
+            }).join('');
+            sugestiiEl.style.display = 'block';
+            Array.prototype.forEach.call(sugestiiEl.querySelectorAll('.rez-autocomplete-item'), function (item) {
+              item.onclick = function () { numeInput.value = item.dataset.nume; ascundeSugestii(); };
+            });
+          } catch (e) { ascundeSugestii(); }
+        }, 250);
+      };
+      // Delay la pierderea focusului, ca un click pe o sugestie să apuce să
+      // se înregistreze înainte ca dropdown-ul să dispară (altfel blur-ul
+      // ascunde lista chiar înainte de a procesa click-ul).
+      numeInput.onblur = function () { setTimeout(ascundeSugestii, 150); };
+    })();
 
     function randeazaStandGrid() {
       var grid = document.getElementById('rez-manual-stand-grid');
