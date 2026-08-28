@@ -237,7 +237,7 @@
       .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);}
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
       .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
-      .rez-badge-confirmata{background:rgba(34,197,94,.15);color:#15803d;}
+      .rez-badge-confirmata{background:rgba(56,189,248,.15);color:#0369a1;}
       .rez-badge-anulata,.rez-badge-respinsa,.rez-badge-expirata{background:rgba(148,163,184,.18);color:var(--zc-text-secondary,#94a3b8);}
       .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#dc2626;}
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
@@ -261,7 +261,7 @@
       .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 1px;}
-      .rez-cal-bar.confirmata{background:rgba(34,197,94,.4);border:1.5px solid #16a34a;}
+      .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
       .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
       .rez-cal-bar-dur{font-size:10.1px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
@@ -275,7 +275,7 @@
       html:not([data-theme="light"]) .rez-tel-btn{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-stand-cell.selectat{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-badge-in_asteptare{color:#f59e0b;}
-      html:not([data-theme="light"]) .rez-badge-confirmata{color:#22c55e;}
+      html:not([data-theme="light"]) .rez-badge-confirmata{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-badge-neprezentat{color:#ef4444;}
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
@@ -864,7 +864,7 @@
       var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
 
       var html = notaGoala +
-        '<div class="rez-legend"><span><i class="rez-dot" style="background:#22c55e;"></i>Confirmată</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
+        '<div class="rez-legend"><span><i class="rez-dot" style="background:#38bdf8;"></i>Confirmată (aprobată)</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
         '<div class="rez-cal-scroll">' +
           '<div class="rez-cal-header-row">' +
             '<div class="rez-cal-label rez-cal-corner"></div>' +
