@@ -396,6 +396,14 @@ th,td{padding:8px 6px;}
 </head>
 <body>
 
+<!-- LIGHTBOX FULLSCREEN — aceeași componentă (fs-modal) ca pe index.html/balta.html/pescar.html/cont.html/ambasador-galerie.html -->
+<div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;">
+  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
+  <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
+</div>
+
 <!-- HEADER -->
 <div id="hdr">
   <div id="hdr-in">
@@ -2374,8 +2382,8 @@ async function loadCapturi() {
         </div>
       </div>
       <div class="captura-card-media">
-        ${c.foto_url ? `<img src="${c.foto_url}" class="captura-foto-thumb" alt="captură" onclick="window.open('${c.foto_url}','_blank')" title="Click pentru a mări"/>` : '<div class="captura-foto-empty">📷</div>'}
-        ${c.foto_dovada_url ? `<div style="position:relative;"><img src="${c.foto_dovada_url}" class="captura-foto-thumb" alt="dovadă captură" onclick="window.open('${c.foto_dovada_url}','_blank')" title="Click pentru a mări — dovadă captură (cântar)"/><div style="position:absolute;bottom:2px;left:2px;right:2px;background:rgba(0,0,0,.7);color:#38bdf8;font-size:9.5px;font-weight:700;text-align:center;border-radius:4px;padding:1px 0;">⚖️ Dovadă</div></div>` : ''}
+        ${c.foto_url ? `<img src="${c.foto_url}" class="captura-foto-thumb" alt="captură" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 0)}" title="Click pentru a mări"/>` : '<div class="captura-foto-empty">📷</div>'}
+        ${c.foto_dovada_url ? `<div style="position:relative;"><img src="${c.foto_dovada_url}" class="captura-foto-thumb" alt="dovadă captură" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 1)}" title="Click pentru a mări — dovadă captură (cântar)"/><div style="position:absolute;bottom:2px;left:2px;right:2px;background:rgba(0,0,0,.7);color:#38bdf8;font-size:9.5px;font-weight:700;text-align:center;border-radius:4px;padding:1px 0;">⚖️ Dovadă</div></div>` : ''}
         ${c.video_url && !c.video_deleted ? `<div class="captura-video-btn" onclick="openVideoAdmin('${escHtml(c.video_url)}', ${c.id})">▶ Vezi videoclip dovadă</div>` : (c.video_url && c.video_deleted ? '<div style="font-size:12px;color:#334155;padding:8px;">Video șters</div>' : '')}
       </div>
       ${c.rejected_reason ? `<div style="background:#7f1d1d;border:1px solid #ef4444;border-radius:8px;padding:8px 12px;font-size:12px;color:#fca5a5;margin-top:8px;">Motiv respingere: ${escHtml(c.rejected_reason)}</div>` : ''}
@@ -2673,7 +2681,7 @@ async function loadAmbasadori() {
             <div style="font-size:12px;color:#64748b;margin-top:2px;">👤 Ambasador: ${numeAmbasador(s.ambasador_zoda_id)} · ${new Date(s.created_at).toLocaleString('ro-RO')}</div>
           </div>
         </div>
-        ${s.foto_url ? `<img src="${escHtml(s.foto_url)}" style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;display:block;"/>` : ''}
+        ${s.foto_url ? `<img src="${escHtml(s.foto_url)}" style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;" onclick="openFS('${escHtml(s.foto_url).replace(/'/g, "\\'")}')"/>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:#94a3b8;margin-bottom:12px;">
           ${s.nume != null ? `<div><span style="color:#4b5563;">Nume:</span> ${escHtml(s.nume)}</div>` : ''}
           ${s.distanta != null ? `<div><span style="color:#4b5563;">Distanță:</span> ${s.distanta} m</div>` : ''}
@@ -2860,7 +2868,7 @@ async function openViewCaptura(capturaId) {
         <div style="font-size:17px;font-weight:800;color:#f1f5f9;">👁️ Detalii captură (view-only)</div>
         <button onclick="document.getElementById('view-captura-overlay').remove()" style="background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
       </div>
-      ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;border-radius:10px;margin-bottom:12px;cursor:zoom-in;" onclick="window.open('${c.foto_url}','_blank')"/>` : ''}
+      ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;border-radius:10px;margin-bottom:12px;cursor:zoom-in;" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 0)}"/>` : ''}
       ${c.video_url && !c.video_deleted ? `<div class="captura-video-btn" onclick="openVideoAdmin('${escHtml(c.video_url)}', ${c.id})" style="margin-bottom:12px;">▶ Vezi videoclip dovadă</div>` : (c.video_url && c.video_deleted ? '<div style="font-size:12px;color:#334155;margin-bottom:12px;">Video șters</div>' : '')}
       <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#94a3b8;">
         <div><strong style="color:#f1f5f9;">Pescar:</strong> ${escHtml(c.pescar_nume||'—')} ${c.pescar_id ? '('+escHtml(c.pescar_id)+')' : ''}</div>
@@ -4426,12 +4434,64 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── LIGHTBOX FULLSCREEN — aceeași componentă (fs-modal) ca pe index.html/
+// balta.html/pescar.html/cont.html/ambasador-galerie.html. Înainte, pozele
+// din admin (capturi, dovadă captură, galerie stand) deschideau un tab nou
+// de browser (window.open) — acum se deschid toate în același lightbox.
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+function openFS(src, gallery, idx) {
+  if (!src && !(gallery && gallery.length)) return;
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+}
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() {
+  document.getElementById('fs-modal').style.display = 'none';
+  document.getElementById('fs-img').src = '';
+  _fsGallery = [];
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
+
+// Onclick pentru o pereche foto+dovadă a unei capturi (același model ca
+// buildFotoClickCaptura din balta.html/index.html/pescar.html) — startIdx
+// alege care din cele două se deschide prima (0 = foto principală, 1 = dovadă).
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl, startIdx) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  var idx = startIdx || 0;
+  var urlDeschisa = gal[idx] || fotoUrl;
+  return "event.stopPropagation();openFS('" + escHtml(urlDeschisa).replace(/'/g, "\\'") + "'," + galJson + "," + idx + ")";
+}
+
+// Onclick pentru o galerie oarecare (ex. galeria de poze a unui stand) —
+// urls = toate pozele grupului, idx = poziția pozei apăsate în grup.
+function buildFotoClickGalerie(urls, idx) {
+  var list = (urls || []).filter(Boolean);
+  if (!list.length) return '';
+  var galJson = JSON.stringify(list).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return "event.stopPropagation();openFS('" + escHtml(list[idx]).replace(/'/g, "\\'") + "'," + galJson + "," + idx + ")";
+}
+
 function buildStandEditCard(s) {
+  // Galeria completă a standului (doar pozele deja salvate) — pentru ca
+  // săgețile din lightbox să navigheze prin toate, nu doar prin cea apăsată.
+  const galUrls = (s.galerie || []).map(g => g.url).filter(Boolean);
   const gals = (s.galerie || []).map((g, gi) => {
     const urlAttr = (g.url || '').replace(/"/g, '&quot;');
     // data-existing="true" = poza deja in BD, data-url = URL-ul ei
     return `<div class="gal-thumb-edit" data-url="${urlAttr}" data-existing="true">
-      <img src="${escHtml(g.url)}" loading="lazy"/>
+      <img src="${escHtml(g.url)}" loading="lazy" style="cursor:zoom-in;" onclick="${buildFotoClickGalerie(galUrls, gi)}"/>
       <button class="gal-thumb-del" onclick="delEditGalerie(${s.id},${gi})" title="Șterge">✕</button>
     </div>`;
   }).join('');
@@ -4439,7 +4499,7 @@ function buildStandEditCard(s) {
   const recFoto   = s.rec_foto || '';
   const recPreview = recFoto ? `
     <div class="rec-foto-preview" id="se-rec-preview-${s.id}">
-      <img src="${escHtml(recFoto)}" loading="lazy"/>
+      <img src="${escHtml(recFoto)}" loading="lazy" style="cursor:zoom-in;" onclick="event.stopPropagation();openFS('${escHtml(recFoto).replace(/'/g, "\\'")}')"/>
       <button class="gal-thumb-del" style="top:6px;right:6px;width:22px;height:22px;font-size:17px;" onclick="removeRecFoto(${s.id})" title="Șterge poza record">✕</button>
     </div>` : `<div class="rec-foto-preview rec-foto-empty" id="se-rec-preview-${s.id}"><span style="font-size:31px;">📷</span><span style="font-size:11px;color:#334155;">Fără fotografie</span></div>`;
 
