@@ -787,8 +787,18 @@
     return res.data || [];
   }
 
+  // Identitatea implicită a unui pescar dintr-o rezervare — username-ul de
+  // cont (dacă are cont), altfel numele/„Client telefonic" din rezervare.
+  // Notă (rundă 19): asta rămâne identitatea afișată în Cereri/Calendar —
+  // deliberat NEschimbată de un nume custom din „Moderare" (vezi §41), ca să
+  // nu amestecăm două surse de adevăr pentru numele dintr-o rezervare
+  // existentă; numele custom se vede în „Moderare" și în blocul de notă.
+  function numeImplicitPescar(r) {
+    return r.user_id ? (r.pescar_username || r.pescar_zoda_id || 'Pescar') : (r.nume_client || 'Client telefonic');
+  }
+
   function identitatePescar(r) {
-    var nume = r.user_id ? (r.pescar_username || r.pescar_zoda_id || 'Pescar') : (r.nume_client || 'Client telefonic');
+    var nume = numeImplicitPescar(r);
     var strikeHtml = (r.strike_uri_active && r.strike_uri_active > 0)
       ? ' <span class="rez-strike">⚠️ ' + r.strike_uri_active + ' strike' + (r.strike_uri_active > 1 ? '-uri' : '') + ' activ' + (r.strike_uri_active > 1 ? 'e' : '') + '</span>'
       : '';
@@ -1017,7 +1027,7 @@
       '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
-    randeazaBlocNotaPescar(document.getElementById('rez-cal-detail-nota'), _adminBaltaId, r.user_id, r.telefon_client);
+    randeazaBlocNotaPescar(document.getElementById('rez-cal-detail-nota'), _adminBaltaId, r.user_id, r.telefon_client, numeImplicitPescar(r));
 
     var b = document.getElementById('rez-neprezentare-' + r.id);
     if (b) b.onclick = async function () {
@@ -1052,12 +1062,18 @@
   // și în tab-ul nou „Moderare" (o dată per pescar din listă) — SINGURUL loc
   // unde se construiește acest UI, ca să nu diveargă. `userId`/`telefon`
   // identifică pescarul exact ca peste tot în modul (user_id XOR telefon).
+  // `numeImplicit` (rundă 19) — identitatea implicită (username de cont, sau
+  // „Client telefonic" pentru un pescar fără cont) — arătată ca placeholder
+  // în câmpul de nume, ca adminul să știe ce înlocuiește dacă completează un
+  // nume propriu. `onSchimbat` (opțional) e apelat după salvare/ștergere
+  // reușită, ca ecranul care conține blocul (ex. tab-ul Moderare) să se poată
+  // reîmprospăta cu noul nume.
   var _notaSeq = 0;
-  async function randeazaBlocNotaPescar(containerEl, baltaId, userId, telefon) {
+  async function randeazaBlocNotaPescar(containerEl, baltaId, userId, telefon, numeImplicit, onSchimbat) {
     if (!containerEl) return;
     var meu = 'rez-nota-' + (++_notaSeq);
     containerEl.innerHTML = '<div class="rez-empty" style="padding:8px 0;text-align:left;">Se încarcă nota...</div>';
-    var nota = { text: '', blocat: false };
+    var nota = { text: '', blocat: false, nume: null };
     try {
       var res = await sb.rpc('citeste_nota_pescar', { p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon });
       if (!res.error && res.data && res.data.length) nota = res.data[0];
@@ -1065,28 +1081,36 @@
 
     containerEl.innerHTML =
       '<div class="rez-field" style="margin-top:10px;margin-bottom:8px;">' +
+        '<label>✏️ Nume (opțional — înlocuiește „' + escH(numeImplicit || 'Client telefonic') + '" peste tot)</label>' +
+        '<input type="text" id="' + meu + '-nume" value="' + escH(nota.nume || '') + '" placeholder="' + escH(numeImplicit || '') + '" style="width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;color:var(--zc-text-primary,#f1f5f9);font-size:13.5px;font-family:inherit;box-sizing:border-box;">' +
+      '</div>' +
+      '<div class="rez-field" style="margin-bottom:8px;">' +
         '<label>📝 Notă privată (vizibilă doar ție)</label>' +
         '<textarea id="' + meu + '-text" rows="2" style="width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;color:var(--zc-text-primary,#f1f5f9);font-size:13.5px;font-family:inherit;resize:vertical;box-sizing:border-box;">' + escH(nota.text || '') + '</textarea>' +
       '</div>' +
       '<label class="rez-blocare-label">' +
         '<input type="checkbox" id="' + meu + '-blocat"' + (nota.blocat ? ' checked' : '') + '> 🚫 Blocat de la rezervări la această baltă' +
       '</label>' +
-      '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button">Salvează nota</button>';
+      '<div style="display:flex;gap:8px;margin-top:8px;">' +
+        '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button" style="flex:1;">Salvează</button>' +
+      '</div>';
 
     document.getElementById(meu + '-save').onclick = async function () {
       var btn = this;
+      var nume = document.getElementById(meu + '-nume').value.trim();
       var text = document.getElementById(meu + '-text').value.trim();
       var blocat = document.getElementById(meu + '-blocat').checked;
       btn.disabled = true; var txtOrig = btn.textContent; btn.textContent = 'Se salvează...';
       try {
         var res2 = await sb.rpc('seteaza_nota_pescar', {
           p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon,
-          p_text: text, p_blocat: blocat
+          p_text: text, p_blocat: blocat, p_nume: nume || null
         });
         if (res2.error) throw res2.error;
-        toast('✓ Notă salvată.');
+        toast('✓ Salvat.');
+        if (typeof onSchimbat === 'function') onSchimbat();
       } catch (e) {
-        toast(e.message || 'Eroare la salvarea notei.', true);
+        toast(e.message || 'Eroare la salvare.', true);
       }
       btn.disabled = false; btn.textContent = txtOrig;
     };
@@ -1115,25 +1139,34 @@
           harta[k] = {
             userId: r.user_id || null,
             telefon: r.user_id ? null : r.telefon_client,
-            nume: r.user_id ? (r.pescar_username || r.pescar_zoda_id || 'Pescar') : (r.nume_client || 'Client telefonic'),
+            numeImplicit: numeImplicitPescar(r),
+            numeCustom: null,
             text: '', blocat: false
           };
         }
       });
+      // Rundă 19: o notă poate avea acum un `nume` custom (ex. numele real al
+      // unui client telefonic, în loc de „Client telefonic") — dacă există,
+      // ține locul identității implicite peste tot în acest tab. Un rând de
+      // notă fără nicio rezervare (adăugat direct din formularul de mai jos)
+      // e păstrat separat, ca să poată fi șters/redenumit chiar dacă n-a
+      // rezervat niciodată.
       note.forEach(function (n) {
         var k = cheie(n.pescar_user_id, n.pescar_telefon);
         if (harta[k]) {
-          harta[k].text = n.text; harta[k].blocat = n.blocat;
+          harta[k].text = n.text; harta[k].blocat = n.blocat; harta[k].numeCustom = n.nume || null;
         } else {
           harta[k] = {
             userId: n.pescar_user_id, telefon: n.pescar_telefon,
-            nume: n.pescar_username || n.pescar_telefon || 'Pescar',
+            numeImplicit: n.pescar_username || n.pescar_telefon || 'Pescar',
+            numeCustom: n.nume || null,
             text: n.text, blocat: n.blocat
           };
         }
       });
 
       var lista = Object.keys(harta).map(function (k) { return harta[k]; });
+      lista.forEach(function (p) { p.nume = p.numeCustom || p.numeImplicit; });
       lista.sort(function (a, b) {
         if (a.blocat !== b.blocat) return a.blocat ? -1 : 1;
         if (!!a.text !== !!b.text) return a.text ? -1 : 1;
@@ -1143,16 +1176,24 @@
       var htmlAdd =
         '<div class="rez-field" style="border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:12px;margin-bottom:16px;">' +
           '<label>Adaugă pescar după telefon (chiar fără nicio rezervare încă)</label>' +
-          '<div style="display:flex;gap:8px;">' +
-            '<input type="tel" id="rez-mod-add-tel" placeholder="07xx xxx xxx" style="flex:1;">' +
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+            '<input type="tel" id="rez-mod-add-tel" placeholder="07xx xxx xxx" style="flex:1;min-width:120px;">' +
+            '<input type="text" id="rez-mod-add-nume" placeholder="Nume (opțional)" style="flex:1;min-width:120px;">' +
             '<button class="rez-btn" id="rez-mod-add-btn" type="button" style="width:auto;padding:9px 16px;white-space:nowrap;">Adaugă</button>' +
           '</div>' +
         '</div>';
 
       var htmlLista = lista.length ? lista.map(function (p, idx) {
+        var telBtn = p.telefon
+          ? ' <a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
+          : '';
         return '<div class="rez-list-item">' +
-          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
-            (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
+            '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
+              (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
+              telBtn +
+            '</div>' +
+            '<button class="rez-btn rez-btn-danger" id="rez-mod-sterge-' + idx + '" type="button" style="width:auto;padding:6px 12px;white-space:nowrap;">🗑️ Șterge</button>' +
           '</div>' +
           '<div id="rez-mod-nota-' + idx + '"></div>' +
         '</div>';
@@ -1161,14 +1202,29 @@
       setModalBody(htmlAdd + htmlLista);
 
       lista.forEach(function (p, idx) {
-        randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon);
+        randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
+        var btnSterge = document.getElementById('rez-mod-sterge-' + idx);
+        if (btnSterge) btnSterge.onclick = async function () {
+          // Ștergerea elimină doar notița/numele custom/blocarea (rândul din
+          // note_pescari) — NU și istoricul de rezervări al pescarului; dacă a
+          // rezervat vreodată, reapare aici (fără nume custom/blocare) data
+          // viitoare când se deschide tab-ul.
+          if (!confirm('Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Rezervările lui existente nu sunt afectate.')) return;
+          try {
+            var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
+            if (resD.error) throw resD.error;
+            toast('✓ Șters.');
+            renderTabModerare();
+          } catch (e) { toast(e.message || 'Eroare la ștergere.', true); }
+        };
       });
 
       document.getElementById('rez-mod-add-btn').onclick = async function () {
         var tel = document.getElementById('rez-mod-add-tel').value.trim();
+        var nume = document.getElementById('rez-mod-add-nume').value.trim();
         if (!tel) { toast('Introdu un număr de telefon.', true); return; }
         try {
-          var res = await sb.rpc('seteaza_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: null, p_pescar_telefon: tel, p_text: '', p_blocat: false });
+          var res = await sb.rpc('seteaza_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: null, p_pescar_telefon: tel, p_text: '', p_blocat: false, p_nume: nume || null });
           if (res.error) throw res.error;
           toast('✓ Adăugat.');
           renderTabModerare();
