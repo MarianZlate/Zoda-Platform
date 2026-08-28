@@ -371,12 +371,19 @@
 
   // Blochează scroll-ul paginii din spate cât timp modalul e deschis — pe
   // mobil, fără asta, gestul de scroll pe conținutul modalului "scapă" des pe
-  // pagina de dedesubt. Salvăm valoarea anterioară a lui body.style.overflow
-  // (nu o resetăm orbește la '') ca să nu deblocăm din greșeală pagina dacă
-  // modalul de rezervare a fost deschis peste overlay-ul unui stand, care
-  // își pune singur propriul lock — la închidere, restaurăm exact ce era
-  // înainte, nu neapărat scroll liber.
-  var _rezScrollLockPrev = null;
+  // pagina de dedesubt. Salvăm valorile anterioare (nu le resetăm orbește la
+  // '') ca să nu deblocăm din greșeală pagina dacă modalul de rezervare a
+  // fost deschis peste overlay-ul unui stand, care își pune singur propriul
+  // lock — la închidere, restaurăm exact ce era înainte, nu neapărat scroll
+  // liber. Blocăm ATÂT `<html>` cât și `<body>` (rundă 21) — pe `balta.html`,
+  // fără o înălțime fixată explicit pe niciunul dintre ele, elementul care
+  // scrolează efectiv e `document.documentElement` (`<html>`), nu `<body>`;
+  // blocând doar `body.style.overflow`, ca înainte, pagina tot scrola pe sub
+  // modal. Exact pattern-ul deja folosit de `#stand-overlay`-ul nativ din
+  // `balta.html` (care blochează ambele, de la introducere), acum aliniat.
+  var _rezScrollLockActiv = false;
+  var _rezScrollLockPrevBody = '';
+  var _rezScrollLockPrevHtml = '';
 
   // `bodyId` e opțional (implicit 'rez-modal-body') — folosit doar când acest
   // modal se deschide PESTE o pagină care are deja un element cu acel id (ex.
@@ -398,9 +405,12 @@
       '</div>';
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
-    if (_rezScrollLockPrev === null) {
-      _rezScrollLockPrev = document.body.style.overflow;
+    if (!_rezScrollLockActiv) {
+      _rezScrollLockActiv = true;
+      _rezScrollLockPrevBody = document.body.style.overflow;
+      _rezScrollLockPrevHtml = document.documentElement.style.overflow;
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     }
     return backdrop;
   }
@@ -408,9 +418,10 @@
   function closeModal() {
     var el = document.getElementById('rez-modal-backdrop');
     if (el) el.remove();
-    if (_rezScrollLockPrev !== null) {
-      document.body.style.overflow = _rezScrollLockPrev;
-      _rezScrollLockPrev = null;
+    if (_rezScrollLockActiv) {
+      document.body.style.overflow = _rezScrollLockPrevBody;
+      document.documentElement.style.overflow = _rezScrollLockPrevHtml;
+      _rezScrollLockActiv = false;
     }
   }
 
