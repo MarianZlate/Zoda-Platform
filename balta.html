@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"/>
 <link rel="manifest" href="/manifest.json"/>
 <meta name="theme-color" content="#070b13"/>
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
@@ -1480,7 +1481,7 @@ function closeGuestToast() {
   setTimeout(function() { t.style.display = 'none'; }, 400);
 }
 
-window.addEventListener('load', async function() {
+document.addEventListener('DOMContentLoaded', async function() {
   var params = new URLSearchParams(location.search);
   var baltaId = parseInt(params.get('id'));
   if (!baltaId || isNaN(baltaId)) {
@@ -1823,10 +1824,18 @@ async function loadBalta(id) {
   // Construiește ST cu datele reale din BD
   // Pozițiile standurilor pe hartă sunt stocate în câmpul `pozitie` (JSON {x,y})
   // Dacă nu există, le inițializăm la 50%/50% (vor fi mutate de admin)
+  // Grupăm pozele pe stand_id o singură dată (Map), în loc să filtrăm array-ul
+  // întreg de poze pentru fiecare stand în parte — pe bălți cu multe standuri
+  // și multe poze, filter()-ul repetat devenea O(standuri × poze).
+  var pozePerStand = new Map();
+  poze.forEach(function(p) {
+    if (!pozePerStand.has(p.stand_id)) pozePerStand.set(p.stand_id, []);
+    pozePerStand.get(p.stand_id).push(p);
+  });
   ST = standuri.map(function(s, i) {
     var pozitie = {};
     try { pozitie = s.pozitie ? JSON.parse(s.pozitie) : {}; } catch(e) {}
-    var pozeFotou = poze.filter(function(p){ return p.stand_id === s.id; }).map(function(p){ return {u: p.url, c: s.nume, id: p.id}; });
+    var pozeFotou = (pozePerStand.get(s.id) || []).map(function(p){ return {u: p.url, c: s.nume, id: p.id}; });
     return {
       id: s.id,
       nr: i + 1,
@@ -2294,7 +2303,7 @@ async function loadHallOfFame(baltaId) {
     var pescarNume = c.pescar_nume || '—';
     var dataStr = c.data_captura ? c.data_captura : '';
     var avatarHtml = c._avatar
-      ? '<img class="cr-avatar" src="' + escH(c._avatar) + '" alt=""/>'
+      ? '<img class="cr-avatar" src="' + escH(c._avatar) + '" alt="" loading="lazy"/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
     var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
@@ -3118,7 +3127,7 @@ function renderLunarRows(rows, containerId, isIstoric) {
     var dataStr    = isIstoric ? (capturaInfo && capturaInfo.data_captura ? capturaInfo.data_captura : '') : (r.data_captura ? r.data_captura : '');
 
     var avatarHtml = r._avatar
-      ? '<img class="cr-avatar" src="' + escH(r._avatar) + '" alt=""/>'
+      ? '<img class="cr-avatar" src="' + escH(r._avatar) + '" alt="" loading="lazy"/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = zodaId ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + zodaId + "'" : 'event.stopPropagation()';
     var fotoClick = buildFotoClickCaptura(fotoUrl, fotoDovadaUrl);
@@ -3593,7 +3602,7 @@ async function loadCapturiModalBalta(baltaId) {
     var dataStr = c.data_captura ? c.data_captura : '';
     var avatarUrl = avatarMap[c.pescar_id] || '';
     var avatarHtml = avatarUrl
-      ? '<img class="cr-avatar" src="' + escH(avatarUrl) + '" alt=""/>'
+      ? '<img class="cr-avatar" src="' + escH(avatarUrl) + '" alt="" loading="lazy"/>'
       : '<div class="cr-avatar"></div>';
     var pescarClick = c.pescar_id ? "event.stopPropagation();saveBaltaState();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
     var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
@@ -4720,7 +4729,7 @@ function renderFacCurrent() {
   wrap.innerHTML = '<div style="padding:10px 14px 14px;border-top:1px solid var(--zc-border);">'
     + (videos.length > 1 ? '<div style="font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP ' + (selVidIdx + 1) + '/' + videos.length + '</div>' : '<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.06em;margin-bottom:6px;">VIDEOCLIP DE PREZENTARE</div>')
     + '<div id="fac-yt-thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--zc-border);cursor:pointer;" onclick="playFacVideo()">'
-    + '<img src="https://img.youtube.com/vi/' + ytVideoId(v.youtube_url) + '/hqdefault.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>'
+    + '<img src="https://img.youtube.com/vi/' + ytVideoId(v.youtube_url) + '/hqdefault.jpg" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>'
     + '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);">'
     + '<div style="width:52px;height:52px;border-radius:50%;background:rgba(232,20,42,.92);display:flex;align-items:center;justify-content:center;">'
     + '<div style="width:0;height:0;border-style:solid;border-width:10px 0 10px 16px;border-color:transparent transparent transparent #fff;margin-left:3px;"></div></div></div></div>'
