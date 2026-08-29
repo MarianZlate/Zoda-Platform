@@ -564,7 +564,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-time-lg{font-size:12.5px;color:var(--text-faint);margin-top:6px;line-height:1.4;}
 .cr-balta-link{color:var(--lime);cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s;}
 .cr-balta-link:hover{text-decoration-color:var(--lime);}
-.cr-share-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(4,7,12,.6);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding:0;}
+.cr-share-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;margin-top:8px;padding:7px 10px;background:var(--panel-raised);border:1px solid var(--border);color:var(--text-dim);font-size:12.5px;font-weight:700;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;transition:border-color .18s,color .18s;}
+.cr-share-btn:hover{border-color:var(--lime);color:var(--lime);}
 .cr-delete-btn{position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:50%;background:rgba(4,7,12,.6);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding:0;}
 .trecut-card{opacity:.55;}
 .modal-empty-state{padding:32px 20px;text-align:center;}
@@ -3491,7 +3492,10 @@ function deseneazaCardCaptura(c) {
       }
     }
     const kgText = c.kg != null ? c.kg + ' kg' : '—';
-    const nume = currentProfile?.username || 'Pescar Zoda';
+    // c.pescar_nume există pe capturile altor pescari (afișate public pe
+    // balta.html/pescar.html/index.html) — pe cont.html capturile sunt mereu
+    // ale contului propriu, deci pică pe fallback-ul din profilul logat.
+    const nume = c.pescar_nume || currentProfile?.username || 'Pescar Zoda';
     const captionParts = [nume, kgText];
     if (dataFormatata) captionParts.push(dataFormatata);
     const caption = captionParts.join('  -  ');
@@ -3721,13 +3725,13 @@ function crCardHtml(opts) {
   if (shareData && shareData.foto_url) {
     window._shareCards = window._shareCards || [];
     const idx = window._shareCards.push(shareData) - 1;
-    shareHtml = `<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(${idx})" title="Distribuie">📤</button>`;
+    shareHtml = `<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(${idx})">📤 Distribuie</button>`;
   }
   const deleteHtml = deleteId != null
     ? `<button class="cr-delete-btn" onclick="event.stopPropagation();cereStergereCaptura(${deleteId})" title="Șterge">🗑️</button>`
     : '';
   const inner = `
-    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}>${shareHtml}${deleteHtml}</div>
+    <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}>${deleteHtml}</div>
     <div class="cr-info">
       <div class="cr-row1">
         ${kg != null ? `<span class="cr-kg">${parseFloat(kg).toFixed(1)} kg</span>` : ''}
@@ -3736,6 +3740,7 @@ function crCardHtml(opts) {
       ${metaHtml}
       ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
+      ${shareHtml}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
   return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
