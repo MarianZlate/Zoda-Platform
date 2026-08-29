@@ -3400,53 +3400,81 @@ function deseneazaCardCaptura(c) {
     incarcaImagine(c.foto_url + (c.foto_url.includes('?') ? '&' : '?') + 'cb=' + Date.now()),
     incarcaImagine('zoda-logo.png').catch(() => null), // dacă logo-ul nu se încarcă, continuăm fără el
   ]).then(([fotoImg, logoImg]) => {
-    // Cardul urmează forma reală a pozei încărcate (portret/landscape/pătrat),
-    // cu latura mare limitată la 1080px — fără crop, ca să nu pierzi detalii
-    // din poza originală (ex. un cap de pește tăiat dintr-o poză portret).
-    const LONG_EDGE = 1080;
-    let W, H;
-    if (fotoImg.width >= fotoImg.height) {
-      W = LONG_EDGE;
-      H = Math.round(LONG_EDGE * fotoImg.height / fotoImg.width);
-    } else {
-      H = LONG_EDGE;
-      W = Math.round(LONG_EDGE * fotoImg.width / fotoImg.height);
-    }
+    // Cardul are un raport fix 3:4 (portret), indiferent de forma pozei
+    // originale — poza e decupată central ("cover"), ca să umple tot cardul
+    // fără benzi goale. Compromisul: pe poze foarte late/înguste se poate
+    // pierde puțin din margini (stânga/dreapta pe o poză panoramică, sus/jos
+    // pe una foarte tall) — dacă asta devine o problemă des, varianta
+    // anterioară (fără crop, card cu forma exactă a pozei) e în istoricul git.
+    const W = 1080, H = 1440;
     canvas.width = W;
     canvas.height = H;
     // Elementele de design (bandă, fonturi, logo) au fost calibrate pentru
     // un card 1080×1080 — le scalăm proporțional cu înălțimea reală a
-    // cardului, cu un prag minim ca textul să rămână lizibil chiar și pe
-    // poze foarte late (panoramice). Pentru poze portret/pătrate, H rămâne
-    // 1080 și vScale e exact 1 — design identic cu cel de dinainte.
+    // cardului, cu un prag minim ca textul să rămână lizibil.
     const vScale = Math.max(0.55, H / 1080);
 
-    // Poza e vedeta — acoperă tot cardul, la dimensiunea ei reală, fără crop.
-    ctx.drawImage(fotoImg, 0, 0, W, H);
+    // Poza e vedeta — decupată central ca să acopere tot cardul (cover),
+    // fără deformare.
+    const scale = Math.max(W / fotoImg.width, H / fotoImg.height);
+    const sw = W / scale, sh = H / scale;
+    const sx = (fotoImg.width - sw) / 2;
+    const sy = (fotoImg.height - sh) / 2;
+    ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
 
     const marginX = 40 * vScale;
 
-    // ── Fâșie semi-transparentă jos, suficient de înaltă cât să încapă
-    //    2 rânduri de text cu spațiere reală, fără să se lipească de margini ──
-    const bandH = 148 * vScale;
+    // Reduce dinamic dimensiunea fontului până când textul încape pe lățimea
+    // disponibilă — esențial pentru poze portret (W mic), unde textul complet
+    // nu mai încape la dimensiunea implicită și altfel s-ar suprapune peste
+    // alte elemente. Dacă nici la dimensiunea minimă nu încape (nume de baltă
+    // sau username foarte lungi), trunchiem cu „…” ca ultimă plasă de siguranță
+    // — textul nu trebuie niciodată să iasă din card.
+    function fitLine(text, weight, baseSize, maxWidth, minSize) {
+      let size = baseSize;
+      ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      while (size > minSize && ctx.measureText(text).width > maxWidth) {
+        size -= 1;
+        ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      }
+      // Trunchiem cu „…" doar dacă textul tot nu încape nici la dimensiunea
+      // minimă — altfel îl lăsăm intact (verificarea inclusă mai jos ar tăia
+      // și texte care de fapt încap, doar pentru că "text + …" e puțin mai lat).
+      let out = text;
+      if (ctx.measureText(out).width > maxWidth) {
+        while (out.length > 1 && ctx.measureText(out + '…').width > maxWidth) {
+          out = out.slice(0, -1);
+        }
+        out += '…';
+      }
+      return { size: size, text: out };
+    }
+
+    // ── Fâșie semi-transparentă jos — 3 rânduri distincte, fiecare pe zona
+    //    lui: baltă+stand, caption-ul principal, apoi (dedesubt, cu spațiu
+    //    propriu) semnătura Zoda.ro — nu se mai ating unul de altul indiferent
+    //    de proporția pozei ──
+    const bandH = 180 * vScale;
     ctx.fillStyle = 'rgba(4,7,12,.65)';
     ctx.fillRect(0, H - bandH, W, bandH);
+    const maxTextWidth = W - marginX * 2;
 
-    // ── Rândul 1 (sus în bandă): balta + standul, cu spațiu real de respirație ──
+    // ── Rândul 1: balta + standul ──
     if (c.balti?.nume) {
-      ctx.font = '700 ' + (30 * vScale) + 'px "Segoe UI", system-ui, sans-serif';
+      const baltaLine = c.balti.nume + (c.standuri?.nume ? '  ·  Stand ' + c.standuri.nume : '');
+      const balta = fitLine(baltaLine, '700', 28 * vScale, maxTextWidth, 14 * vScale);
+      ctx.font = '700 ' + balta.size + 'px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,.95)';
       ctx.shadowColor = 'rgba(0,0,0,.6)';
       ctx.shadowBlur = 5 * vScale;
       ctx.shadowOffsetY = 1;
       ctx.textAlign = 'left';
-      const baltaLine = c.balti.nume + (c.standuri?.nume ? '  ·  Stand ' + c.standuri.nume : '');
-      ctx.fillText(baltaLine, marginX, H - bandH + 44 * vScale);
+      ctx.fillText(balta.text, marginX, H - bandH + 38 * vScale);
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
 
-    // ── Rândul 2 (jos în bandă): caption-ul principal, stânga ──
+    // ── Rândul 2: caption-ul principal (nume - kg - dată), propriul rând ──
     let dataFormatata = '';
     if (c.data_captura) {
       // Parsăm direct din string (nu prin Date()), ca să evităm orice decalaj
@@ -3467,37 +3495,43 @@ function deseneazaCardCaptura(c) {
     const captionParts = [nume, kgText];
     if (dataFormatata) captionParts.push(dataFormatata);
     const caption = captionParts.join('  -  ');
-    const captionBaseline = H - 36 * vScale;
+    const captionBaseline = H - bandH + 78 * vScale;
+    const captionFit = fitLine(caption, '600', 30 * vScale, maxTextWidth, 15 * vScale);
 
     ctx.textAlign = 'left';
-    ctx.font = '600 ' + (38 * vScale) + 'px "Segoe UI", system-ui, sans-serif';
+    ctx.font = '600 ' + captionFit.size + 'px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,.5)';
     ctx.shadowBlur = 4 * vScale;
     ctx.shadowOffsetY = 1;
-    ctx.fillText(caption, marginX, captionBaseline);
+    ctx.fillText(captionFit.text, marginX, captionBaseline);
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
 
-    // ── Logo (mai mare) + ".ro" lipit imediat lângă el, la jumătate din
-    //    înălțimea logo-ului — dreapta jos ──
-    const logoH = 62 * vScale;
+    // ── Rândul 3 (propriul rând, sub caption): logo + ".ro" lipit imediat
+    //    lângă el, ancorate în colțul din dreapta-jos al cardului — ca o
+    //    prelungire naturală a "ZODA", nu centrate pe mijlocul benzii ──
+    const logoH = 38 * vScale;
     const logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
-    const logoY = captionBaseline - logoH * 0.78;
-    const logoCenterY = logoY + logoH / 2;
-    const roFontSize = logoH / 2;
+    const bottomMargin = 20 * vScale;
+    const logoY = H - bottomMargin - logoH;
+    const roFontSize = logoH * 0.58;
+    // Baza lui ".ro" se aliniază la baza cuvântului "ZODA" (marginea de jos a
+    // logo-ului), nu la mijlocul lui — citește ca o prelungire firească a
+    // wordmark-ului, gen "ZODA.ro" scris pe același rând de bază.
+    const roBaselineY = logoY + logoH;
 
     ctx.save();
     ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
+    ctx.textBaseline = 'alphabetic';
     ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
     ctx.lineJoin = 'round';
     ctx.miterLimit = 2;
     ctx.strokeStyle = 'rgba(4,7,12,.85)';
     ctx.lineWidth = 4 * vScale;
-    ctx.strokeText('.ro', W - marginX, logoCenterY);
+    ctx.strokeText('.ro', W - marginX, roBaselineY);
     ctx.fillStyle = '#38bdf8';
-    ctx.fillText('.ro', W - marginX, logoCenterY);
+    ctx.fillText('.ro', W - marginX, roBaselineY);
     const roWidth = ctx.measureText('.ro').width;
     ctx.restore();
 
