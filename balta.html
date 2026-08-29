@@ -1438,9 +1438,9 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="rezervari.js?v=20260828z6" defer></script>
-<script defer>
+<script>
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 var SUPA_URL = 'https://emnesflrzptqfttlzusw.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbmVzZmxyenB0cWZ0dGx6dXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NTc5NDUsImV4cCI6MjA5NzUzMzk0NX0.LoR6peujcdm1SLZ8SUSdtSH8wDa_ptCUEYT3qtAPZXk';
@@ -1480,7 +1480,7 @@ function closeGuestToast() {
   setTimeout(function() { t.style.display = 'none'; }, 400);
 }
 
-document.addEventListener('DOMContentLoaded', async function() {
+window.addEventListener('load', async function() {
   var params = new URLSearchParams(location.search);
   var baltaId = parseInt(params.get('id'));
   if (!baltaId || isNaN(baltaId)) {
