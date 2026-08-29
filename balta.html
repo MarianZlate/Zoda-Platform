@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"/>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"/>
 <link rel="manifest" href="/manifest.json"/>
 <meta name="theme-color" content="#070b13"/>
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
@@ -1767,6 +1767,17 @@ async function loadBalta(id) {
   // regulament/lat/lng/adresa dacă e bazin (RPC get_balta_cu_fallback — vezi
   // 01-schema-bazine.sql). Include și este_hub / parent_balta_id / parent_nume.
   // (cu retry automat — uneori prima cerere eșuează la cold start)
+  //
+  // Standurile și pozele (pasul 2+3 mai jos) nu depind de datele bălții, doar
+  // de id-ul ei — deja cunoscut din URL. Le pornim ACUM, în paralel cu RPC-ul
+  // de mai jos, nu după ce acesta răspunde: scoatem astfel un round-trip
+  // întreg din calea critică (relevant mai ales pe semnal slab de telefon,
+  // unde fiecare round-trip suplimentar se simte). Dacă balta se dovedește
+  // 'unlisted' și fără acces (cazul rar, mai jos), rezultatele lor sunt pur
+  // și simplu ignorate.
+  var standuriPromise = sb.from('standuri').select('*').eq('balta_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true });
+  var pozePromise = sb.from('poze').select('*').eq('balta_id', id);
+
   var bRes = await sb.rpc('get_balta_cu_fallback', { p_id: id });
   if (bRes.error || !bRes.data) {
     // Retry o singură dată după scurtă pauză
@@ -1802,13 +1813,10 @@ async function loadBalta(id) {
     }
   }
 
-  // 2+3. Standuri și poze — nu depind una de alta, doar de id-ul băltii, deja
-  // cunoscut din pasul 1. Le pornim simultan, nu secvențial.
+  // 2+3. Standuri și poze — pornite deja mai sus, în paralel cu RPC-ul de
+  // date-baltă (vezi comentariul de acolo). Aici doar așteptăm rezultatul.
   var sRes, pRes;
-  [sRes, pRes] = await Promise.all([
-    sb.from('standuri').select('*').eq('balta_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true }),
-    sb.from('poze').select('*').eq('balta_id', id),
-  ]);
+  [sRes, pRes] = await Promise.all([standuriPromise, pozePromise]);
   if (sRes.error) {
     await new Promise(function(r) { setTimeout(r, 400); });
     sRes = await sb.from('standuri').select('*').eq('balta_id', id).order('sort_order', { ascending: true }).order('id', { ascending: true });
