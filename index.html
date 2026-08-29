@@ -346,6 +346,8 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
 .cr-info{padding:10px 12px 12px;}
 .cr-row1{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+.cr-share-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;margin-top:8px;padding:7px 10px;background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:12.5px;font-weight:700;border-radius:8px;cursor:pointer;white-space:nowrap;transition:border-color .18s,color .18s;}
+.cr-share-btn:hover{border-color:var(--zc-accent-dark);color:#38bdf8;}
 .cr-kg{font-size:17px;font-weight:900;color:#38bdf8;font-family:inherit;white-space:nowrap;}
 .cr-stand{font-size:11.5px;color:var(--zc-text-muted);font-weight:600;white-space:nowrap;}
 .cr-loc{font-size:12px;color:var(--zc-text-secondary);font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1043,6 +1045,22 @@ nav{display:flex;align-items:center;gap:6px;}
   <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
   <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
+</div>
+
+<!-- DISTRIBUIE CAPTURA MODAL -->
+<div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:var(--z-modal);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:18px;width:100%;max-width:380px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">📤 Distribuie captura</div>
+      <button onclick="document.getElementById('modal-card-distribuire').style.display='none';" style="background:transparent;border:none;color:var(--zc-text-dim);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <canvas id="card-canvas" width="1080" height="1080" style="width:100%;border-radius:12px;display:block;background:#111;"></canvas>
+    <div id="card-status" style="font-size:12px;color:var(--zc-text-dim);margin:8px 0;text-align:center;"></div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button id="card-share-btn" onclick="distribuieCard()" style="flex:1;background:var(--zc-accent-dark);border:none;color:#fff;font-weight:700;font-size:15px;padding:12px;border-radius:10px;cursor:pointer;">📤 Trimite</button>
+      <button onclick="descarcaCard()" style="background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:600;font-size:15px;padding:12px 16px;border-radius:10px;cursor:pointer;">⬇️</button>
+    </div>
+  </div>
 </div>
 
 <!-- HALL OF FAME MODAL -->
@@ -2068,6 +2086,185 @@ function navigheazaFS(directie) {
 function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; _blocheazaPortret(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
 
+// ── Distribuie captura (card imagine) — oricine poate distribui orice
+// captură afișată public, nu doar propriul cont. Logica de desenat cardul
+// e identică cu cea din cont.html (aceleași dimensiuni fixe 3:4 + fitLine,
+// reparate acolo — orice modificare acolo trebuie oglindită și aici). ──
+var _cardBlobCurent = null;
+
+function deschideCardDistribuireDirect(id) {
+  var c = (window._shareCards || {})[id];
+  if (!c || !c.foto_url) return;
+  document.getElementById('modal-card-distribuire').style.display = 'flex';
+  document.getElementById('card-status').textContent = 'Se generează cardul...';
+  _cardBlobCurent = null;
+  deseneazaCardCaptura(c);
+}
+
+function deseneazaCardCaptura(c) {
+  var canvas = document.getElementById('card-canvas');
+  var ctx = canvas.getContext('2d');
+
+  function incarcaImagine(src) {
+    return new Promise(function(resolve, reject) {
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() { resolve(img); };
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  Promise.all([
+    incarcaImagine(c.foto_url + (c.foto_url.indexOf('?') > -1 ? '&' : '?') + 'cb=' + Date.now()),
+    incarcaImagine('zoda-logo.png').catch(function() { return null; }),
+  ]).then(function(res) {
+    var fotoImg = res[0], logoImg = res[1];
+    // Card fix 3:4 (portret), poza decupată central ("cover") — design fixat
+    // în cont.html, replicat identic aici.
+    var W = 1080, H = 1440;
+    canvas.width = W;
+    canvas.height = H;
+    var vScale = Math.max(0.55, H / 1080);
+
+    var scale = Math.max(W / fotoImg.width, H / fotoImg.height);
+    var sw = W / scale, sh = H / scale;
+    var sx = (fotoImg.width - sw) / 2;
+    var sy = (fotoImg.height - sh) / 2;
+    ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
+
+    var marginX = 40 * vScale;
+
+    function fitLine(text, weight, baseSize, maxWidth, minSize) {
+      var size = baseSize;
+      ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      while (size > minSize && ctx.measureText(text).width > maxWidth) {
+        size -= 1;
+        ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      }
+      var out = text;
+      if (ctx.measureText(out).width > maxWidth) {
+        while (out.length > 1 && ctx.measureText(out + '…').width > maxWidth) {
+          out = out.slice(0, -1);
+        }
+        out += '…';
+      }
+      return { size: size, text: out };
+    }
+
+    var bandH = 180 * vScale;
+    ctx.fillStyle = 'rgba(4,7,12,.65)';
+    ctx.fillRect(0, H - bandH, W, bandH);
+    var maxTextWidth = W - marginX * 2;
+
+    if (c.balti && c.balti.nume) {
+      var baltaLine = c.balti.nume + (c.standuri && c.standuri.nume ? '  ·  Stand ' + c.standuri.nume : '');
+      var balta = fitLine(baltaLine, '700', 28 * vScale, maxTextWidth, 14 * vScale);
+      ctx.font = '700 ' + balta.size + 'px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,.95)';
+      ctx.shadowColor = 'rgba(0,0,0,.6)';
+      ctx.shadowBlur = 5 * vScale;
+      ctx.shadowOffsetY = 1;
+      ctx.textAlign = 'left';
+      ctx.fillText(balta.text, marginX, H - bandH + 38 * vScale);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+    }
+
+    var dataFormatata = '';
+    if (c.data_captura) {
+      var mParts = String(c.data_captura).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (mParts) {
+        dataFormatata = mParts[3] + '-' + mParts[2] + '-' + mParts[1];
+      } else {
+        var d = new Date(c.data_captura);
+        if (!isNaN(d)) {
+          var pad = function(n) { return String(n).padStart(2, '0'); };
+          dataFormatata = pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear();
+        }
+      }
+    }
+    var kgText = c.kg != null ? c.kg + ' kg' : '—';
+    var nume = c.pescar_nume || 'Pescar Zoda';
+    var captionParts = [nume, kgText];
+    if (dataFormatata) captionParts.push(dataFormatata);
+    var caption = captionParts.join('  -  ');
+    var captionBaseline = H - bandH + 78 * vScale;
+    var captionFit = fitLine(caption, '600', 30 * vScale, maxTextWidth, 15 * vScale);
+
+    ctx.textAlign = 'left';
+    ctx.font = '600 ' + captionFit.size + 'px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,.5)';
+    ctx.shadowBlur = 4 * vScale;
+    ctx.shadowOffsetY = 1;
+    ctx.fillText(captionFit.text, marginX, captionBaseline);
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    var logoH = 38 * vScale;
+    var logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
+    var bottomMargin = 20 * vScale;
+    var logoY = H - bottomMargin - logoH;
+    var roFontSize = logoH * 0.58;
+    var roBaselineY = logoY + logoH;
+
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    ctx.strokeStyle = 'rgba(4,7,12,.85)';
+    ctx.lineWidth = 4 * vScale;
+    ctx.strokeText('.ro', W - marginX, roBaselineY);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('.ro', W - marginX, roBaselineY);
+    var roWidth = ctx.measureText('.ro').width;
+    ctx.restore();
+
+    if (logoImg) {
+      var logoRight = W - marginX - roWidth - 2;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.6)';
+      ctx.shadowBlur = 8 * vScale;
+      ctx.drawImage(logoImg, logoRight - logoW, logoY, logoW, logoH);
+      ctx.restore();
+    }
+
+    canvas.toBlob(function(blob) {
+      _cardBlobCurent = blob;
+      document.getElementById('card-status').textContent = '✓ Card generat — gata de trimis';
+    }, 'image/jpeg', 0.92);
+  }).catch(function() {
+    document.getElementById('card-status').textContent = '✕ Nu s-a putut încărca poza capturii.';
+  });
+}
+
+async function distribuieCard() {
+  if (!_cardBlobCurent) return;
+  var fisier = new File([_cardBlobCurent], 'zoda-captura.jpg', { type: 'image/jpeg' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [fisier] })) {
+    try {
+      await navigator.share({ files: [fisier], title: 'O captură de pe Zoda', text: 'Uite ce a prins un pescar pe zoda.ro ' });
+    } catch(e) { /* userul a anulat share-ul — nu tratăm ca eroare */ }
+  } else {
+    descarcaCard();
+  }
+}
+
+function descarcaCard() {
+  if (!_cardBlobCurent) return;
+  var url = URL.createObjectURL(_cardBlobCurent);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'zoda-captura.jpg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
+
 async function loadTopSaptamanal() {
   var luni = inceputSaptamanaCurenta();
   var luniUrmatoare = new Date(luni.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -2342,6 +2539,19 @@ function capturaRecentaCardHtml(c) {
   var pescarClick = c.pescar_id ? "event.stopPropagation();window.location.href='pescar.html?id=" + c.pescar_id + "'" : 'event.stopPropagation()';
   var fotoClick = buildFotoClickCaptura(c.foto_url, c.foto_dovada_url);
   var baltaClick = c.balta_id ? "event.stopPropagation();__goToBalta(" + c.balta_id + ")" : '';
+  // Cheie = id-ul capturii, nu index de array — cardul ăsta poate fi randat
+  // simultan în mai multe locuri (carusel + modal "Capturi recente" + top
+  // săptămânal, toate din același cache), deci un index pozițional s-ar
+  // invalida de fiecare dată când oricare din ele se re-randează.
+  var shareHtml = '';
+  if (c.foto_url && c.id != null) {
+    window._shareCards = window._shareCards || {};
+    window._shareCards[c.id] = {
+      foto_url: c.foto_url, kg: c.kg, data_captura: c.data_captura,
+      pescar_nume: c.pescar_nume, balti: c.balti, standuri: c.standuri,
+    };
+    shareHtml = '<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(' + c.id + ')">📤 Distribuie</button>';
+  }
   return ''
     + '<div class="cr-card">'
     + '<div class="cr-photo"' + (fotoClick ? ' onclick="' + fotoClick + '" style="cursor:zoom-in;background-image:url(\'' + escH(c.foto_url) + '\')"' : ' style="background-image:url(\'\')"') + '></div>'
@@ -2356,7 +2566,9 @@ function capturaRecentaCardHtml(c) {
     + '<div class="cr-pescar-text">'
     + '<div class="cr-pescar-name" onclick="' + pescarClick + '">' + pescarNumeTxt + '</div>'
     + '<div class="cr-time">' + timpText + '</div>'
-    + '</div></div></div></div>';
+    + '</div></div>'
+    + shareHtml
+    + '</div></div>';
 }
 
 function renderCapturiRecenteCarousel() {
