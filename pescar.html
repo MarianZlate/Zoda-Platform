@@ -281,6 +281,8 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-card{border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
+.cr-share-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;margin-top:8px;padding:7px 10px;background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:12.5px;font-weight:700;border-radius:8px;cursor:pointer;white-space:nowrap;transition:border-color .18s,color .18s;}
+.cr-share-btn:hover{border-color:var(--zc-accent-dark);color:#38bdf8;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
 .cr-info{padding:10px 12px 12px;}
 .cr-row1{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
@@ -586,6 +588,21 @@ html[data-theme="light"] .logo-img-light{display:block;}
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
+<div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:18px;width:100%;max-width:380px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">📤 Distribuie captura</div>
+      <button onclick="document.getElementById('modal-card-distribuire').style.display='none';" style="background:transparent;border:none;color:var(--zc-text-dim);font-size:22px;cursor:pointer;">✕</button>
+    </div>
+    <canvas id="card-canvas" width="1080" height="1080" style="width:100%;border-radius:12px;display:block;background:#111;"></canvas>
+    <div id="card-status" style="font-size:12px;color:var(--zc-text-dim);margin:8px 0;text-align:center;"></div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button id="card-share-btn" onclick="distribuieCard()" style="flex:1;background:var(--zc-accent-dark);border:none;color:#fff;font-weight:700;font-size:15px;padding:12px;border-radius:10px;cursor:pointer;">📤 Trimite</button>
+      <button onclick="descarcaCard()" style="background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:600;font-size:15px;padding:12px 16px;border-radius:10px;cursor:pointer;">⬇️</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- FOOTER -->
 <footer id="site-footer">
@@ -697,6 +714,189 @@ function navigheazaFS(directie) {
   document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
 }
 function closeFS() { document.getElementById('fs-modal').style.display = 'none'; document.getElementById('fs-img').src = ''; _fsGallery = []; }
+
+// ── Distribuie captura (card imagine) — oricine poate distribui orice
+// captură afișată aici, nu doar propriul cont. Logica de desenat cardul e
+// identică cu cea din cont.html (aceleași dimensiuni fixe 3:4 + fitLine,
+// reparate acolo — orice modificare acolo trebuie oglindită și aici). Toate
+// cardurile de pe pagina asta aparțin aceluiași pescar (profilul afișat),
+// deci indexul din window._shareCards e resetat o singură dată per randare
+// (setat în loadPescarData), la fel ca în cont.html. ──
+var _cardBlobCurent = null;
+var _pescarNumeDistribuire = 'Pescar Zoda';
+
+function deschideCardDistribuireDirect(index) {
+  var c = (window._shareCards || [])[index];
+  if (!c || !c.foto_url) return;
+  document.getElementById('modal-card-distribuire').style.display = 'flex';
+  document.getElementById('card-status').textContent = 'Se generează cardul...';
+  _cardBlobCurent = null;
+  deseneazaCardCaptura(c);
+}
+
+function deseneazaCardCaptura(c) {
+  var canvas = document.getElementById('card-canvas');
+  var ctx = canvas.getContext('2d');
+
+  function incarcaImagine(src) {
+    return new Promise(function(resolve, reject) {
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() { resolve(img); };
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  Promise.all([
+    incarcaImagine(c.foto_url + (c.foto_url.indexOf('?') > -1 ? '&' : '?') + 'cb=' + Date.now()),
+    incarcaImagine('zoda-logo.png').catch(function() { return null; }),
+  ]).then(function(res) {
+    var fotoImg = res[0], logoImg = res[1];
+    // Card fix 3:4 (portret), poza decupată central ("cover") — design fixat
+    // în cont.html, replicat identic aici.
+    var W = 1080, H = 1440;
+    canvas.width = W;
+    canvas.height = H;
+    var vScale = Math.max(0.55, H / 1080);
+
+    var scale = Math.max(W / fotoImg.width, H / fotoImg.height);
+    var sw = W / scale, sh = H / scale;
+    var sx = (fotoImg.width - sw) / 2;
+    var sy = (fotoImg.height - sh) / 2;
+    ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
+
+    var marginX = 40 * vScale;
+
+    function fitLine(text, weight, baseSize, maxWidth, minSize) {
+      var size = baseSize;
+      ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      while (size > minSize && ctx.measureText(text).width > maxWidth) {
+        size -= 1;
+        ctx.font = weight + ' ' + size + 'px "Segoe UI", system-ui, sans-serif';
+      }
+      var out = text;
+      if (ctx.measureText(out).width > maxWidth) {
+        while (out.length > 1 && ctx.measureText(out + '…').width > maxWidth) {
+          out = out.slice(0, -1);
+        }
+        out += '…';
+      }
+      return { size: size, text: out };
+    }
+
+    var bandH = 180 * vScale;
+    ctx.fillStyle = 'rgba(4,7,12,.65)';
+    ctx.fillRect(0, H - bandH, W, bandH);
+    var maxTextWidth = W - marginX * 2;
+
+    if (c.balti && c.balti.nume) {
+      var baltaLine = c.balti.nume + (c.standuri && c.standuri.nume ? '  ·  Stand ' + c.standuri.nume : '');
+      var balta = fitLine(baltaLine, '700', 28 * vScale, maxTextWidth, 14 * vScale);
+      ctx.font = '700 ' + balta.size + 'px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,.95)';
+      ctx.shadowColor = 'rgba(0,0,0,.6)';
+      ctx.shadowBlur = 5 * vScale;
+      ctx.shadowOffsetY = 1;
+      ctx.textAlign = 'left';
+      ctx.fillText(balta.text, marginX, H - bandH + 38 * vScale);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+    }
+
+    var dataFormatata = '';
+    if (c.data_captura) {
+      var mParts = String(c.data_captura).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (mParts) {
+        dataFormatata = mParts[3] + '-' + mParts[2] + '-' + mParts[1];
+      } else {
+        var d = new Date(c.data_captura);
+        if (!isNaN(d)) {
+          var pad = function(n) { return String(n).padStart(2, '0'); };
+          dataFormatata = pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear();
+        }
+      }
+    }
+    var kgText = c.kg != null ? c.kg + ' kg' : '—';
+    var nume = c.pescar_nume || _pescarNumeDistribuire || 'Pescar Zoda';
+    var captionParts = [nume, kgText];
+    if (dataFormatata) captionParts.push(dataFormatata);
+    var caption = captionParts.join('  -  ');
+    var captionBaseline = H - bandH + 78 * vScale;
+    var captionFit = fitLine(caption, '600', 30 * vScale, maxTextWidth, 15 * vScale);
+
+    ctx.textAlign = 'left';
+    ctx.font = '600 ' + captionFit.size + 'px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,.5)';
+    ctx.shadowBlur = 4 * vScale;
+    ctx.shadowOffsetY = 1;
+    ctx.fillText(captionFit.text, marginX, captionBaseline);
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    var logoH = 38 * vScale;
+    var logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
+    var bottomMargin = 20 * vScale;
+    var logoY = H - bottomMargin - logoH;
+    var roFontSize = logoH * 0.58;
+    var roBaselineY = logoY + logoH;
+
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    ctx.strokeStyle = 'rgba(4,7,12,.85)';
+    ctx.lineWidth = 4 * vScale;
+    ctx.strokeText('.ro', W - marginX, roBaselineY);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText('.ro', W - marginX, roBaselineY);
+    var roWidth = ctx.measureText('.ro').width;
+    ctx.restore();
+
+    if (logoImg) {
+      var logoRight = W - marginX - roWidth - 2;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.6)';
+      ctx.shadowBlur = 8 * vScale;
+      ctx.drawImage(logoImg, logoRight - logoW, logoY, logoW, logoH);
+      ctx.restore();
+    }
+
+    canvas.toBlob(function(blob) {
+      _cardBlobCurent = blob;
+      document.getElementById('card-status').textContent = '✓ Card generat — gata de trimis';
+    }, 'image/jpeg', 0.92);
+  }).catch(function() {
+    document.getElementById('card-status').textContent = '✕ Nu s-a putut încărca poza capturii.';
+  });
+}
+
+async function distribuieCard() {
+  if (!_cardBlobCurent) return;
+  var fisier = new File([_cardBlobCurent], 'zoda-captura.jpg', { type: 'image/jpeg' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [fisier] })) {
+    try {
+      await navigator.share({ files: [fisier], title: 'O captură de pe Zoda', text: 'Uite ce a prins un pescar pe zoda.ro ' });
+    } catch(e) { /* userul a anulat share-ul — nu tratăm ca eroare */ }
+  } else {
+    descarcaCard();
+  }
+}
+
+function descarcaCard() {
+  if (!_cardBlobCurent) return;
+  var url = URL.createObjectURL(_cardBlobCurent);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'zoda-captura.jpg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
 
 // Construiește onclick-ul pentru poza unei capturi — deschide fullscreen cu
 // poza principală, iar dacă există și dovadă captură (peștele cântărit),
@@ -1411,6 +1611,8 @@ async function loadPescarData(zodaId) {
 
   renderHero(profile, steleData);
   renderStatsRapide(capturiPublice || [], recorduriActive || []);
+  _pescarNumeDistribuire = profile.username || profile.zoda_id || 'Pescar Zoda';
+  window._shareCards = []; // resetat la fiecare randare — indexii din butoanele de distribuire trebuie să rămână valizi doar pentru randarea curentă
   renderRecordPersonal(recorduriActive || []);
 
   // Rezolvă captura_id reală a recordului activ pe fiecare stand — standuri.rec_*
@@ -1484,6 +1686,15 @@ function renderRecordPersonal(recorduriActive) {
   if (!cuKg.length) { wrap.style.display = 'none'; return; }
   const rec = cuKg.reduce((max, s) => (s.rec_kg > max.rec_kg ? s : max), cuKg[0]);
   const fotoClick = rec.rec_foto ? `openFS('${escH(rec.rec_foto).replace(/'/g, "\\'")}')` : '';
+  let shareHtml = '';
+  if (rec.rec_foto) {
+    window._shareCards = window._shareCards || [];
+    const idx = window._shareCards.push({
+      foto_url: rec.rec_foto, kg: rec.rec_kg, data_captura: rec.rec_data,
+      balti: rec.balti, standuri: rec.nume ? { nume: rec.nume } : null,
+    }) - 1;
+    shareHtml = `<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(${idx})">📤 Distribuie</button>`;
+  }
   card.className = 'cr-card';
   card.innerHTML = `
     <div class="cr-photo"${fotoClick ? ` onclick="${fotoClick}" style="cursor:zoom-in;background-image:url('${escH(rec.rec_foto)}')"` : ''}></div>
@@ -1494,6 +1705,7 @@ function renderRecordPersonal(recorduriActive) {
       </div>
       ${rec.balti?.nume ? `<div class="cr-stand" style="margin-top:4px;">📍 ${escH(rec.balti.nume)}</div>` : ''}
       ${rec.rec_data ? `<div class="cr-time" style="margin-top:6px;">${escH(rec.rec_data)}</div>` : ''}
+      ${shareHtml}
     </div>`;
   wrap.style.display = 'block';
 }
@@ -1506,7 +1718,7 @@ function renderRecordPersonal(recorduriActive) {
 // explicite: click pe card (oriunde) → deschide poza; click pe numele
 // bălții → pagina ei (singurul element cu navigare proprie).
 function crCardHtml(opts) {
-  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, comentariiId } = opts;
+  const { photoUrl, photoDovadaUrl, kg, standText, metaLines, baltaText, baltaLink, dateText, trecut, comentariiId, shareData } = opts;
   const cardClick = buildFotoClickCaptura(photoUrl, photoDovadaUrl);
   const metaHtml = (metaLines || []).filter(Boolean).map(function(line) {
     return `<div class="cr-meta-line">${line}</div>`;
@@ -1519,6 +1731,12 @@ function crCardHtml(opts) {
     ? `<button class="pc-toggle-btn" onclick="event.stopPropagation();togglePescarComentarii(${comentariiId})" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;font-weight:700;padding:5px 10px;border-radius:7px;cursor:pointer;margin-top:6px;">💬 Comentarii</button>
        <div id="pc-panel-${comentariiId}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--zc-border);" onclick="event.stopPropagation()"></div>`
     : '';
+  let shareHtml = '';
+  if (shareData && shareData.foto_url) {
+    window._shareCards = window._shareCards || [];
+    const idx = window._shareCards.push(shareData) - 1;
+    shareHtml = `<button class="cr-share-btn" onclick="event.stopPropagation();deschideCardDistribuireDirect(${idx})">📤 Distribuie</button>`;
+  }
   const inner = `
     <div class="cr-photo"${photoUrl ? ` style="background-image:url('${escH(photoUrl)}')"` : ''}></div>
     <div class="cr-info">
@@ -1530,6 +1748,7 @@ function crCardHtml(opts) {
       ${baltaHtml}
       ${dateText ? `<div class="cr-time-lg">📅 ${escH(dateText)}</div>` : ''}
       ${comentariiHtml}
+      ${shareHtml}
     </div>`;
   const cls = 'cr-card' + (trecut ? ' trecut-card' : '');
   return `<div class="${cls}"${cardClick ? ` onclick="${cardClick}" style="cursor:zoom-in;"` : ''}>${inner}</div>`;
@@ -1554,6 +1773,7 @@ function renderRecorduri(steleLog, recorduriActive, standuriTrecuteMap, recordur
       baltaLink: `balta.html?id=${s.balta_id}&stand=${s.id}`,
       dateText: stea ? 'Activ din ' + fmtDate(stea.created_at) : '',
       comentariiId: (recorduriCapturaIdMap || {})[s.id] || null,
+      shareData: s.rec_foto ? { foto_url: s.rec_foto, kg: s.rec_kg, balti: s.balti, standuri: { nume: s.nume } } : null,
     });
   });
 
@@ -1633,6 +1853,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaLink: `balta.html?id=${t.balta_id}`,
         dateText: capt.data_captura || '',
         comentariiId: capt.id || null,
+        shareData: capt.foto_url ? { foto_url: capt.foto_url, kg: t.kg_total, data_captura: capt.data_captura, balti: t.balti } : null,
       });
     });
 
@@ -1653,6 +1874,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         baltaLink: `balta.html?id=${baltaId}`,
         dateText: p.data_captura || '',
         comentariiId: p.capturaId || null,
+        shareData: p.foto_url ? { foto_url: p.foto_url, kg: p.kg, data_captura: p.data_captura, balti: { nume: baltaNume }, standuri: p.standNume ? { nume: p.standNume } : null } : null,
       });
     });
   });
@@ -1676,6 +1898,7 @@ function renderTopuri(steleLog, top10Istoric, hofActiveMap, hofBaltaIds) {
         dateText: capt.data_captura || '',
         trecut: true,
         comentariiId: capt.id || null,
+        shareData: capt.foto_url ? { foto_url: capt.foto_url, kg: t.kg_total, data_captura: capt.data_captura, balti: t.balti } : null,
       });
     });
 
