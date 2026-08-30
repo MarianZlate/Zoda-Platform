@@ -406,9 +406,9 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .bn-btn svg{width:18px;height:18px;}
 .bn-btn.active{color:#38bdf8;}
 
-#clasament-modal,#capturi-modal-balta{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#clasament-modal,#capturi-modal-balta{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:flex-start;justify-content:center;}
 #clasament-modal.open,#capturi-modal-balta.open{display:flex;}
-#chat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;}
+#chat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:flex-start;justify-content:center;}
 #chat-modal.open{display:flex;}
 .hof-modal-inner{background:var(--zc-bg);border:1px solid var(--zc-border);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:100%;
   /* mobil: modalul ocupă tot ecranul, nu doar 80vh cu colțuri rotunjite jos */
@@ -1270,7 +1270,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 
 
 <!-- MODAL DETALII FIRMĂ -->
-<div id="modal-detalii-firma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
+<div id="modal-detalii-firma" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;width:100%;max-width:420px;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);">
       <div style="font-size:18px;font-weight:800;color:var(--zc-text-primary);">🏢 Detalii firmă</div>
@@ -1291,7 +1291,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 
 <!-- OVERLAY GENERIC — TARIFE / REGULAMENT (in afara #map-wrap, ca sa functioneze si pt balti fara harta) -->
 <!-- MODAL REVENDICARE BALTA — folosit doar pe baltile 'basic', mesaj adaptat -->
-<div id="claim-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2200;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+<div id="claim-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2200;align-items:center;justify-content:center;">
   <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;width:100%;max-width:480px;margin:0 16px;overflow:hidden;">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--zc-border);background:var(--zc-bg);">
       <div>
@@ -1337,7 +1337,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 </div>
 
 <!-- FULLSCREEN MODAL -->
-<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);">
+<div id="acord-necesar-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:20px;max-width:480px;width:100%;padding:28px;max-height:85vh;overflow-y:auto;">
     <div id="acord-necesar-titlu" style="font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:12px;"></div>
     <div id="acord-necesar-text" style="font-size:14px;color:var(--zc-text-secondary);line-height:1.6;margin-bottom:22px;"></div>
@@ -1353,7 +1353,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
-<div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+<div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:18px;width:100%;max-width:380px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">📤 Distribuie captura</div>
