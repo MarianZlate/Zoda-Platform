@@ -233,7 +233,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
   flex:none;width:100%;}
 
 /* MAP WRAP */
-#map-wrap{position:relative;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;background:var(--zc-bg-tint);user-select:none;width:100%;max-width:100%;box-shadow:0 0 32px rgba(56,189,248,.25),0 0 8px rgba(56,189,248,.15);}
+#map-wrap{position:relative;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;background:var(--zc-bg-tint);user-select:none;width:100%;max-width:100%;box-shadow:0 0 14px rgba(56,189,248,.2);}
 /* #ov-edit-section stă în interiorul #map-wrap (user-select:none, pt drag pe hartă) —
    aici redăm selecția de text, altfel nu poți selecta/șterge cu mouse-ul sau tap din
    câmpurile de nume/adâncime/distanță/lățime ale standului. */
@@ -248,7 +248,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 .amb-pin-marker.dragging{cursor:grabbing;}
 .preview-pin-marker{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:60;filter:drop-shadow(0 0 6px rgba(124,58,237,.9));animation:previewPulse 1.4s ease-in-out infinite;}
 @keyframes previewPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
-#preview-submisie-panel{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:6000;background:#1a1230;border:1.5px solid #7c3aed;border-radius:12px;padding:14px 18px;max-width:calc(100vw - 32px);width:380px;box-shadow:0 12px 32px rgba(0,0,0,.6);}
+#preview-submisie-panel{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:6000;background:#1a1230;border:1.5px solid #7c3aed;border-radius:12px;padding:14px 18px;max-width:calc(100vw - 32px);width:380px;box-shadow:0 6px 16px rgba(0,0,0,.5);}
 .stand-pin svg{display:block;}
 .stand-pin.dragging{cursor:grabbing!important;}
 .stand-pin.dragging svg{filter:drop-shadow(0 0 8px rgba(124,58,237,.9))!important;}
@@ -257,7 +257,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #stand-overlay-topbar button{pointer-events:auto;}
 /* STAND OVERLAY — mobil: modal fix peste tot ecranul, indiferent de mărimea hărții */
 #stand-overlay{
-  display:none;z-index:2000;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.85);
+  display:none;z-index:2000;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.5);
   position:fixed;
   /* Ancorat între #hdr (sticky, sus) și #bottom-nav (jos) — NU centrat cu
      top:50%+vh. Cu top ȘI bottom setate simultan pe position:fixed, browserul
@@ -277,7 +277,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #facilitati-overlay-topbar{pointer-events:none;}
 #facilitati-overlay-topbar button{pointer-events:auto;}
 #facilitati-overlay{
-  display:none;z-index:2000;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.85);
+  display:none;z-index:2000;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.5);
   position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
   width:calc(100% - 24px);max-width:480px;max-height:88vh;overflow-y:auto;
   flex-direction:column;}
@@ -884,7 +884,7 @@ html[data-theme="light"] .logo-img-light{display:block;}
   <div id="bazine-grid-section" style="display:none;padding:18px 0;">
     <!-- Harta bălții-mamă (dacă a fost încărcată) — doar imagine statică, fără
          pini/standuri interactive, fiindcă standurile aparțin bazinelor, nu hub-ului. -->
-    <div id="hub-harta-wrap" style="display:none;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:0 0 32px rgba(56,189,248,.25),0 0 8px rgba(56,189,248,.15);">
+    <div id="hub-harta-wrap" style="display:none;border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:0 0 14px rgba(56,189,248,.2);">
       <img id="hub-harta-img" src="" alt="Harta" style="display:block;width:100%;max-height:420px;object-fit:contain;background:var(--zc-bg-tint);"/>
     </div>
     <div style="font-size:17px;font-weight:700;color:var(--zc-text-strong);margin-bottom:12px;">🌊 Bazine</div>
@@ -1328,7 +1328,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 </div>
 
 <div id="info-overlay-backdrop" onclick="closeInfoOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2099;"></div>
-<div id="info-overlay" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2100;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;width:calc(100% - 24px);max-width:480px;max-height:80vh;overflow:hidden;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.85);">
+<div id="info-overlay" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2100;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;width:calc(100% - 24px);max-width:480px;max-height:80vh;overflow:hidden;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.5);">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--zc-border);flex-shrink:0;">
     <span id="info-overlay-title" style="font-weight:800;font-size:16px;color:var(--zc-text-primary);">—</span>
     <button onclick="closeInfoOverlay()" style="background:transparent;border:none;color:var(--zc-text-secondary);font-size:22px;cursor:pointer;line-height:1;">✕</button>
@@ -1350,7 +1350,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
   <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
   <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:var(--zc-border);border:1.5px solid var(--zc-text-dim);color:var(--zc-text-primary);font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
-  <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
+  <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 20px rgba(0,0,0,.6);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
 <div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;">
@@ -1396,7 +1396,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
      nu ajută dacă un părinte apropiat creează propriul context de stivuire;
      aici concurează corect cu orice alt modal, inclusiv #chat-modal. -->
 <div id="zoda-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.4);">
     <div id="zoda-confirm-msg" style="font-size:14px;color:var(--zc-text-primary);line-height:1.5;margin-bottom:18px;white-space:pre-wrap;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;">
       <button id="zoda-confirm-cancel" style="background:none;border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-weight:700;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer;">Anulează</button>
@@ -1445,7 +1445,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 
 <!-- ═══════════ COOKIE NOTICE (info stocare locală strict necesară) ═══════════ -->
 <style>
-#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -8px 32px rgba(0,0,0,.5);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
+#cookie-notice{display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;background:var(--zc-bg-panel);border-top:1px solid var(--zc-border);padding:14px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.4);align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;}
 #cookie-notice.show{display:flex;}
 #cookie-notice-text{font-size:13px;color:var(--zc-text-secondary-2);line-height:1.6;max-width:640px;}
 #cookie-notice-text a{color:#38bdf8;}
@@ -1494,7 +1494,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 .promo-dot.active{background:#38bdf8;transform:scale(1.2);}
 #promo-bar-close{background:transparent;border:none;color:var(--zc-text-muted);font-size:20px;line-height:1;cursor:pointer;padding:6px;flex-shrink:0;}
 #promo-bar-close:hover{color:var(--zc-text-secondary-2);}
-#guest-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4050;background:var(--zc-bg-panel);border:1px solid var(--zc-bg-tint);border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
+#guest-toast{display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:4050;background:var(--zc-bg-panel);border:1px solid var(--zc-bg-tint);border-radius:14px;padding:14px 18px 14px 16px;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:bottom .2s,transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;max-width:calc(100vw - 32px);width:max-content;opacity:0;}
 #guest-toast.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
 .gt-icon{font-size:25px;flex-shrink:0;}
 .gt-text{flex:1;min-width:0;}
