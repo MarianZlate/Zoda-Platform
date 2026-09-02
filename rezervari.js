@@ -1426,9 +1426,16 @@
             text: '', blocat: false,
             // Rundă 34 — folosit doar ca să putem explica exact, la
             // ștergere, de ce clientul rămâne sau nu în listă (cf. mai jos).
-            areRezervari: true
+            areRezervari: true,
+            // Rundă 35 — separat de `areRezervari`: contează DOAR
+            // rezervările online (`sursa !== 'manual_admin'`), actualizat
+            // mai jos la FIECARE rezervare găsită (nu doar la prima), ca să
+            // prindem și cazul unui client cu rezervări mixte (o parte
+            // manuale, o parte online), indiferent de ordinea în care apar.
+            areRezervariOnline: false
           };
         }
+        if (r.sursa !== 'manual_admin') harta[k].areRezervariOnline = true;
       });
       // Rundă 19: o notă poate avea acum un `nume` custom (ex. numele real al
       // unui client telefonic, în loc de „Client telefonic") — dacă există,
@@ -1516,23 +1523,45 @@
             // exista deja, DOCUMENTAT din rundă 19 — „Șterge” elimină DOAR
             // rândul din `note_pescari` (notița, numele custom, blocarea),
             // niciodată istoricul de rezervări. Dacă pescarul are vreo
-            // rezervare la această baltă (manuală sau online, indiferent de
-            // status — cf. §50, „Bază clienți” arată pe oricine a rezervat
-            // vreodată), tot reapare în listă, fără notiță/nume custom — nu
-            // e un bug, dar mesajul vechi ("✓ Șters.") sugera greșit o
-            // ștergere completă, indiferent de caz. Acum mesajul de
-            // confirmare ȘI cel de succes sunt diferite, în funcție de
-            // `p.areRezervari` (calculat mai sus, la construirea listei) —
-            // ca balta_admin să știe DINAINTE dacă clientul chiar va
-            // dispărea complet sau doar îi dispare notița.
-            var mesajConfirmare = p.areRezervari
-              ? 'Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Are rezervări la această baltă, deci rămâne în listă (fără notiță/nume custom) — rezervările lui nu sunt afectate.'
-              : 'Ștergi complet clientul „' + p.nume + '"? Nu are nicio rezervare la această baltă — va dispărea de tot din listă.';
+            // rezervare ONLINE la această baltă, tot reapare în listă, fără
+            // notiță/nume custom — nu e un bug, e rost să nu pierdem istoric
+            // real al unui pescar care chiar a folosit platforma.
+            //
+            // Rundă 35 — Marian a lovit exact cealaltă situație: un client
+            // fără NICIO rezervare activă, dar tot nu putea fi șters —
+            // pentru că avea totuși o rezervare veche (istorică, indiferent
+            // de status) adăugată MANUAL de el însuși. „Bază clienți”
+            // ținea cont de orice rezervare, manuală sau nu, ca să nu piardă
+            // istoricul unui pescar real — dar o rezervare manuală n-are
+            // nimic „real” de păstrat: a scris-o tot balta_admin, nu vine de
+            // la niciun pescar. Acum: dacă TOATE rezervările clientului la
+            // această baltă sunt manuale (nicio rezervare online, niciodată)
+            // — `!p.areRezervariOnline` — ștergerea devine una COMPLETĂ și
+            // DEFINITIVĂ: șterge notița ȘI rezervările lui manuale, prin
+            // RPC-ul nou `sterge_client_manual_complet` (aditiv, nu atinge
+            // nimic existent) — clientul chiar dispare din „Bază clienți”.
+            // Dacă are și o singură rezervare ONLINE, comportamentul vechi
+            // (doar notița) rămâne neschimbat — acolo chiar e istoric real.
+            var esteDoarManual = p.areRezervari && !p.areRezervariOnline;
+            var mesajConfirmare;
+            if (esteDoarManual) {
+              mesajConfirmare = 'Ștergi COMPLET clientul „' + p.nume + '"? Are doar rezervări adăugate manual de tine (nicio rezervare online) — se șterg definitiv, ireversibil, notița ȘI toate rezervările lui manuale de la această baltă.';
+            } else if (p.areRezervari) {
+              mesajConfirmare = 'Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Are rezervări online la această baltă, deci rămâne în listă (fără notiță/nume custom) — rezervările lui nu sunt afectate.';
+            } else {
+              mesajConfirmare = 'Ștergi complet clientul „' + p.nume + '"? Nu are nicio rezervare la această baltă — va dispărea de tot din listă.';
+            }
             if (!confirm(mesajConfirmare)) return;
             try {
-              var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
-              if (resD.error) throw resD.error;
-              toast(p.areRezervari ? '✓ Notița a fost ștearsă (clientul rămâne — are rezervări).' : '✓ Client șters complet.');
+              if (esteDoarManual) {
+                var resDC = await sb.rpc('sterge_client_manual_complet', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
+                if (resDC.error) throw resDC.error;
+                toast('✓ Client șters definitiv (notiță + rezervări manuale).');
+              } else {
+                var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
+                if (resD.error) throw resD.error;
+                toast(p.areRezervari ? '✓ Notița a fost ștearsă (clientul rămâne — are rezervări online).' : '✓ Client șters complet.');
+              }
               renderTabModerare();
             } catch (e) { toast(e.message || 'Eroare la ștergere.', true); }
           };
