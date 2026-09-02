@@ -451,7 +451,22 @@
          neschimbate — Marian a cerut explicit „linia dintre standuri”, nu
          toate liniile grid-ului. Pe dark, separatorul de rând era deja gri
          ('#64748b', cf. rundă 31) — nu mai are nevoie de nicio schimbare. */
-      .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1.5px solid #0f172a;border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1.5px solid #0f172a;border-radius:10px;-webkit-overflow-scrolling:touch;scrollbar-width:auto;scrollbar-color:#0891b2 var(--zc-bg-panel,#111827);}
+      /* Rundă 40 — cerere explicită a lui Marian: bara de scroll orizontală
+         (jos, pe grid) se ascundea — pe multe sisteme (mai ales macOS),
+         scrollbar-ul implicit al browser-ului e „overlay”, subțire și
+         invizibil până începi să dai scroll, ceea ce ascunde complet
+         indiciul că mai sunt zile de văzut la dreapta. Definirea explicită
+         a '::-webkit-scrollbar' de mai jos scoate Chrome/Edge/Safari din
+         modul „overlay” și-l trece pe stilul „clasic” — desenat mereu, nu
+         doar la hover/scroll (efect secundar cunoscut al acestei proprietăți
+         — simpla ei prezență schimbă comportamentul, nu doar aspectul).
+         'scrollbar-width:auto' (nu 'thin', nu 'none') + 'scrollbar-color'
+         de mai sus fac același lucru pentru Firefox. */
+      .rez-cal-scroll::-webkit-scrollbar{height:14px;width:14px;}
+      .rez-cal-scroll::-webkit-scrollbar-track{background:var(--zc-bg-panel,#111827);}
+      .rez-cal-scroll::-webkit-scrollbar-thumb{background:#0891b2;border-radius:7px;border:3px solid var(--zc-bg-panel,#111827);}
+      .rez-cal-scroll::-webkit-scrollbar-thumb:hover{background:#0e7490;}
       .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid #0f172a;border-bottom:2px solid #94a3b8;display:flex;align-items:center;z-index:2;}
       /* Rândul de antet (colț + zile) — sticky pe verticală (rămâne vizibil
          la scroll în jos), fundal opac ca să acopere rândurile care trec pe
@@ -1037,6 +1052,11 @@
 
   async function randeazaPanouAdmin(baltaId, baltaNume, containerEl) {
     injectStylesOnce();
+    // Oprim orice refresh automat rămas de la o randare anterioară a
+    // panoului (ex. schimbare de baltă) — altfel, la fiecare apel al
+    // acestei funcții, s-ar mai porni un `setInterval` peste cel vechi,
+    // fără să-l oprească, și ar rămâne mai multe active simultan.
+    opresteRefreshAutomatCereri();
     _adminBaltaId = baltaId; _adminBaltaNume = baltaNume; _adminTabCurent = 'cereri'; _adminMultiplu = false;
 
     // Rundă 36 — '.rez-admin-layout' înfășoară tab-urile + conținutul, ca
@@ -1047,7 +1067,7 @@
       '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
       '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
-      '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program sezonier</button>' +
+      '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program</button>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div></div>';
 
@@ -1066,6 +1086,11 @@
   }
 
   function schimbaTabAdmin(tab) {
+    // La ieșirea din „Cereri" (spre orice alt tab), oprim refresh-ul automat
+    // — n-are rost să continue să bată RPC-ul din fundal cât timp
+    // balta_admin se uită în altă parte; `renderTabCereri()` îl repornește
+    // oricum, dacă revine.
+    if (tab !== 'cereri') opresteRefreshAutomatCereri();
     _adminTabCurent = tab;
     document.querySelectorAll('.rez-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tab); });
     renderTabAdminCurent();
@@ -1115,27 +1140,79 @@
     return '<span class="rez-nume-pescar">' + escH(nume) + '</span>' + telefon + strikeHtml;
   }
 
+  // Rundă 40 — cerere explicită a lui Marian: „tab-ul de cereri sa isi dea
+  // refresh singur... fara sa mai fie nevoie sa dam refresh la pagina”. Cât
+  // timp tab-ul „Cereri" e activ, se reface lista automat, la fiecare
+  // CERERI_POLL_MS — nu am folosit Supabase Realtime (ar fi însemnat o
+  // conexiune nouă, cu propriile ei condiții de eșec/reconectare, netestate
+  // în această sesiune) — un `setInterval` simplu, peste RPC-ul deja
+  // existent (`listeaza_rezervari_balta`), e suficient de fiabil și mult
+  // mai ușor de verificat. Ca să nu deranjeze balta_admin-ul cu re-randări
+  // fără rost (flicker la fiecare 20s chiar și când nu s-a schimbat nimic),
+  // lista de ID-uri e comparată înainte de orice re-randare — doar o
+  // schimbare REALĂ (cerere nouă apărută, sau dispărută — ex. rezolvată
+  // dintr-un alt tab deschis de același admin, în alt tab de browser)
+  // declanșează redesenarea; o cerere nouă, apărută între timp, mai
+  // primește și un toast, ca balta_admin să observe imediat, chiar dacă nu
+  // se uită fix la ecran.
+  var _cereriPollTimer = null;
+  var _cereriIdsAnterior = null; // string, id-uri sortate, unite prin ',' — null = nu s-a randat încă
+  var CERERI_POLL_MS = 20000;
+
+  function opresteRefreshAutomatCereri() {
+    if (_cereriPollTimer) { clearInterval(_cereriPollTimer); _cereriPollTimer = null; }
+  }
+
+  function pornesteRefreshAutomatCereri() {
+    opresteRefreshAutomatCereri();
+    _cereriPollTimer = setInterval(async function () {
+      // Apărare suplimentară — dacă din orice motiv timer-ul n-a fost oprit
+      // la schimbarea tab-ului (nu ar trebui să se întâmple, cf.
+      // `schimbaTabAdmin`, dar mai bine verificăm), nu mai randăm peste un
+      // alt tab activ.
+      if (_adminTabCurent !== 'cereri') { opresteRefreshAutomatCereri(); return; }
+      try {
+        var toate = await fetchRezervariBalta();
+        var cereri = toate.filter(function (r) { return r.status === 'in_asteptare'; });
+        var idsAnteriorStr = _cereriIdsAnterior;
+        var idsAcumStr = cereri.map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }).join(',');
+        if (idsAcumStr === idsAnteriorStr) return; // nimic nou — nicio redesenare
+        var idsAnteriorSet = idsAnteriorStr ? idsAnteriorStr.split(',') : [];
+        var apareCerereNoua = cereri.some(function (r) { return idsAnteriorSet.indexOf(String(r.id)) === -1; });
+        randeazaListaCereri(cereri);
+        _cereriIdsAnterior = idsAcumStr;
+        if (apareCerereNoua) toast('🔔 Cerere nouă de rezervare.');
+      } catch (e) { /* eșec silențios — un refresh de fundal ratat nu trebuie să deranjeze balta_admin-ul cu un toast de eroare; încearcă din nou la următorul ciclu */ }
+    }, CERERI_POLL_MS);
+  }
+
+  function randeazaListaCereri(cereri) {
+    if (!cereri.length) { setModalBody('<div class="rez-empty">Nicio cerere în așteptare.</div>'); return; }
+    setModalBody(cereri.map(function (r) {
+      return '<div class="rez-list-item">' +
+        '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-in_asteptare">în așteptare</span></div>' +
+        '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
+        '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:8px;">' +
+          '<button class="rez-btn" style="background:#166534;" id="rez-aproba-' + r.id + '">✓ Aprobă</button>' +
+          '<button class="rez-btn rez-btn-danger" id="rez-respinge-' + r.id + '">✕ Respinge</button>' +
+        '</div>' +
+      '</div>';
+    }).join(''));
+    cereri.forEach(function (r) {
+      document.getElementById('rez-aproba-' + r.id).onclick = function () { aprobaCerere(r.id); };
+      document.getElementById('rez-respinge-' + r.id).onclick = function () { respingeCerere(r.id); };
+    });
+  }
+
   async function renderTabCereri() {
     setModalBody('<div class="rez-empty">Se încarcă...</div>');
     try {
       var toate = await fetchRezervariBalta();
       var cereri = toate.filter(function (r) { return r.status === 'in_asteptare'; });
-      if (!cereri.length) { setModalBody('<div class="rez-empty">Nicio cerere în așteptare.</div>'); return; }
-      setModalBody(cereri.map(function (r) {
-        return '<div class="rez-list-item">' +
-          '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-in_asteptare">în așteptare</span></div>' +
-          '<div style="margin:4px 0;">' + identitatePescar(r) + '</div>' +
-          '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
-          '<div style="display:flex;gap:8px;margin-top:8px;">' +
-            '<button class="rez-btn" style="background:#166534;" id="rez-aproba-' + r.id + '">✓ Aprobă</button>' +
-            '<button class="rez-btn rez-btn-danger" id="rez-respinge-' + r.id + '">✕ Respinge</button>' +
-          '</div>' +
-        '</div>';
-      }).join(''));
-      cereri.forEach(function (r) {
-        document.getElementById('rez-aproba-' + r.id).onclick = function () { aprobaCerere(r.id); };
-        document.getElementById('rez-respinge-' + r.id).onclick = function () { respingeCerere(r.id); };
-      });
+      randeazaListaCereri(cereri);
+      _cereriIdsAnterior = cereri.map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }).join(',');
+      pornesteRefreshAutomatCereri();
     } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
   }
 
@@ -1247,12 +1324,16 @@
         var ziua = new Date(rangeStart.getTime() + i * 86400000);
         var esteWeekend = (ziua.getDay() === 0 || ziua.getDay() === 6);
         var esteAzi = ziua.getTime() === azi.getTime();
-        var esteInceputLuna = (ziua.getDate() === 1 || i === 0);
         // Rundă 30: luna + numărul zilei pe UN singur rând ('.rez-cal-datanum'),
         // nu pe 2 (luna deasupra, ca înainte) — ca toate celulele de antet
-        // să aibă aceeași înălțime, indiferent dacă e sau nu prima zi a
-        // lunii afișate.
-        var etichetaZi = (esteInceputLuna ? '<span class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</span> ' : '') + ziua.getDate();
+        // să aibă aceeași înălțime.
+        // Rundă 40 — cerere explicită a lui Marian: luna apare acum pe
+        // FIECARE celulă, nu doar la începutul unei luni noi (cf. rundă 30,
+        // 'esteInceputLuna', scoasă acum) — „sept 01, sept 02, etc.” — ca
+        // să fie limpede din ce lună e fiecare zi, fără să trebuiască să
+        // cauți înapoi până la ultima etichetă de lună vizibilă. Numărul
+        // zilei, cu zero în față (`01`, nu `1`), exact ca-n exemplul dat.
+        var etichetaZi = '<span class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</span> ' + String(ziua.getDate()).padStart(2, '0');
         headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '" style="width:' + DAY_W + 'px;">' +
           '<div class="rez-cal-datanum">' + etichetaZi + '</div>' +
           '<div class="rez-cal-subrow"><div class="rez-cal-subcell">Zi</div><div class="rez-cal-subcell noapte">Noapte</div></div>' +
@@ -1323,7 +1404,10 @@
         // culoare în legendă pe care bara însăși n-o mai arată.
         '<div class="rez-legend"><span><i class="rez-dot" style="background:#22c55e;"></i>Rezervare</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
         '<div class="rez-cal-scroll" style="grid-template-columns:' + LABEL_W + 'px ' + trackW + 'px;">' +
-          '<div class="rez-cal-label rez-cal-corner rez-cal-header-cell"></div>' +
+          // Rundă 40 — cerere explicită a lui Marian: colțul din stânga-sus,
+          // gol până acum, arată acum eticheta „Standuri” — ca să fie clar,
+          // fără ambiguitate, ce reprezintă coloana de dedesubt.
+          '<div class="rez-cal-label rez-cal-corner rez-cal-header-cell">Standuri</div>' +
           '<div class="rez-cal-track rez-cal-daynums rez-cal-header-cell">' + headerCells + '</div>' +
           randuriStanduri +
         '</div>';
