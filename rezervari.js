@@ -363,7 +363,7 @@
          randare ('renderTabCalendar'), pentru că depind de intervalul de
          zile afișat. */
       .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1px solid var(--zc-border,#1e293b);border-radius:10px;-webkit-overflow-scrolling:touch;}
-      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:1px solid var(--zc-border,#1e293b);border-bottom:1px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
+      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid var(--zc-border,#1e293b);border-bottom:2px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
       /* Rândul de antet (colț + zile) — sticky pe verticală (rămâne vizibil
          la scroll în jos), fundal opac ca să acopere rândurile care trec pe
          sub el. Colțul ('.rez-cal-corner', care combină și clasa
@@ -371,6 +371,19 @@
          cel mai mare — e „intersecția" celor două benzi fixe. */
       .rez-cal-header-cell{position:sticky;top:0;z-index:3;background:var(--zc-bg,#0a0f1a);background-image:none;}
       .rez-cal-corner{z-index:4;}
+      /* Rundă 30 — bug real, prins acum la cererea lui Marian de a bloca
+         antetul la scroll vertical: rândul de zile ('.rez-cal-daynums',
+         care are și clasa '.rez-cal-header-cell' de mai sus) NU rămânea de
+         fapt fixat la scroll în jos, deși regula de mai sus îi punea deja
+         'position:sticky'. Motiv: elementul are și clasa '.rez-cal-track'
+         (mai jos), a cărei regulă declară 'position:relative' — aceeași
+         specificitate CSS (o singură clasă) ca '.rez-cal-header-cell', dar
+         declarată MAI JOS în foaia de stil, deci câștigă cascada și
+         suprascrie 'sticky' cu 'relative'. Regula de mai jos, cu 2 clase
+         combinate, are specificitate mai mare și câștigă indiferent de
+         ordinea din fișier — nu mai depinde de a nu muta regulile una
+         față de alta pe viitor. */
+      .rez-cal-daynums.rez-cal-header-cell{position:sticky;top:0;}
       /* Rundă 29 — cerere explicită a lui Marian: grila mai vizibilă, cu
          fiecare zi împărțită în 2 subcoloane egale — Zi (ora_zi_start,
          implicit 06:00, până la ora_zi_start+12h) și Noapte (restul de 12h,
@@ -386,16 +399,28 @@
          ora_zi_start a bălții (nu și eventualele reguli sezoniere care pot
          suprascrie orele pe interval de date, §34) — un compromis conștient,
          ca headerul să nu recalculeze reguli pentru fiecare zi afișată. */
-      .rez-cal-track{position:relative;height:34px;border-bottom:1px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 99px, rgba(148,163,184,.35) 99px, rgba(148,163,184,.35) 100px, transparent 100px, transparent 199px, var(--zc-border,#1e293b) 199px, var(--zc-border,#1e293b) 200px);}
+      /* Rundă 30 — cerere explicită a lui Marian: grila mai vizibilă, cu
+         liniile dintre zile ȘI cele dintre standuri mai groase (2px, față
+         de 1/1.5px înainte pe toate). Linia dintre subcoloanele Zi/Noapte
+         (mai puțin importantă vizual, e doar o jumătate de zi) rămâne mai
+         subțire ca să nu concureze cu linia dintre zile întregi. */
+      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(148,163,184,.45) 98px, rgba(148,163,184,.45) 100px, transparent 100px, transparent 198px, var(--zc-border,#1e293b) 198px, var(--zc-border,#1e293b) 200px);}
       .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
       /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
          suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
          propriile celule cu 'border-right', cf. '.rez-cal-daycell'; ordinea
          contează, ambele reguli au aceeași specificitate). */
       .rez-cal-daynums{height:auto;display:flex;background-image:none;}
-      .rez-cal-daycell{flex:0 0 auto;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:1.5px solid var(--zc-border,#1e293b);padding:4px 0 0;}
+      .rez-cal-daycell{flex:0 0 auto;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:2px solid var(--zc-border,#1e293b);padding:4px 0 0;}
       .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
       .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
+      /* Rundă 30: luna nu mai e pe rândul ei propriu (deasupra numărului
+         zilei) — devine un prefix, pe ACELAȘI rând, doar la zilele unde
+         apare ('.rez-cal-datanum', un singur 'div', cu 'luna' ca 'span'
+         inline în interior). Înainte, ziua cu lună (începutul unei luni)
+         avea un rând în plus față de restul zilelor, deci antetul „sărea"
+         vizual în înălțime de la o zi la alta — exact ce a semnalat Marian. */
+      .rez-cal-datanum{white-space:nowrap;}
       .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
       /* Sub-rândul cu cele 2 subcoloane, Zi/Noapte, sub numărul zilei. */
       .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid var(--zc-border,rgba(30,41,59,.5));}
@@ -1065,9 +1090,13 @@
         var esteWeekend = (ziua.getDay() === 0 || ziua.getDay() === 6);
         var esteAzi = ziua.getTime() === azi.getTime();
         var esteInceputLuna = (ziua.getDate() === 1 || i === 0);
+        // Rundă 30: luna + numărul zilei pe UN singur rând ('.rez-cal-datanum'),
+        // nu pe 2 (luna deasupra, ca înainte) — ca toate celulele de antet
+        // să aibă aceeași înălțime, indiferent dacă e sau nu prima zi a
+        // lunii afișate.
+        var etichetaZi = (esteInceputLuna ? '<span class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</span> ' : '') + ziua.getDate();
         headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '" style="width:' + DAY_W + 'px;">' +
-          (esteInceputLuna ? '<div class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</div>' : '') +
-          '<div>' + ziua.getDate() + '</div>' +
+          '<div class="rez-cal-datanum">' + etichetaZi + '</div>' +
           '<div class="rez-cal-subrow"><div class="rez-cal-subcell">Zi</div><div class="rez-cal-subcell noapte">Noapte</div></div>' +
         '</div>';
       }
