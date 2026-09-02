@@ -1530,7 +1530,7 @@ async function loadPescarData(zodaId) {
   //    captură mai nouă pe același stand).
   const { data: capturiMele } = await sb
     .from('capturi')
-    .select('id, kg, foto_url, foto_dovada_url, data_captura, balta_id, stand_id, balti(nume), standuri(nume, rec_captura_id)')
+    .select('id, kg, foto_url, foto_dovada_url, data_captura, balta_id, stand_id, balti(nume), standuri!stand_id(nume, rec_captura_id)')
     .eq('pescar_id', zodaId)
     .eq('status', 'approved')
     .eq('sters', false);
