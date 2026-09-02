@@ -1302,11 +1302,26 @@
 
     var a = document.getElementById('rez-cal-anuleaza-' + r.id);
     if (a) a.onclick = async function () {
-      var motiv = prompt('Motiv anulare (obligatoriu — pescarul va fi notificat):');
-      if (motiv === null) return; // a apăsat Cancel la prompt
-      if (!motiv.trim()) { toast('Motivul anulării e obligatoriu.', true); return; }
+      // Rundă 33 — cerere explicită a lui Marian: la o rezervare adăugată
+      // MANUAL de balta_admin (`r.sursa === 'manual_admin'`, cf. §16), n-are
+      // sens să i se ceară un motiv de anulare — n-a existat nicio cerere
+      // online, aprobată separat, în spatele ei; balta_admin e singurul care
+      // a introdus-o și tot el o anulează. Motivul rămâne OBLIGATORIU doar
+      // pentru rezervările online (create de pescar, prin cerere) — acolo
+      // chiar ajunge la pescar, într-o notificare, cf. mesajului din prompt.
+      var esteManuala = r.sursa === 'manual_admin';
+      var motiv;
+      if (esteManuala) {
+        if (!confirm('Sigur anulezi această rezervare?')) return;
+        motiv = 'Anulată de administratorul bălții.';
+      } else {
+        var motivIntrodus = prompt('Motiv anulare (obligatoriu — pescarul va fi notificat):');
+        if (motivIntrodus === null) return; // a apăsat Cancel la prompt
+        if (!motivIntrodus.trim()) { toast('Motivul anulării e obligatoriu.', true); return; }
+        motiv = motivIntrodus.trim();
+      }
       try {
-        var res = await sb.rpc('anuleaza_rezervare_admin', { p_rezervare_id: r.id, p_motiv: motiv.trim() });
+        var res = await sb.rpc('anuleaza_rezervare_admin', { p_rezervare_id: r.id, p_motiv: motiv });
         if (res.error) throw res.error;
         toast('Rezervare anulată.');
         closeModal();
