@@ -1102,6 +1102,12 @@ th,td{padding:8px 6px;}
           </div>
           <div id="ab-search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:10px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;"></div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;color:#4b5563;white-space:nowrap;">sau coordonate:</span>
+          <input id="ab-lat-input" type="text" inputmode="decimal" placeholder="lat (ex: 46.20388)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+          <input id="ab-lng-input" type="text" inputmode="decimal" placeholder="lng (ex: 27.12829)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+          <button onclick="abApplyManualCoords()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">✓ Aplică</button>
+        </div>
         <div id="ab-map"></div>
         <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:13px;">
           <span style="font-size:18px;">🎯</span>
@@ -4274,6 +4280,12 @@ function buildEditBody(b, ext) {
         </div>
         <div id="eb-search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:10px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;"></div>
       </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;color:#4b5563;white-space:nowrap;">sau coordonate:</span>
+        <input id="eb-lat-input" type="text" inputmode="decimal" placeholder="lat (ex: 46.20388)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <input id="eb-lng-input" type="text" inputmode="decimal" placeholder="lng (ex: 27.12829)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <button onclick="ebApplyManualCoords()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">✓ Aplică</button>
+      </div>
       <div id="eb-map"></div>
       <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:13px;">
         <span style="font-size:18px;">🎯</span>
@@ -5670,7 +5682,9 @@ function discardDraft(){try{localStorage.removeItem(DRAFT_KEY);}catch(e){}docume
 function initAbMap(){
   if(abMap){abMap.invalidateSize();return;}
   abMap=L.map('ab-map',{center:[45.5,24.8],zoom:7});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(abMap);
+  const abOsmLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(abMap);
+  const abSatLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',maxZoom:19});
+  addSatToggle(abMap,abOsmLayer,abSatLayer);
   abMap.on('click',e=>{
     abCoords=e.latlng;
     document.getElementById('ab-coord-display').textContent='✓ Marcat: '+abCoords.lat.toFixed(5)+'°N, '+abCoords.lng.toFixed(5)+'°E';
@@ -5690,6 +5704,38 @@ function initAbMap(){
   }
 }
 function pinIcon(){return L.divIcon({className:'',html:`<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8));display:block;"><path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="#f59e0b"/><circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/><text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white">📍</text></svg>`,iconSize:[30,40],iconAnchor:[15,40]});}
+// Buton de comutare hartă standard (OSM) ↔ satelit (Esri World Imagery) — multe bălți
+// mici/private nu sunt desenate deloc pe OSM (nu sunt introduse în baza lor de date),
+// deci fără vedere satelitară nu se pot repera vizual pentru plasarea exactă a pinului.
+function addSatToggle(map,osmLayer,satLayer){
+  let isSat=false;
+  const ctrl=L.control({position:'topright'});
+  ctrl.onAdd=function(){
+    const div=L.DomUtil.create('div');
+    div.innerHTML='<button type="button" style="background:#111827;border:1.5px solid #1e293b;color:#38bdf8;font-weight:700;font-size:12px;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);">🛰️ Satelit</button>';
+    L.DomEvent.disableClickPropagation(div);
+    const btn=div.firstChild;
+    btn.onclick=function(){
+      if(isSat){map.removeLayer(satLayer);map.addLayer(osmLayer);isSat=false;btn.textContent='🛰️ Satelit';}
+      else{map.removeLayer(osmLayer);map.addLayer(satLayer);isSat=true;btn.textContent='🗺️ Standard';}
+    };
+    return div;
+  };
+  ctrl.addTo(map);
+}
+function abApplyManualCoords(){
+  const latEl=document.getElementById('ab-lat-input'),lngEl=document.getElementById('ab-lng-input');
+  const lat=parseFloat((latEl.value||'').replace(',','.')),lng=parseFloat((lngEl.value||'').replace(',','.'));
+  if(!isFinite(lat)||!isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Coordonate invalide. Introdu latitudine (-90..90) și longitudine (-180..180) în cele două câmpuri.');return;}
+  abCoords={lat,lng};
+  document.getElementById('ab-coord-display').textContent='✓ Marcat: '+lat.toFixed(5)+'°N, '+lng.toFixed(5)+'°E';
+  document.getElementById('ab-coord-display').style.color='#38bdf8';
+  document.getElementById('ab-coord-clear').style.display='inline';
+  if(abMarker)abMap.removeLayer(abMarker);
+  abMarker=L.marker([lat,lng],{icon:pinIcon()}).addTo(abMap);
+  abMap.flyTo([lat,lng],17,{duration:1});
+  latEl.value='';lngEl.value='';
+}
 
 let abSearchTimeout=null;
 function abSearchInput(val){document.getElementById('ab-search-clear').style.display=val?'block':'none';clearTimeout(abSearchTimeout);if(!val.trim()){document.getElementById('ab-search-results').style.display='none';return;}abSearchTimeout=setTimeout(()=>abDoSearch(true),400);}
@@ -5724,7 +5770,9 @@ document.addEventListener('click',e=>{const w=document.getElementById('pane-2');
 function initEbMap(lat, lng){
   if(!ebMap){
     ebMap = L.map('eb-map', { center: [lat||45.5, lng||24.8], zoom: (lat&&lng) ? 14 : 7 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(ebMap);
+    const ebOsmLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(ebMap);
+    const ebSatLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',maxZoom:19});
+    addSatToggle(ebMap,ebOsmLayer,ebSatLayer);
     ebMap.on('click', e=>{
       ebCoords = e.latlng;
       document.getElementById('eb-coord-display').textContent='✓ Marcat: '+ebCoords.lat.toFixed(5)+'°N, '+ebCoords.lng.toFixed(5)+'°E';
@@ -5751,6 +5799,19 @@ function initEbMap(lat, lng){
     document.getElementById('eb-coord-display').style.color='#4b5563';
     document.getElementById('eb-coord-clear').style.display='none';
   }
+}
+function ebApplyManualCoords(){
+  const latEl=document.getElementById('eb-lat-input'),lngEl=document.getElementById('eb-lng-input');
+  const lat=parseFloat((latEl.value||'').replace(',','.')),lng=parseFloat((lngEl.value||'').replace(',','.'));
+  if(!isFinite(lat)||!isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Coordonate invalide. Introdu latitudine (-90..90) și longitudine (-180..180) în cele două câmpuri.');return;}
+  ebCoords={lat,lng};
+  document.getElementById('eb-coord-display').textContent='✓ Marcat: '+lat.toFixed(5)+'°N, '+lng.toFixed(5)+'°E';
+  document.getElementById('eb-coord-display').style.color='#38bdf8';
+  document.getElementById('eb-coord-clear').style.display='inline';
+  if(ebMarker)ebMap.removeLayer(ebMarker);
+  ebMarker=L.marker([lat,lng],{icon:pinIcon()}).addTo(ebMap);
+  ebMap.flyTo([lat,lng],17,{duration:1});
+  latEl.value='';lngEl.value='';
 }
 function ebResetToOriginal(){
   const b = editBaltaData;
