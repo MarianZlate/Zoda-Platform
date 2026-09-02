@@ -50,10 +50,23 @@
     _toastEl._t = setTimeout(function () { _toastEl.style.display = 'none'; }, 3800);
   }
 
+  // Format unic de dată pentru tot ce ține de rezervări — 'dd-mm-yyyy'
+  // (rundă 32, cerere explicită a lui Marian: „data la rezervari sa fie
+  // afisata peste tot dd-mm-yyyy"). Înainte, `toLocaleDateString('ro-RO', ...)`
+  // producea 'dd.mm.yyyy' (cu punct, formatul implicit românesc din motorul
+  // JS, nu cu liniuță) — de aceea data era construită manual, cifră cu
+  // cifră, nu prin locale, ca separatorul să fie garantat liniuța cerută,
+  // indiferent de mediul de rulare (browser/motor JS) al vizitatorului.
+  function fmtDataDDMMYYYY(d) {
+    var zi = String(d.getDate()).padStart(2, '0');
+    var luna = String(d.getMonth() + 1).padStart(2, '0');
+    return zi + '-' + luna + '-' + d.getFullYear();
+  }
+
   function fmtDataOra(iso) {
     if (!iso) return '—';
     var d = new Date(iso);
-    return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }) +
+    return fmtDataDDMMYYYY(d) +
       ' ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
   }
 
@@ -65,7 +78,7 @@
   function fmtDataOraColorat(iso) {
     if (!iso) return '—';
     var d = new Date(iso);
-    var dataStr = d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    var dataStr = fmtDataDDMMYYYY(d);
     var oraStr = d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     return '<span class="rez-data-part">' + dataStr + '</span> <span class="rez-ora-part">' + oraStr + '</span>';
   }
@@ -1528,7 +1541,7 @@
   // de modalul pescarului (balta.html) și de tab-ul „Adaugă manual" de mai
   // sus, prin `calculeazaIntervalSesiune`/`motivIndisponibilSesiune` — nu
   // există o a doua copie a logicii de rezolvare.
-  function fmtDataScurta(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }) : null; }
+  function fmtDataScurta(d) { return d ? fmtDataDDMMYYYY(new Date(d + 'T00:00:00')) : null; }
 
   async function renderTabProgram() {
     setModalBody('<div class="rez-empty">Se încarcă...</div>');
