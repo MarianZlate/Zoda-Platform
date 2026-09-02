@@ -2253,7 +2253,7 @@ async function loadCapturiModerare() {
   panel.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-faint);font-size:13px;padding:20px 0;">Se încarcă...</div>';
   try {
     var { data, error } = await sb.from('capturi')
-      .select('id, kg, pescar_nume, data_captura, foto_url, foto_dovada_url, stand_id, standuri(nume)')
+      .select('id, kg, pescar_nume, data_captura, foto_url, foto_dovada_url, stand_id, standuri!stand_id(nume)')
       .eq('balta_id', MOD_BALTA_ID)
       .eq('status', 'approved')
       .eq('sters', false)
@@ -3614,7 +3614,7 @@ async function loadCapturi() {
   // sunt "active" vs. "trecute" atunci când am mai multe pe același stand.
   const { data: capturi } = await sb
     .from('capturi')
-    .select('id, kg, specie, data_captura, foto_url, foto_dovada_url, stand_id, balta_id, standuri(nume, rec_captura_id), balti(nume, judet)')
+    .select('id, kg, specie, data_captura, foto_url, foto_dovada_url, stand_id, balta_id, standuri!stand_id(nume, rec_captura_id), balti(nume, judet)')
     .eq('pescar_id', zodaId)
     .eq('status', 'approved')
     .eq('sters', false)
