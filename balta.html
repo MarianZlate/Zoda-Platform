@@ -1727,7 +1727,7 @@ function openCerereCaptura() {
   if (sel) {
     sel.innerHTML = '<option value="">Selectează standul...</option>' +
       (window.ST || []).slice().sort(function(a, b) { return (a.nr || 0) - (b.nr || 0); })
-        .map(function(s) { return '<option value="' + s.id + '">Stand ' + (s.nr != null ? s.nr : '') + ' — ' + (s.z || '') + '</option>'; })
+        .map(function(s) { return '<option value="' + s.id + '">' + (s.z || ('Stand ' + (s.nr != null ? s.nr : ''))) + '</option>'; })
         .join('');
   }
   var dataSel = document.getElementById('cc-data');
