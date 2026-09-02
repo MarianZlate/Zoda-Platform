@@ -2271,7 +2271,7 @@ async function loadTopSaptamanal() {
   var capturiListEl = document.getElementById('saptamanal-capturi-list');
   try {
     var { data: capturi } = await withTimeout(sb.from('capturi')
-      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, foto_dovada_url, balta_id, data_captura, standuri(nume), balti(nume)')
+      .select('id, kg, specie, pescar_nume, pescar_id, foto_url, foto_dovada_url, balta_id, data_captura, standuri!stand_id(nume), balti(nume)')
       .eq('status', 'approved')
       .eq('sters', false)
       .gte('data_captura', luniDataLocala)
@@ -2432,7 +2432,7 @@ async function loadCapturiRecente() {
   var track = document.getElementById('cr-track');
   try {
     var res = await sb.from('capturi')
-      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, balta_id, standuri(nume), balti(nume)')
+      .select('id, kg, pescar_nume, pescar_id, data_captura, foto_url, foto_dovada_url, balta_id, standuri!stand_id(nume), balti(nume)')
       .eq('status', 'approved')
       .eq('sters', false)
       .order('created_at', { ascending: false })
