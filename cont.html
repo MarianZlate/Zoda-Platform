@@ -3490,8 +3490,8 @@ function deseneazaCardCaptura(c) {
       ctx.shadowColor = 'rgba(0,0,0,.6)';
       ctx.shadowBlur = 5 * vScale;
       ctx.shadowOffsetY = 1;
-      ctx.textAlign = 'left';
-      ctx.fillText(balta.text, marginX, H - bandH + 38 * vScale);
+      ctx.textAlign = 'center';
+      ctx.fillText(balta.text, W / 2, H - bandH + 38 * vScale);
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
@@ -3523,28 +3523,44 @@ function deseneazaCardCaptura(c) {
     const captionBaseline = H - bandH + 78 * vScale;
     const captionFit = fitLine(caption, '600', 30 * vScale, maxTextWidth, 15 * vScale);
 
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.font = '600 ' + captionFit.size + 'px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,.5)';
     ctx.shadowBlur = 4 * vScale;
     ctx.shadowOffsetY = 1;
-    ctx.fillText(captionFit.text, marginX, captionBaseline);
+    ctx.fillText(captionFit.text, W / 2, captionBaseline);
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
 
-    // ── Rândul 3 (propriul rând, sub caption): logo + ".ro" lipit imediat
-    //    lângă el, ancorate în colțul din dreapta-jos al cardului — ca o
-    //    prelungire naturală a "ZODA", nu centrate pe mijlocul benzii ──
+    // ── Sigla ZODA.ro — mutată în colțul din dreapta-SUS al cardului (la
+    //    cererea lui Marian, 2026-09-02): pe bandă jos nu prea se vedea când
+    //    poza era distribuită mai departe, fiindcă multe aplicații acoperă
+    //    partea de jos a imaginii cu propria interfață (caption, meniuri).
+    //    Un fundal semi-transparent în spatele siglei garantează contrastul
+    //    indiferent ce e în poză în colțul acela (cer senin, apă, verdeață).
     const logoH = 38 * vScale;
     const logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
-    const bottomMargin = 20 * vScale;
-    const logoY = H - bottomMargin - logoH;
     const roFontSize = logoH * 0.58;
+    ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
+    const roWidth = ctx.measureText('.ro').width;
+
+    const padX = 16 * vScale, padY = 11 * vScale;
+    const edgeMargin = 24 * vScale;
+    const contentW = logoW + (logoImg ? 2 : 0) + roWidth;
+    const scrimW = contentW + padX * 2;
+    const scrimH = logoH + padY * 2;
+    const scrimX = W - edgeMargin - scrimW;
+    const scrimY = edgeMargin;
+    ctx.fillStyle = 'rgba(4,7,12,.5)';
+    ctx.fillRect(scrimX, scrimY, scrimW, scrimH);
+
+    const logoY = scrimY + padY;
     // Baza lui ".ro" se aliniază la baza cuvântului "ZODA" (marginea de jos a
     // logo-ului), nu la mijlocul lui — citește ca o prelungire firească a
     // wordmark-ului, gen "ZODA.ro" scris pe același rând de bază.
     const roBaselineY = logoY + logoH;
+    const roRight = scrimX + scrimW - padX;
 
     ctx.save();
     ctx.textAlign = 'right';
@@ -3554,14 +3570,13 @@ function deseneazaCardCaptura(c) {
     ctx.miterLimit = 2;
     ctx.strokeStyle = 'rgba(4,7,12,.85)';
     ctx.lineWidth = 4 * vScale;
-    ctx.strokeText('.ro', W - marginX, roBaselineY);
+    ctx.strokeText('.ro', roRight, roBaselineY);
     ctx.fillStyle = '#38bdf8';
-    ctx.fillText('.ro', W - marginX, roBaselineY);
-    const roWidth = ctx.measureText('.ro').width;
+    ctx.fillText('.ro', roRight, roBaselineY);
     ctx.restore();
 
     if (logoImg) {
-      const logoRight = W - marginX - roWidth - 2; // aproape lipit, doar 2px respirație
+      const logoRight = roRight - roWidth - 2; // aproape lipit, doar 2px respirație
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,.6)';
       ctx.shadowBlur = 8 * vScale;
