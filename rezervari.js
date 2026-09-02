@@ -354,6 +354,30 @@
       .rez-tabs-page{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:16px;}
       .rez-tab{flex:0 0 auto;white-space:nowrap;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer;border-radius:9px;}
       .rez-tab.active{color:#0891b2;background:rgba(56,189,248,.12);border-color:#38bdf8;}
+      /* Rundă 36 — cerere explicită a lui Marian: pe desktop, tab-urile
+         (Cereri/Calendar/Adaugă manual/Bază clienți/Program sezonier) mutate
+         lateral, în dreapta conținutului — nu mai ocupă un rând întreg
+         deasupra tabelului, ca să rămână mai multă înălțime verticală
+         pentru grid-ul Gantt (scopul explicit: „sa vedem mai multe
+         informatii in el”). Pe mobil rămân neschimbate, rând orizontal
+         deasupra conținutului — o coloană verticală de butoane n-ar încăpea
+         lizibil pe un ecran îngust.
+         '.rez-admin-layout' înfășoară acum ambele — tab-urile ȘI
+         '#rez-modal-body' — copii DIRECȚI, în această ordine în DOM (tab-uri
+         primul, conținut al doilea). Implicit (mobil), 'flex-direction:column'
+         păstrează exact ordinea vizuală de dinainte (tab-uri sus, conținut
+         dedesubt). Pe desktop, 'row-reverse' inversează doar ordinea VIZUALĂ
+         (nu DOM-ul) — ultimul copil din DOM ('#rez-modal-body') ajunge primul
+         vizual (stânga), primul copil ('.rez-tabs-page') ultimul vizual
+         (dreapta) — exact „lateral, în dreapta tabelului”, fără nicio
+         restructurare de HTML, doar CSS. */
+      .rez-admin-layout{display:flex;flex-direction:column;}
+      @media(min-width:769px){
+        .rez-admin-layout{flex-direction:row-reverse;align-items:flex-start;gap:18px;}
+        .rez-admin-layout > .rez-tabs-page{flex:0 0 176px;flex-direction:column;overflow-x:visible;margin-bottom:0;position:sticky;top:12px;}
+        .rez-admin-layout > .rez-tabs-page > .rez-tab{width:100%;text-align:left;}
+        .rez-admin-layout > #rez-modal-body{flex:1;min-width:0;}
+      }
       .rez-empty{text-align:center;color:var(--zc-text-dim,#4b5563);font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:var(--zc-accent-dark,#0e7490);color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
       /* Grila Gantt (Calendar) — rundă 22: rescrisă de la „un 'display:flex'
@@ -472,6 +496,21 @@
         .rez-cal-bar-info{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;line-height:1.22;overflow:hidden;pointer-events:none;}
         .rez-cal-bar-nume{font-size:11px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-shadow:0 0 3px rgba(255,255,255,.5);}
         .rez-cal-bar-tel{font-size:9.8px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.85;text-shadow:0 0 3px rgba(255,255,255,.5);}
+        /* Rundă 36 — cu tab-urile mutate lateral (mai sus), rândul orizontal
+           de tab-uri nu mai „mănâncă” înălțime deasupra tabelului — profităm
+           de spațiul eliberat ca grid-ul să arate efectiv mai multe rânduri
+           deodată, exact cerința lui Marian („sa vedem mai multe informatii
+           in el”). 'calc()', nu un procent fix din viewport — scade din
+           înălțimea ferestrei chenarele fixe de deasupra tabelului (antetul
+           paginii + padding-ul dashboard-ului + selectorul de baltă +
+           legenda de culori), estimate generos, ca tabelul să nu ajungă sub
+           marginea de jos a ecranului pe ferestre mai scunde. Selector cu 2
+           clase ('.rez-admin-layout .rez-cal-scroll'), NU doar
+           '.rez-cal-scroll' — specificitate mai mare decât regula de bază
+           (o singură clasă, mai sus), câștigă indiferent de ordinea din
+           fișier — exact bug-ul de sticky din rundă 30 (§52), evitat din
+           start de data asta. */
+        .rez-admin-layout .rez-cal-scroll{max-height:calc(100vh - 230px);}
       }
       /* ── Variante DARK — culorile de mai sus (badge-uri, telefon, tab activ,
          ziua curentă din calendar, durata de pe bară) sunt alese să fie
@@ -938,14 +977,17 @@
     injectStylesOnce();
     _adminBaltaId = baltaId; _adminBaltaNume = baltaNume; _adminTabCurent = 'cereri'; _adminMultiplu = false;
 
-    containerEl.innerHTML = '<div class="rez-tabs-page">' +
+    // Rundă 36 — '.rez-admin-layout' înfășoară tab-urile + conținutul, ca
+    // să poată fi rearanjate din CSS (rând, pe mobil; lateral, pe desktop) —
+    // vezi nota din CSS, de lângă '.rez-admin-layout'.
+    containerEl.innerHTML = '<div class="rez-admin-layout"><div class="rez-tabs-page">' +
       '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri</button>' +
       '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
       '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
       '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program sezonier</button>' +
       '</div>' +
-      '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div>';
+      '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div></div>';
 
     var standRes = await sb.from('standuri').select('id, nume').eq('balta_id', baltaId).order('sort_order', { ascending: true, nullsFirst: false }).order('id');
     _adminStanduri = standRes.data || [];
