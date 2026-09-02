@@ -788,8 +788,8 @@ function deseneazaCardCaptura(c) {
       ctx.shadowColor = 'rgba(0,0,0,.6)';
       ctx.shadowBlur = 5 * vScale;
       ctx.shadowOffsetY = 1;
-      ctx.textAlign = 'left';
-      ctx.fillText(balta.text, marginX, H - bandH + 38 * vScale);
+      ctx.textAlign = 'center';
+      ctx.fillText(balta.text, W / 2, H - bandH + 38 * vScale);
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
@@ -815,22 +815,41 @@ function deseneazaCardCaptura(c) {
     var captionBaseline = H - bandH + 78 * vScale;
     var captionFit = fitLine(caption, '600', 30 * vScale, maxTextWidth, 15 * vScale);
 
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.font = '600 ' + captionFit.size + 'px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = 'rgba(0,0,0,.5)';
     ctx.shadowBlur = 4 * vScale;
     ctx.shadowOffsetY = 1;
-    ctx.fillText(captionFit.text, marginX, captionBaseline);
+    ctx.fillText(captionFit.text, W / 2, captionBaseline);
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
 
+    // ── Sigla ZODA.ro — mutată în colțul din dreapta-SUS al cardului (la
+    //    cererea lui Marian, 2026-09-02): pe bandă jos nu prea se vedea când
+    //    poza era distribuită mai departe, fiindcă multe aplicații acoperă
+    //    partea de jos a imaginii cu propria interfață (caption, meniuri).
+    //    Un fundal semi-transparent în spatele siglei garantează contrastul
+    //    indiferent ce e în poză în colțul acela (cer senin, apă, verdeață).
     var logoH = 38 * vScale;
     var logoW = logoImg ? logoH * (logoImg.width / logoImg.height) : 0;
-    var bottomMargin = 20 * vScale;
-    var logoY = H - bottomMargin - logoH;
     var roFontSize = logoH * 0.58;
+    ctx.font = '800 ' + roFontSize + 'px "Segoe UI", system-ui, sans-serif';
+    var roWidth = ctx.measureText('.ro').width;
+
+    var padX = 16 * vScale, padY = 11 * vScale;
+    var edgeMargin = 24 * vScale;
+    var contentW = logoW + (logoImg ? 2 : 0) + roWidth;
+    var scrimW = contentW + padX * 2;
+    var scrimH = logoH + padY * 2;
+    var scrimX = W - edgeMargin - scrimW;
+    var scrimY = edgeMargin;
+    ctx.fillStyle = 'rgba(4,7,12,.5)';
+    ctx.fillRect(scrimX, scrimY, scrimW, scrimH);
+
+    var logoY = scrimY + padY;
     var roBaselineY = logoY + logoH;
+    var roRight = scrimX + scrimW - padX;
 
     ctx.save();
     ctx.textAlign = 'right';
@@ -840,14 +859,13 @@ function deseneazaCardCaptura(c) {
     ctx.miterLimit = 2;
     ctx.strokeStyle = 'rgba(4,7,12,.85)';
     ctx.lineWidth = 4 * vScale;
-    ctx.strokeText('.ro', W - marginX, roBaselineY);
+    ctx.strokeText('.ro', roRight, roBaselineY);
     ctx.fillStyle = '#38bdf8';
-    ctx.fillText('.ro', W - marginX, roBaselineY);
-    var roWidth = ctx.measureText('.ro').width;
+    ctx.fillText('.ro', roRight, roBaselineY);
     ctx.restore();
 
     if (logoImg) {
-      var logoRight = W - marginX - roWidth - 2;
+      var logoRight = roRight - roWidth - 2;
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,.6)';
       ctx.shadowBlur = 8 * vScale;
