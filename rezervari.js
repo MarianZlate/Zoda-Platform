@@ -373,13 +373,39 @@
          direct ordinea din DOM, deci primul copil ('.rez-tabs-page') ajunge
          primul vizual (stânga), iar al doilea ('#rez-modal-body') rămâne
          al doilea vizual (dreapta) — fără nicio schimbare de HTML, doar
-         inversarea acestei singure proprietăți CSS. */
+         inversarea acestei singure proprietăți CSS.
+         Rundă 39 — tot nu era suficient: Marian a arătat, cu o captură,
+         că pe ecranul lui rămâne mult spațiu gol ADEVĂRAT — în afara
+         coloanei centrate a paginii ('#dashboard', din rezervari-admin.html,
+         'max-width:1100px;margin:0 auto') — pe care tab-urile din rundă 38
+         tot nu-l foloseau, pentru că stăteau ÎN INTERIORUL acelei coloane,
+         doar mutate la marginea ei stângă — deci tot „furau” din lățimea
+         disponibilă tabelului. Cerința reală: tab-urile complet ÎN AFARA
+         coloanei de 1100px, în marginea adevărat goală a ferestrei, ca
+         tabelul să poată folosi coloana întreagă, de la un capăt la altul.
+         Rezolvat cu un breakpoint suplimentar, generos (1500px — sub acest
+         prag, marginea reală a ferestrei e prea îngustă ca să mai încapă un
+         sidebar de 176px + un gol de aer, deci tab-urile rămân unde erau,
+         cf. rundă 38, ÎN coloană): 'position:fixed', poziționat cu 'calc()'
+         relativ la mijlocul FERESTREI (nu al coloanei) — jumătate din
+         lățimea ferestrei, minus jumătate din lățimea coloanei (550px),
+         minus un gol (16px), minus lățimea sidebar-ului (176px) — ca
+         marginea lui dreaptă să cadă exact la 16px de marginea stângă a
+         coloanei de conținut. Fiind 'fixed' (scos din flux), '#rez-modal-
+         body' (singurul copil rămas în flux) se întinde automat pe toată
+         lățimea coloanei — fără nicio altă schimbare de CSS necesară
+         pentru el. 'max(12px, ...)' e doar o plasă de siguranță, ca
+         sidebar-ul să nu ajungă niciodată în afara ecranului, în stânga,
+         chiar la limita breakpoint-ului (bară de scroll, rotunjiri etc). */
       .rez-admin-layout{display:flex;flex-direction:column;}
       @media(min-width:769px){
         .rez-admin-layout{flex-direction:row;align-items:flex-start;gap:18px;}
         .rez-admin-layout > .rez-tabs-page{flex:0 0 176px;flex-direction:column;overflow-x:visible;margin-bottom:0;position:sticky;top:12px;}
         .rez-admin-layout > .rez-tabs-page > .rez-tab{width:100%;text-align:left;}
         .rez-admin-layout > #rez-modal-body{flex:1;min-width:0;}
+      }
+      @media(min-width:1500px){
+        .rez-admin-layout > .rez-tabs-page{position:fixed;top:78px;left:max(12px, calc(50vw - 742px));width:176px;flex:none;}
       }
       .rez-empty{text-align:center;color:var(--zc-text-dim,#4b5563);font-size:13.5px;padding:20px 0;}
       #rez-stand-btn{margin-top:12px;width:100%;background:var(--zc-accent-dark,#0e7490);color:#fff;font-weight:700;font-size:17px;padding:15px;border:none;border-radius:10px;cursor:pointer;}
