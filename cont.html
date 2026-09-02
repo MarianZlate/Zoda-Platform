@@ -867,6 +867,23 @@ html[data-theme="light"] .logo-img-light{display:block;}
     </div>
   </div>
 
+  <!-- ── ADMINISTRATOR BALTĂ (mutat primul în listă, la cererea lui Marian —
+       balta_admin ajunge mai repede la bălțile lui) ── -->
+  <div class="section" id="section-balta-admin" style="display:none;">
+    <div class="section-hdr">
+      <span class="section-icon">🏕️</span>
+      <div>
+        <div class="section-title">Bălțile mele</div>
+        <div class="section-sub">Bălți pe care le administrezi — adaugă capturi de stand</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div id="balti-admin-list">
+        <div style="color:var(--text-ghost);font-size:15px;text-align:center;padding:20px;">Se încarcă...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── NOTIFICĂRI ── -->
   <div class="section" id="section-notificari" style="display:none;">
     <div class="section-hdr notif-hdr" id="notif-hdr-main" onclick="toggleNotifPanel()">
@@ -992,22 +1009,6 @@ html[data-theme="light"] .logo-img-light{display:block;}
     </div>
     <div class="section-body">
       <button onclick="RezervariUI.deschideModalRezervarileMele()" style="width:100%;background:var(--zc-accent-dark);color:#fff;font-weight:700;font-size:14px;padding:10px;border:none;border-radius:9px;cursor:pointer;">Vezi rezervările mele</button>
-    </div>
-  </div>
-
-  <!-- ── ADMINISTRATOR BALTĂ ── -->
-  <div class="section" id="section-balta-admin" style="display:none;">
-    <div class="section-hdr">
-      <span class="section-icon">🏕️</span>
-      <div>
-        <div class="section-title">Bălțile mele</div>
-        <div class="section-sub">Bălți pe care le administrezi — adaugă capturi de stand</div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div id="balti-admin-list">
-        <div style="color:var(--text-ghost);font-size:15px;text-align:center;padding:20px;">Se încarcă...</div>
-      </div>
     </div>
   </div>
 
