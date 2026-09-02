@@ -454,7 +454,7 @@
          de 1/1.5px înainte pe toate). Linia dintre subcoloanele Zi/Noapte
          (mai puțin importantă vizual, e doar o jumătate de zi) rămâne mai
          subțire ca să nu concureze cu linia dintre zile întregi. */
-      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid #0f172a;background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(15,23,42,.4) 98px, rgba(15,23,42,.4) 100px, transparent 100px, transparent 198px, #0f172a 198px, #0f172a 200px);}
+      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid #0f172a;background-image:repeating-linear-gradient(to right, transparent 0, transparent 83px, rgba(15,23,42,.4) 83px, rgba(15,23,42,.4) 85px, transparent 85px, transparent 168px, #0f172a 168px, #0f172a 170px);}
       .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
       /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
          suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
@@ -476,7 +476,11 @@
       .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid rgba(15,23,42,.35);}
       .rez-cal-subcell{flex:1;font-size:9.3px;font-weight:800;color:var(--zc-text-dim,#4b5563);padding:2px 0;text-transform:uppercase;letter-spacing:.03em;}
       .rez-cal-subcell.noapte{border-left:1px solid rgba(15,23,42,.35);}
-      .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
+      /* Rundă 37 — cerere explicită a lui Marian: linia verticală albastră
+         care marca „acum" pe grid a fost eliminată („mai mult încarcă decât
+         ajută") — regula '.rez-cal-today-line' de aici a fost scoasă odată
+         cu markup-ul ei din JS; ziua curentă rămâne totuși vizibil marcată
+         prin eticheta 'azi' din antet (text bold, culoare de accent). */
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 2px;}
       .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
       .rez-cal-bar.confirmata.verde{background:rgba(34,197,94,.4);border-color:#16a34a;}
@@ -537,7 +541,7 @@
          de "azi", selecția etc.), nu pentru linii de grid statice. */
       html:not([data-theme="light"]) .rez-cal-scroll{border-color:#64748b;}
       html:not([data-theme="light"]) .rez-cal-label{border-right-color:#64748b;border-bottom-color:#64748b;}
-      html:not([data-theme="light"]) .rez-cal-track{border-bottom-color:#64748b;background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(148,163,184,.45) 98px, rgba(148,163,184,.45) 100px, transparent 100px, transparent 198px, #64748b 198px, #64748b 200px);}
+      html:not([data-theme="light"]) .rez-cal-track{border-bottom-color:#64748b;background-image:repeating-linear-gradient(to right, transparent 0, transparent 83px, rgba(148,163,184,.45) 83px, rgba(148,163,184,.45) 85px, transparent 85px, transparent 168px, #64748b 168px, #64748b 170px);}
       /* Declarată DUPĂ regula de mai sus, intenționat (aceeași
          specificitate — cea combinată cu '.rez-cal-track' de mai sus — deci
          ordinea contează): trebuie să suprascrie din nou fundalul repetitiv
@@ -1107,7 +1111,14 @@
   // vizual în 2. DAY_W (o zi întreagă, Zi+Noapte) e mereu 2×HALF_W — se
   // potrivește exact cu liniile din 'repeating-linear-gradient' de pe
   // '.rez-cal-track' (100px/200px, cf. CSS).
-  var HALF_W = 100; // px pe subcoloană de 12h (Zi sau Noapte)
+  // Rundă 37 — cerere explicită a lui Marian: coloanele mai înguste cu 15%
+  // (100px → 85px pe subcoloană), atât pe mobil cât și pe desktop — HALF_W
+  // e singura sursă a lățimii coloanelor, folosită la fel pe ambele (nu
+  // există o valoare separată de mobil vs. desktop pentru lățime, doar
+  // pentru înălțime, cf. media query-ul de mai jos din CSS) — deci o
+  // singură schimbare acoperă ambele cazuri. Gridline-urile din fundalul
+  // '.rez-cal-track' (CSS, mai sus) au fost recalibrate la aceeași scară.
+  var HALF_W = 85; // px pe subcoloană de 12h (Zi sau Noapte) — 100 × 0.85
   var DAY_W = HALF_W * 2; // px pe zi întreagă
   var LABEL_W = 78; // px, coloana fixă (sticky) cu numele standului
   var _calRezervari = [];
@@ -1190,11 +1201,13 @@
         '</div>';
       }
 
-      // Linia "acum" trebuie ancorată pe momentul curent real, nu pe
-      // miezul nopții — altfel, cu noua grilă bazată pe ora_zi_start,
-      // n-ar mai indica o poziție coerentă în interiorul zilei.
+      // Rundă 37 — cerere explicită a lui Marian: linia albastră care arăta
+      // „acum" pe grid a fost scoasă („mai mult încarcă decât ajută") — dar
+      // `todayOffset` rămâne calculat, tot ancorat pe momentul curent real
+      // (nu miezul nopții), pentru că mai e folosit mai jos, la centrarea
+      // automată a grid-ului pe ziua curentă la deschidere (§40) — asta
+      // rămâne neschimbată, doar liniuța vizuală a dispărut.
       var todayOffset = offsetPx(acum);
-      var todayLine = (todayOffset >= 0 && todayOffset <= trackW) ? '<div class="rez-cal-today-line" style="left:' + todayOffset + 'px;"></div>' : '';
 
       // ── Un rând per stand (toate, inclusiv fără rezervări acum) ──
       var randuriStanduri = _adminStanduri.map(function (stand) {
@@ -1238,7 +1251,7 @@
         // ține pe scroll orizontal. Grid-ul pune automat eticheta + track-ul
         // pe același rând vizual (2 coloane fixate mai jos, pe container).
         return '<div class="rez-cal-label" title="' + escH(stand.nume || '') + '">' + escH(stand.nume || '') + '</div>' +
-               '<div class="rez-cal-track">' + bareHtml + todayLine + '</div>';
+               '<div class="rez-cal-track">' + bareHtml + '</div>';
       }).join('');
 
       var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
