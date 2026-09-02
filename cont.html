@@ -1441,11 +1441,12 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
         </div>
       </div>
 
-      <!-- Pescar (text liber, fără cont) -->
-      <div class="fg">
+      <!-- Pescar (text liber, fără cont — dar cu sugestii pentru cei care au cont Zoda) -->
+      <div class="fg" style="position:relative;">
         <label>PESCARUL *</label>
-        <input type="text" id="mc-pescar-nume-input" placeholder="Numele pescarului" oninput="checkFormValid()" class="field-inp"/>
-        <div class="fg-hint">Nume liber — nu e nevoie de un cont Zoda (Hall of Fame nu ține de cereri/aprobări).</div>
+        <input type="text" id="mc-pescar-nume-input" placeholder="Numele pescarului" autocomplete="off" oninput="checkFormValid();cautaPescarHof(this.value)" onfocus="cautaPescarHof(this.value)" class="field-inp"/>
+        <div id="mc-pescar-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--panel-2);border:1px solid var(--border);border-radius:10px;max-height:220px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.35);"></div>
+        <div class="fg-hint">Nume liber — nu e nevoie de un cont Zoda (Hall of Fame nu ține de cereri/aprobări). Dacă are cont Zoda, îți apar sugestii pe măsură ce scrii.</div>
       </div>
 
       <!-- Upload poză -->
@@ -2563,6 +2564,8 @@ async function openCaptura(baltaId, baltaNume) {
   document.getElementById('mc-kg').value = '';
   document.getElementById('mc-data').value = dataLocalaAzi();
   document.getElementById('mc-pescar-nume-input').value = '';
+  const pescarDd = document.getElementById('mc-pescar-dropdown');
+  if (pescarDd) { pescarDd.style.display = 'none'; pescarDd.innerHTML = ''; }
   document.getElementById('zona-foto').classList.remove('has-file');
   document.getElementById('foto-preview').style.display = 'none';
   document.getElementById('mc-err').style.display = 'none';
@@ -2660,6 +2663,8 @@ function closeCaptura() {
   document.getElementById('mc-data').value = '';
   document.getElementById('mc-stand').innerHTML = '<option value="">— Fără stand —</option>';
   document.getElementById('mc-pescar-nume-input').value = '';
+  const pescarDd = document.getElementById('mc-pescar-dropdown');
+  if (pescarDd) { pescarDd.style.display = 'none'; pescarDd.innerHTML = ''; }
   document.getElementById('zona-foto').classList.remove('has-file');
   const fotoPreview = document.getElementById('foto-preview');
   if (fotoPreview) fotoPreview.style.display = 'none';
@@ -2747,6 +2752,60 @@ function checkFormValid() {
     btn.title            = 'Alege un slot, completează pescarul, data și fotografia';
   }
 }
+
+// ── SUGESTII CONT ZODA PENTRU CÂMPUL "PESCARUL" (Hall of Fame) ──────────────
+// Câmpul rămâne text liber (Hall of Fame nu ține de cont/aprobare), dar dacă
+// pescarul chiar are cont Zoda, balta_admin ar trebui să-l poată găsi rapid
+// și să evite greșeli de scriere a numelui — deci căutăm și afișăm sugestii
+// pe măsură ce se tastează, la fel ca la "Caută și urmărește pescari" de pe
+// index.html (același tabel, aceleași coloane).
+let _hofPescarTimeout = null;
+async function cautaPescarHof(q) {
+  clearTimeout(_hofPescarTimeout);
+  const query = (q || '').trim();
+  const dd = document.getElementById('mc-pescar-dropdown');
+  if (!dd) return;
+  if (!query) { dd.style.display = 'none'; dd.innerHTML = ''; return; }
+
+  _hofPescarTimeout = setTimeout(async () => {
+    const { data } = await sb.from('user_profiles_public')
+      .select('zoda_id, username, avatar_url')
+      .or(`username.ilike.%${query}%,zoda_id.ilike.%${query}%`)
+      .is('deleted_at', null)
+      .limit(8);
+
+    const rezultate = data || [];
+    if (!rezultate.length) { dd.style.display = 'none'; dd.innerHTML = ''; return; }
+
+    dd.innerHTML = rezultate.map(u => `
+      <div onclick="alegePescarHof('${escH(u.username || u.zoda_id).replace(/'/g, "\\'")}')"
+        style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;"
+        onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='transparent'">
+        ${u.avatar_url ? `<img src="${escH(u.avatar_url)}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>` : `<div style="width:28px;height:28px;border-radius:50%;background:var(--border);flex-shrink:0;"></div>`}
+        <div style="min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary,inherit);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escH(u.username || '—')}</div>
+          <div style="font-size:11px;color:var(--text-faint);">${escH(u.zoda_id)}</div>
+        </div>
+      </div>`).join('');
+    dd.style.display = 'block';
+  }, 250);
+}
+
+function alegePescarHof(nume) {
+  const input = document.getElementById('mc-pescar-nume-input');
+  input.value = nume;
+  const dd = document.getElementById('mc-pescar-dropdown');
+  if (dd) { dd.style.display = 'none'; dd.innerHTML = ''; }
+  checkFormValid();
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('mc-pescar-nume-input');
+  const dd = document.getElementById('mc-pescar-dropdown');
+  if (dd && dd.style.display === 'block' && wrap && !wrap.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
 
 function showErr(msg) {
   const el = document.getElementById('mc-err');
