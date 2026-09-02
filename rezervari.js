@@ -1423,7 +1423,10 @@
             telefon: r.telefon_client || null,
             numeImplicit: numeImplicitPescar(r),
             numeCustom: null,
-            text: '', blocat: false
+            text: '', blocat: false,
+            // Rundă 34 — folosit doar ca să putem explica exact, la
+            // ștergere, de ce clientul rămâne sau nu în listă (cf. mai jos).
+            areRezervari: true
           };
         }
       });
@@ -1442,7 +1445,8 @@
             userId: n.pescar_user_id, telefon: n.pescar_telefon,
             numeImplicit: n.pescar_username || n.pescar_telefon || 'Pescar',
             numeCustom: n.nume || null,
-            text: n.text, blocat: n.blocat
+            text: n.text, blocat: n.blocat,
+            areRezervari: false
           };
         }
       });
@@ -1506,15 +1510,29 @@
           randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
           var btnSterge = document.getElementById('rez-mod-sterge-' + idx);
           if (btnSterge) btnSterge.onclick = async function () {
-            // Ștergerea elimină doar notița/numele custom/blocarea (rândul din
-            // note_pescari) — NU și istoricul de rezervări al pescarului; dacă a
-            // rezervat vreodată, reapare aici (fără nume custom/blocare) data
-            // viitoare când se deschide tab-ul.
-            if (!confirm('Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Rezervările lui existente nu sunt afectate.')) return;
+            // Rundă 34 — cerere explicită a lui Marian: „nu se sterg clientii
+            // din baza de date daca dau stergere... imi apare 'sters' dar
+            // clientul este tot acolo”. Diagnosticat: comportamentul ăsta
+            // exista deja, DOCUMENTAT din rundă 19 — „Șterge” elimină DOAR
+            // rândul din `note_pescari` (notița, numele custom, blocarea),
+            // niciodată istoricul de rezervări. Dacă pescarul are vreo
+            // rezervare la această baltă (manuală sau online, indiferent de
+            // status — cf. §50, „Bază clienți” arată pe oricine a rezervat
+            // vreodată), tot reapare în listă, fără notiță/nume custom — nu
+            // e un bug, dar mesajul vechi ("✓ Șters.") sugera greșit o
+            // ștergere completă, indiferent de caz. Acum mesajul de
+            // confirmare ȘI cel de succes sunt diferite, în funcție de
+            // `p.areRezervari` (calculat mai sus, la construirea listei) —
+            // ca balta_admin să știe DINAINTE dacă clientul chiar va
+            // dispărea complet sau doar îi dispare notița.
+            var mesajConfirmare = p.areRezervari
+              ? 'Ștergi notița, numele custom și blocarea pentru „' + p.nume + '"? Are rezervări la această baltă, deci rămâne în listă (fără notiță/nume custom) — rezervările lui nu sunt afectate.'
+              : 'Ștergi complet clientul „' + p.nume + '"? Nu are nicio rezervare la această baltă — va dispărea de tot din listă.';
+            if (!confirm(mesajConfirmare)) return;
             try {
               var resD = await sb.rpc('sterge_nota_pescar', { p_balta_id: _adminBaltaId, p_pescar_user_id: p.userId || null, p_pescar_telefon: p.userId ? null : p.telefon });
               if (resD.error) throw resD.error;
-              toast('✓ Șters.');
+              toast(p.areRezervari ? '✓ Notița a fost ștearsă (clientul rămâne — are rezervări).' : '✓ Client șters complet.');
               renderTabModerare();
             } catch (e) { toast(e.message || 'Eroare la ștergere.', true); }
           };
