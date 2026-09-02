@@ -362,8 +362,21 @@
          (78px + lățimea track-ului, în px) se setează dinamic, inline, la
          randare ('renderTabCalendar'), pentru că depind de intervalul de
          zile afișat. */
-      .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1px solid var(--zc-border,#1e293b);border-radius:10px;-webkit-overflow-scrolling:touch;}
-      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid var(--zc-border,#1e293b);border-bottom:2px solid var(--zc-border,#1e293b);display:flex;align-items:center;z-index:2;}
+      /* Rundă 31 — cerere explicită a lui Marian: liniile din grid-ul
+         Gantt (Calendar) erau prea șterse pe modul light — foloseau
+         'var(--zc-border, ...)', variabila de temă generică a paginii
+         gazdă (balta.html/cont.html/rezervari-admin.html), care pe light
+         e un gri foarte deschis, potrivit pentru borduri fine în restul
+         interfeței, dar prea puțin vizibil pentru un grid dens de date.
+         De-acum, liniile grid-ului NU mai depind de '--zc-border' — au
+         culori proprii, fixe, alese special pentru acest grid: aproape
+         negru ('#0f172a') pe light (regulile implicite, negardate, de mai
+         jos), și un gri mediu-deschis ('#64748b'/'#94a3b8') pe dark (bloc
+         separat, mai jos, cf. convenției de temă a fișierului — regulile
+         negardate țintesc fundal DESCHIS, 'html:not([data-theme="light"])'
+         suprascrie pentru fundal ÎNCHIS). */
+      .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1.5px solid #0f172a;border-radius:10px;-webkit-overflow-scrolling:touch;}
+      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid #0f172a;border-bottom:2px solid #0f172a;display:flex;align-items:center;z-index:2;}
       /* Rândul de antet (colț + zile) — sticky pe verticală (rămâne vizibil
          la scroll în jos), fundal opac ca să acopere rândurile care trec pe
          sub el. Colțul ('.rez-cal-corner', care combină și clasa
@@ -404,14 +417,14 @@
          de 1/1.5px înainte pe toate). Linia dintre subcoloanele Zi/Noapte
          (mai puțin importantă vizual, e doar o jumătate de zi) rămâne mai
          subțire ca să nu concureze cu linia dintre zile întregi. */
-      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(148,163,184,.45) 98px, rgba(148,163,184,.45) 100px, transparent 100px, transparent 198px, var(--zc-border,#1e293b) 198px, var(--zc-border,#1e293b) 200px);}
+      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid #0f172a;background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(15,23,42,.4) 98px, rgba(15,23,42,.4) 100px, transparent 100px, transparent 198px, #0f172a 198px, #0f172a 200px);}
       .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
       /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
          suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
          propriile celule cu 'border-right', cf. '.rez-cal-daycell'; ordinea
          contează, ambele reguli au aceeași specificitate). */
       .rez-cal-daynums{height:auto;display:flex;background-image:none;}
-      .rez-cal-daycell{flex:0 0 auto;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:2px solid var(--zc-border,#1e293b);padding:4px 0 0;}
+      .rez-cal-daycell{flex:0 0 auto;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:2px solid #0f172a;padding:4px 0 0;}
       .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
       .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
       /* Rundă 30: luna nu mai e pe rândul ei propriu (deasupra numărului
@@ -423,9 +436,9 @@
       .rez-cal-datanum{white-space:nowrap;}
       .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
       /* Sub-rândul cu cele 2 subcoloane, Zi/Noapte, sub numărul zilei. */
-      .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid var(--zc-border,rgba(30,41,59,.5));}
+      .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid rgba(15,23,42,.35);}
       .rez-cal-subcell{flex:1;font-size:9.3px;font-weight:800;color:var(--zc-text-dim,#4b5563);padding:2px 0;text-transform:uppercase;letter-spacing:.03em;}
-      .rez-cal-subcell.noapte{border-left:1px solid rgba(148,163,184,.35);}
+      .rez-cal-subcell.noapte{border-left:1px solid rgba(15,23,42,.35);}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 2px;}
       .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
@@ -463,6 +476,27 @@
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-cal-daycell.azi{color:#38bdf8;}
+      /* Rundă 31 — liniile grid-ului (aproape negre pe light, mai sus) au
+         nevoie de o culoare separată pe dark — negrul aproape s-ar pierde
+         complet pe un fundal deja foarte închis. Gri mediu-deschis
+         ('#64748b'/'#94a3b8'), suficient de vizibil pe '--zc-bg' dark, fără
+         să fie la fel de strident ca albastrul de accent (#38bdf8), care
+         rămâne rezervat pentru elemente interactive/de focalizare (linia
+         de "azi", selecția etc.), nu pentru linii de grid statice. */
+      html:not([data-theme="light"]) .rez-cal-scroll{border-color:#64748b;}
+      html:not([data-theme="light"]) .rez-cal-label{border-right-color:#64748b;border-bottom-color:#64748b;}
+      html:not([data-theme="light"]) .rez-cal-track{border-bottom-color:#64748b;background-image:repeating-linear-gradient(to right, transparent 0, transparent 98px, rgba(148,163,184,.45) 98px, rgba(148,163,184,.45) 100px, transparent 100px, transparent 198px, #64748b 198px, #64748b 200px);}
+      /* Declarată DUPĂ regula de mai sus, intenționat (aceeași
+         specificitate — cea combinată cu '.rez-cal-track' de mai sus — deci
+         ordinea contează): trebuie să suprascrie din nou fundalul repetitiv
+         pentru rândul de antet, la fel cum face deja '.rez-cal-daycell'
+         (mai jos) pentru light, cf. notei de mai sus din fișier — altfel
+         rândul de zile ar arăta din nou liniile de fundal pe sub etichetele
+         Zi/Noapte, pe modul dark. */
+      html:not([data-theme="light"]) .rez-cal-daynums{background-image:none;}
+      html:not([data-theme="light"]) .rez-cal-daycell{border-right-color:#64748b;}
+      html:not([data-theme="light"]) .rez-cal-subrow{border-top-color:rgba(148,163,184,.4);}
+      html:not([data-theme="light"]) .rez-cal-subcell.noapte{border-left-color:rgba(148,163,184,.4);}
       html:not([data-theme="light"]) .rez-cal-bar.selectat{outline-color:#38bdf8;}
       html:not([data-theme="light"]) .rez-cal-bar-dur{color:#f1f5f9;text-shadow:none;}
       html:not([data-theme="light"]) .rez-cal-bar-nume{color:#f1f5f9;text-shadow:none;}
