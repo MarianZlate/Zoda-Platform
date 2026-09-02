@@ -356,24 +356,27 @@
       .rez-tab.active{color:#0891b2;background:rgba(56,189,248,.12);border-color:#38bdf8;}
       /* Rundă 36 — cerere explicită a lui Marian: pe desktop, tab-urile
          (Cereri/Calendar/Adaugă manual/Bază clienți/Program sezonier) mutate
-         lateral, în dreapta conținutului — nu mai ocupă un rând întreg
-         deasupra tabelului, ca să rămână mai multă înălțime verticală
-         pentru grid-ul Gantt (scopul explicit: „sa vedem mai multe
-         informatii in el”). Pe mobil rămân neschimbate, rând orizontal
-         deasupra conținutului — o coloană verticală de butoane n-ar încăpea
-         lizibil pe un ecran îngust.
+         lateral — nu mai ocupă un rând întreg deasupra tabelului, ca să
+         rămână mai multă înălțime verticală pentru grid-ul Gantt (scopul
+         explicit: „sa vedem mai multe informatii in el”). Pe mobil rămân
+         neschimbate, rând orizontal deasupra conținutului — o coloană
+         verticală de butoane n-ar încăpea lizibil pe un ecran îngust.
          '.rez-admin-layout' înfășoară acum ambele — tab-urile ȘI
          '#rez-modal-body' — copii DIRECȚI, în această ordine în DOM (tab-uri
          primul, conținut al doilea). Implicit (mobil), 'flex-direction:column'
          păstrează exact ordinea vizuală de dinainte (tab-uri sus, conținut
-         dedesubt). Pe desktop, 'row-reverse' inversează doar ordinea VIZUALĂ
-         (nu DOM-ul) — ultimul copil din DOM ('#rez-modal-body') ajunge primul
-         vizual (stânga), primul copil ('.rez-tabs-page') ultimul vizual
-         (dreapta) — exact „lateral, în dreapta tabelului”, fără nicio
-         restructurare de HTML, doar CSS. */
+         dedesubt).
+         Rundă 38 — Marian a cerut mutarea lor din dreapta în STÂNGA
+         tabelului („in spatiul asta gol, ca in dreapta acolo ia din
+         latimea tabelului”): pe desktop, 'flex-direction:row' simplu (NU
+         'row-reverse', ca la rundă 36) — ordinea vizuală urmează acum
+         direct ordinea din DOM, deci primul copil ('.rez-tabs-page') ajunge
+         primul vizual (stânga), iar al doilea ('#rez-modal-body') rămâne
+         al doilea vizual (dreapta) — fără nicio schimbare de HTML, doar
+         inversarea acestei singure proprietăți CSS. */
       .rez-admin-layout{display:flex;flex-direction:column;}
       @media(min-width:769px){
-        .rez-admin-layout{flex-direction:row-reverse;align-items:flex-start;gap:18px;}
+        .rez-admin-layout{flex-direction:row;align-items:flex-start;gap:18px;}
         .rez-admin-layout > .rez-tabs-page{flex:0 0 176px;flex-direction:column;overflow-x:visible;margin-bottom:0;position:sticky;top:12px;}
         .rez-admin-layout > .rez-tabs-page > .rez-tab{width:100%;text-align:left;}
         .rez-admin-layout > #rez-modal-body{flex:1;min-width:0;}
@@ -412,8 +415,18 @@
          separat, mai jos, cf. convenției de temă a fișierului — regulile
          negardate țintesc fundal DESCHIS, 'html:not([data-theme="light"])'
          suprascrie pentru fundal ÎNCHIS). */
+      /* Rundă 38 — cerere explicită a lui Marian: linia DINTRE STANDURI
+         (separatorul orizontal de rând — 'border-bottom' de mai jos, pe
+         '.rez-cal-label' ȘI pe '.rez-cal-track') arăta „prea tabel de
+         Excel” pe light, la aproape-negru ('#0f172a', cf. rundă 31, mai
+         sus). Devine gri ('#94a3b8') — DOAR separatorul de rând; liniile
+         verticale dintre zile/subcoloane (border-right pe '.rez-cal-label',
+         gridline-urile din fundalul '.rez-cal-track') rămân aproape-negre,
+         neschimbate — Marian a cerut explicit „linia dintre standuri”, nu
+         toate liniile grid-ului. Pe dark, separatorul de rând era deja gri
+         ('#64748b', cf. rundă 31) — nu mai are nevoie de nicio schimbare. */
       .rez-cal-scroll{display:grid;overflow:auto;max-height:60vh;border:1.5px solid #0f172a;border-radius:10px;-webkit-overflow-scrolling:touch;}
-      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid #0f172a;border-bottom:2px solid #0f172a;display:flex;align-items:center;z-index:2;}
+      .rez-cal-label{width:78px;box-sizing:border-box;padding:8px 6px;font-size:12.9px;font-weight:700;color:var(--zc-text-secondary-2,#cbd5e1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;left:0;background:var(--zc-bg,#0a0f1a);border-right:2px solid #0f172a;border-bottom:2px solid #94a3b8;display:flex;align-items:center;z-index:2;}
       /* Rândul de antet (colț + zile) — sticky pe verticală (rămâne vizibil
          la scroll în jos), fundal opac ca să acopere rândurile care trec pe
          sub el. Colțul ('.rez-cal-corner', care combină și clasa
@@ -454,7 +467,7 @@
          de 1/1.5px înainte pe toate). Linia dintre subcoloanele Zi/Noapte
          (mai puțin importantă vizual, e doar o jumătate de zi) rămâne mai
          subțire ca să nu concureze cu linia dintre zile întregi. */
-      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid #0f172a;background-image:repeating-linear-gradient(to right, transparent 0, transparent 83px, rgba(15,23,42,.4) 83px, rgba(15,23,42,.4) 85px, transparent 85px, transparent 168px, #0f172a 168px, #0f172a 170px);}
+      .rez-cal-track{position:relative;height:34px;border-bottom:2px solid #94a3b8;background-image:repeating-linear-gradient(to right, transparent 0, transparent 83px, rgba(15,23,42,.4) 83px, rgba(15,23,42,.4) 85px, transparent 85px, transparent 168px, #0f172a 168px, #0f172a 170px);}
       .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
       /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
          suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
@@ -482,9 +495,28 @@
          cu markup-ul ei din JS; ziua curentă rămâne totuși vizibil marcată
          prin eticheta 'azi' din antet (text bold, culoare de accent). */
       .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 2px;}
-      .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
-      .rez-cal-bar.confirmata.verde{background:rgba(34,197,94,.4);border-color:#16a34a;}
-      .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
+      /* Rundă 38 — cerere explicită a lui Marian: „Rezervarile sa le facem
+         cu verde plin, iar rezervarea sa treaca peste liniile tabelului, sa
+         nu se ascunda in spatele lor ca sunt greu de observat”. Bara era pe
+         culori translucide ('rgba(...,.4)') — la 40% opacitate, gridline-
+         urile din fundalul '.rez-cal-track' (rundă 30/31, acum destul de
+         pronunțate) se vedeau PRIN bară, dând senzația că rezervarea „se
+         ascunde” în grid, în loc să iasă clar în evidență deasupra lui.
+         Fundal SOLID (opac), nu translucid — gridline-urile nu mai pot
+         străbate prin bară, indiferent cât de pronunțate sunt dedesubt.
+         Decizie de scopare, asumată explicit: „verde plin” s-a aplicat la
+         'confirmata' ȘI 'confirmata.verde' (aprobată + confirmată de
+         pescar, ambele stări „bune”) — nuanța dintre ele (fostul albastru
+         vs. verde, cf. rundă 16/§38) rămâne DOAR pe eticheta de status din
+         modalul de detaliu/„Rezervările mele” ('.rez-badge-confirmata',
+         neatinsă), nu mai apare pe bara din grid, unde conta mai puțin
+         decât lizibilitatea la o privire rapidă. 'neprezentat' (roșu)
+         NESCHIMBAT ca nuanță — doar făcut la fel de opac, din același
+         motiv (nu se cere explicit verde pentru el, și rămâne un semnal
+         important, diferit, de neprezentare). */
+      .rez-cal-bar.confirmata{background:#22c55e;border:1.5px solid #16a34a;}
+      .rez-cal-bar.confirmata.verde{background:#22c55e;border-color:#16a34a;}
+      .rez-cal-bar.neprezentat{background:#ef4444;border:1.5px solid #dc2626;}
       .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
       .rez-cal-bar-dur{font-size:10.1px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
       /* Nume + telefon în interiorul barei — DOAR pe desktop (rundă 29, cerere
@@ -1257,7 +1289,13 @@
       var notaGoala = relevante.length ? '' : '<div class="rez-empty" style="padding:0 0 12px;">Nicio rezervare confirmată încă.</div>';
 
       var html = notaGoala +
-        '<div class="rez-legend"><span><i class="rez-dot" style="background:#38bdf8;"></i>Aprobată</span><span><i class="rez-dot" style="background:#22c55e;"></i>Confirmată</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
+        // Rundă 38: legenda urmează culorile noi ale barelor — „Aprobată"
+        // și „Confirmată" (fostele albastru/verde) au devenit aceeași
+        // culoare solidă pe bară (verde plin, cf. nota din CSS), deci și
+        // aici apar unite, într-o singură intrare, ca legenda să reflecte
+        // exact ce se vede pe grid — nu mai are rost o distincție de
+        // culoare în legendă pe care bara însăși n-o mai arată.
+        '<div class="rez-legend"><span><i class="rez-dot" style="background:#22c55e;"></i>Rezervare</span><span><i class="rez-dot" style="background:#ef4444;"></i>Neprezentat</span></div>' +
         '<div class="rez-cal-scroll" style="grid-template-columns:' + LABEL_W + 'px ' + trackW + 'px;">' +
           '<div class="rez-cal-label rez-cal-corner rez-cal-header-cell"></div>' +
           '<div class="rez-cal-track rez-cal-daynums rez-cal-header-cell">' + headerCells + '</div>' +
