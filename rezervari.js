@@ -842,7 +842,7 @@
       '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri</button>' +
       '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
-      '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Moderare</button>' +
+      '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
       '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program sezonier</button>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div>';
