@@ -852,12 +852,12 @@
       var html = '';
       if (tipCurent === 'personalizat') {
         html =
-          '<div class="rez-field"><label>Din data</label><input type="date" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
           '<div class="rez-field"><label>Moment început</label><select id="rez-mom-start"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" id="rez-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
           '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-mom-sfarsit"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html = '<div class="rez-field"><label>Data rezervării</label><input type="date" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+        html = '<div class="rez-field"><label>Data rezervării</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
       }
       document.getElementById('rez-date-fields').innerHTML = html;
       ['rez-data-start', 'rez-data-sfarsit', 'rez-mom-start', 'rez-mom-sfarsit'].forEach(function (id) {
@@ -1837,8 +1837,8 @@
           '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);margin-bottom:10px;">Regulă nouă</div>' +
           '<div class="rez-field"><label>Nume (opțional, doar pentru tine)</label><input type="text" id="rez-prog-nume" placeholder="ex. Sezon rece"></div>' +
           '<div style="display:flex;gap:10px;">' +
-            '<div class="rez-field" style="flex:1;"><label>De la data (gol = fără limită)</label><input type="date" id="rez-prog-data-start"></div>' +
-            '<div class="rez-field" style="flex:1;"><label>Până la data (gol = fără limită)</label><input type="date" id="rez-prog-data-sfarsit"></div>' +
+            '<div class="rez-field" style="flex:1;"><label>De la data (gol = fără limită)</label><input type="date" lang="ro" id="rez-prog-data-start"></div>' +
+            '<div class="rez-field" style="flex:1;"><label>Până la data (gol = fără limită)</label><input type="date" lang="ro" id="rez-prog-data-sfarsit"></div>' +
           '</div>' +
           '<div style="display:flex;gap:10px;">' +
             '<div class="rez-field" style="flex:1;"><label>Ora start Zi</label><input type="time" id="rez-prog-ora-zi-start"></div>' +
@@ -2013,17 +2013,34 @@
       };
     }
 
+    // Rundă 41 — cerere explicită a lui Marian: la „Adaugă manual”, data
+    // apărea în ordinea americană (mm-dd-yyyy), nu zi-lună-an. Cauza: un
+    // `<input type="date">` nativ e afișat de BROWSER, în formatul limbii
+    // vizitatorului (setarea de limbă a browserului/sistemului de operare
+    // al lui Marian, nu a paginii) — `value`-ul lui, `yyyy-mm-dd`, e fix,
+    // cerut de standardul HTML pentru input-uri de tip dată, dar TEXTUL
+    // afișat în widget-ul nativ nu e sub controlul CSS-ului paginii deloc.
+    // Fix: atributul `lang="ro"`, direct pe fiecare `<input type="date">`
+    // din tot fișierul (nu doar aici) — browserele native (confirmat pe
+    // Chrome) formatează după limba ELEMENTULUI, dacă e specificată,
+    // înaintea limbii implicite a browserului — deci ordinea devine
+    // zi-lună-an peste tot, indiferent ce limbă are setată vizitatorul.
+    // Notă onestă: separatorul exact (punct, cf. convenției românești a
+    // widget-ului nativ, vs. liniuța folosită peste tot în rest, cf. rundă
+    // 32) rămâne ales de browser, nu de noi — widget-ul nativ de dată nu
+    // poate fi restilizat prin CSS ca să schimbe caracterul separator;
+    // ordinea zi-lună-an, care era problema reală semnalată, e însă fixată.
     function randeazaDateFields() {
       var b = _adminBalta || {};
       var html2;
       if (_manualTip === 'personalizat') {
         html2 =
-          '<div class="rez-field"><label>Din data</label><input type="date" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
           '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
           '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html2 = '<div class="rez-field"><label>Data</label><input type="date" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
       }
       document.getElementById('rez-manual-date-fields').innerHTML = html2;
       ['rez-manual-data-start', 'rez-manual-data-sfarsit', 'rez-manual-mom-start', 'rez-manual-mom-sfarsit'].forEach(function (id) {
