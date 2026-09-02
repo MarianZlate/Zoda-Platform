@@ -371,31 +371,57 @@
          cel mai mare — e „intersecția" celor două benzi fixe. */
       .rez-cal-header-cell{position:sticky;top:0;z-index:3;background:var(--zc-bg,#0a0f1a);background-image:none;}
       .rez-cal-corner{z-index:4;}
-      /* Liniile verticale de separare între zile, în rândurile de date —
-         desenate ca fundal repetitiv (nu elemente noi per zi), la fiecare
-         DAY_W (40px), aliniate exact cu marginile celulelor din antet
-         ('.rez-cal-daycell', care au propriul 'border-right'). Înainte,
-         aceste linii nu existau deloc în rândurile de date — doar bordura
-         containerului, vizibilă doar la marginea din dreapta a ultimelor
-         zile vizibile, dădea impresia de "linie doar la ultimele zile". */
-      .rez-cal-track{position:relative;height:34px;border-bottom:1px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 39px, var(--zc-border,rgba(30,41,59,.5)) 39px, var(--zc-border,rgba(30,41,59,.5)) 40px);}
+      /* Rundă 29 — cerere explicită a lui Marian: grila mai vizibilă, cu
+         fiecare zi împărțită în 2 subcoloane egale — Zi (ora_zi_start,
+         implicit 06:00, până la ora_zi_start+12h) și Noapte (restul de 12h,
+         până la Zi a zilei următoare). O rezervare de tip '12h' umple exact
+         subcoloana Zi; una de '24h' (pornește la ora_noapte_start, durează
+         24h reale) umple exact Noapte + Zi a zilei următoare (12h+12h=24h) —
+         'extinsă până în ziua următoare, cum e și acum', exact cum a cerut.
+         Poziționarea rămâne strict pe bază de oră reală (offsetPx, mai jos,
+         calculat din ora_zi_start a bălții) — nu snap la subcoloană — deci o
+         rezervare 'personalizat', cu ore oarecare, se așază proporțional,
+         posibil nealiniată perfect la subcoloane, exact ca înainte.
+         Simplificare asumată: subcoloanele desenate aici folosesc DOAR
+         ora_zi_start a bălții (nu și eventualele reguli sezoniere care pot
+         suprascrie orele pe interval de date, §34) — un compromis conștient,
+         ca headerul să nu recalculeze reguli pentru fiecare zi afișată. */
+      .rez-cal-track{position:relative;height:34px;border-bottom:1px solid var(--zc-border,#1e293b);background-image:repeating-linear-gradient(to right, transparent 0, transparent 99px, rgba(148,163,184,.35) 99px, rgba(148,163,184,.35) 100px, transparent 100px, transparent 199px, var(--zc-border,#1e293b) 199px, var(--zc-border,#1e293b) 200px);}
       .rez-cal-scroll > *:nth-last-child(-n+2){border-bottom:none;}
       /* '.rez-cal-daynums' e declarată DUPĂ '.rez-cal-track' intenționat —
          suprascrie explicit fundalul-linii repetitiv de mai sus (are deja
          propriile celule cu 'border-right', cf. '.rez-cal-daycell'; ordinea
          contează, ambele reguli au aceeași specificitate). */
       .rez-cal-daynums{height:auto;display:flex;background-image:none;}
-      .rez-cal-daycell{flex:0 0 40px;width:40px;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:1px solid var(--zc-border,rgba(30,41,59,.5));padding:4px 0;}
+      .rez-cal-daycell{flex:0 0 auto;box-sizing:border-box;text-align:center;font-size:11.8px;color:var(--zc-text-muted,#64748b);border-right:1.5px solid var(--zc-border,#1e293b);padding:4px 0 0;}
       .rez-cal-daycell.weekend{background:rgba(148,163,184,.1);}
       .rez-cal-daycell.azi{color:#0891b2;font-weight:800;}
       .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
+      /* Sub-rândul cu cele 2 subcoloane, Zi/Noapte, sub numărul zilei. */
+      .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid var(--zc-border,rgba(30,41,59,.5));}
+      .rez-cal-subcell{flex:1;font-size:9.3px;font-weight:800;color:var(--zc-text-dim,#4b5563);padding:2px 0;text-transform:uppercase;letter-spacing:.03em;}
+      .rez-cal-subcell.noapte{border-left:1px solid rgba(148,163,184,.35);}
       .rez-cal-today-line{position:absolute;top:0;bottom:0;width:2px;background:#38bdf8;opacity:.55;z-index:1;}
-      .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 1px;}
+      .rez-cal-bar{position:absolute;top:6px;height:22px;border-radius:6px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0 2px;}
       .rez-cal-bar.confirmata{background:rgba(56,189,248,.4);border:1.5px solid #0284c7;}
       .rez-cal-bar.confirmata.verde{background:rgba(34,197,94,.4);border-color:#16a34a;}
       .rez-cal-bar.neprezentat{background:rgba(239,68,68,.4);border:1.5px solid #dc2626;}
       .rez-cal-bar.selectat{outline:2px solid #0891b2;outline-offset:1px;}
       .rez-cal-bar-dur{font-size:10.1px;font-weight:800;color:#0f172a;white-space:nowrap;pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(255,255,255,.5);}
+      /* Nume + telefon în interiorul barei — DOAR pe desktop (rundă 29, cerere
+         explicită: pe mobil rămân informațiile din modalul de detaliu deja
+         existent, neschimbat). Sub 769px, '.rez-cal-bar-info' rămâne ascunsă
+         și '.rez-cal-bar-dur' (durata) rămâne singurul conținut al barei,
+         exact comportamentul de dinainte de această rundă. */
+      .rez-cal-bar-info{display:none;}
+      @media(min-width:769px){
+        .rez-cal-track{height:52px;}
+        .rez-cal-bar{height:42px;top:5px;}
+        .rez-cal-bar-dur{display:none;}
+        .rez-cal-bar-info{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;line-height:1.22;overflow:hidden;pointer-events:none;}
+        .rez-cal-bar-nume{font-size:11px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-shadow:0 0 3px rgba(255,255,255,.5);}
+        .rez-cal-bar-tel{font-size:9.8px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;opacity:.85;text-shadow:0 0 3px rgba(255,255,255,.5);}
+      }
       /* ── Variante DARK — culorile de mai sus (badge-uri, telefon, tab activ,
          ziua curentă din calendar, durata de pe bară) sunt alese să fie
          lizibile pe fundal DESCHIS (mai saturate/închise la culoare, cf.
@@ -414,6 +440,8 @@
       html:not([data-theme="light"]) .rez-cal-daycell.azi{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-cal-bar.selectat{outline-color:#38bdf8;}
       html:not([data-theme="light"]) .rez-cal-bar-dur{color:#f1f5f9;text-shadow:none;}
+      html:not([data-theme="light"]) .rez-cal-bar-nume{color:#f1f5f9;text-shadow:none;}
+      html:not([data-theme="light"]) .rez-cal-bar-tel{color:#f1f5f9;text-shadow:none;}
       html:not([data-theme="light"]) .rez-toast{border-color:#38bdf8;}
       html:not([data-theme="light"]) .rez-toast.err{color:#fca5a5;}
       html:not([data-theme="light"]) .rez-text-ok{color:#22c55e;}
@@ -960,7 +988,13 @@
   // pe o axă de timp în pixeli. Gândit ca să rămână lizibil și cu 20+
   // rezervări active simultan — dintr-o privire se vede ce stand e liber și
   // când, fără să mai deschizi fiecare rezervare pe rând.
-  var DAY_W = 40;   // px pe zi, pe axa orizontală
+  // HALF_W = lățimea unei subcoloane (Zi SAU Noapte, 12h) — rundă 29,
+  // cerere explicită a lui Marian: grilă mai vizibilă, cu ziua împărțită
+  // vizual în 2. DAY_W (o zi întreagă, Zi+Noapte) e mereu 2×HALF_W — se
+  // potrivește exact cu liniile din 'repeating-linear-gradient' de pe
+  // '.rez-cal-track' (100px/200px, cf. CSS).
+  var HALF_W = 100; // px pe subcoloană de 12h (Zi sau Noapte)
+  var DAY_W = HALF_W * 2; // px pe zi întreagă
   var LABEL_W = 78; // px, coloana fixă (sticky) cu numele standului
   var _calRezervari = [];
   var _calSelectedId = null;
@@ -1007,22 +1041,41 @@
       var totalZile = Math.round(diffZile(rangeStart, rangeEnd));
       var trackW = totalZile * DAY_W;
 
-      function offsetPx(d) { return diffZile(rangeStart, d) * DAY_W; }
+      // Ancora grilei nu mai e miezul nopții (00:00), ci începutul zilei de
+      // pescuit a bălții (`ora_zi_start`, implicit 06:00) — cf. rundă 29:
+      // subcoloana "Zi" a fiecărei zile din grid trebuie să corespundă
+      // exact intervalului real de zi (ora_zi_start → ora_zi_stop), iar
+      // "Noapte" restului de 12h, până la "Zi" a zilei următoare — la fel
+      // cum sunt calculate și rezervările efective (cf. `calculeazaIntervalSesiune`).
+      // Scop asumat: etichetele Zi/Noapte din antet rămân generice (nu arată
+      // orele exacte), ca să nu se complice cu reguli sezoniere care pot
+      // schimba `ora_zi_start` pe intervale — grid-ul folosește mereu ora
+      // implicită a bălții ca ancoră vizuală.
+      var oraZiStr = (_adminBalta && _adminBalta.ora_zi_start) || '06:00:00';
+      var oraZiH = parseInt(String(oraZiStr).slice(0, 2), 10);
+      if (isNaN(oraZiH)) oraZiH = 6;
+      var gridStart = new Date(rangeStart.getTime() + oraZiH * 3600000);
+      function offsetPx(d) { return (d.getTime() - gridStart.getTime()) / 3600000 / 12 * HALF_W; }
 
-      // ── Rândul de antet: numărul zilei + eticheta lunii la schimbarea ei ──
+      // ── Rândul de antet: numărul zilei + eticheta lunii, + subrândul cu
+      // cele 2 subcoloane Zi/Noapte (rundă 29) ──
       var headerCells = '';
       for (var i = 0; i < totalZile; i++) {
         var ziua = new Date(rangeStart.getTime() + i * 86400000);
         var esteWeekend = (ziua.getDay() === 0 || ziua.getDay() === 6);
         var esteAzi = ziua.getTime() === azi.getTime();
         var esteInceputLuna = (ziua.getDate() === 1 || i === 0);
-        headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '">' +
+        headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '" style="width:' + DAY_W + 'px;">' +
           (esteInceputLuna ? '<div class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</div>' : '') +
           '<div>' + ziua.getDate() + '</div>' +
+          '<div class="rez-cal-subrow"><div class="rez-cal-subcell">Zi</div><div class="rez-cal-subcell noapte">Noapte</div></div>' +
         '</div>';
       }
 
-      var todayOffset = offsetPx(azi);
+      // Linia "acum" trebuie ancorată pe momentul curent real, nu pe
+      // miezul nopții — altfel, cu noua grilă bazată pe ora_zi_start,
+      // n-ar mai indica o poziție coerentă în interiorul zilei.
+      var todayOffset = offsetPx(acum);
       var todayLine = (todayOffset >= 0 && todayOffset <= trackW) ? '<div class="rez-cal-today-line" style="left:' + todayOffset + 'px;"></div>' : '';
 
       // ── Un rând per stand (toate, inclusiv fără rezervări acum) ──
@@ -1047,8 +1100,18 @@
           // accesibilitate cerut de Marian) — ca textul să încapă la fel
           // de curat ca înainte, fără să atingă marginile barei.
           var durataHtml = width >= 20 ? '<span class="rez-cal-bar-dur">' + oreDurata + 'h</span>' : '';
+          // Pe desktop (cf. media query din CSS), bara arată numele +
+          // telefonul clientului în loc de durată — cerere explicită a lui
+          // Marian, rundă 29. Pe mobil rămâne neschimbat: doar durata,
+          // restul informațiilor stau în modalul de detaliu, ca până acum.
+          // Sub un prag de lățime (bare foarte scurte, tipice la sesiuni
+          // 'personalizat'), textul n-ar încăpea curat nici pe desktop —
+          // rămâne doar culoarea + tooltip-ul, la fel ca la bara îngustă de
+          // pe mobil (prag simetric cu cel de la `durataHtml`, de mai sus).
+          var infoHtml = width >= 55 ? '<div class="rez-cal-bar-info"><span class="rez-cal-bar-nume">' + escH(numeImplicitPescar(r)) + '</span>' +
+            (r.telefon_client ? '<span class="rez-cal-bar-tel">' + escH(r.telefon_client) + '</span>' : '') + '</div>' : '';
           return '<div class="' + clasa + '" data-rez-id="' + r.id + '" style="left:' + left + 'px;width:' + width + 'px;" title="' +
-            escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '">' + durataHtml + '</div>';
+            escH(fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit)) + '">' + durataHtml + infoHtml + '</div>';
         }).join('');
         // Celule copii DIRECTE ale `.rez-cal-scroll` (nu mai există un
         // `<div class="rez-cal-row">` care să le înfășoare) — cf. notei din
