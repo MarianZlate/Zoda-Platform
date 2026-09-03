@@ -419,36 +419,33 @@
          sub butonul de anulare, ca înainte. */
       /* Rundă 46 — cerere explicită a lui Marian: pe mobil, intervalul
          "dată oră → dată oră" se rupea pe 2 rânduri urât — nu la săgeată
-         (unde ar arăta curat), ci exact ÎNTRE dată și oră (ex. "...→
-         04-09-2026" pe un rând, "18:00" singur pe rândul următor), pentru
-         că fiecare '.rez-data-part'/'.rez-ora-part' (§39) e un '<span>'
-         separat, cu un spațiu normal (punct de rupere valid) între ele.
-         Fix: fiecare pereche dată+oră învelită într-un '<span>' propriu,
+         (unde ar arăta curat), ci exact ÎNTRE dată și oră, pentru că fiecare
+         '.rez-data-part'/'.rez-ora-part' (§39) e un '<span>' separat, cu un
+         spațiu normal (punct de rupere valid) între ele. Fix: fiecare
+         pereche dată+oră învelită într-un '<span>' propriu,
          '.rez-detail-perioada-parte', cu 'white-space:nowrap'.
-         Rundă 48 — cerere explicită a lui Marian, mai strictă: rândul
-         întreg pe UN SINGUR rând, „indiferent de lățimea telefonului" —
-         font redus mult (9.5px) ca să încapă garantat, chiar și la 320px.
-         Rundă 49 — Marian a semnalat că textul devenise „prea mic, abia se
-         vede" — cerere de mărire, care intră direct în conflict cu
-         garanția strictă „un singur rând la orice lățime" de la rundă 48
-         (la un font destul de mare ca să fie lizibil confortabil, un
-         telefon îngust chiar NU mai are loc fizic pentru tot intervalul pe
-         un rând, indiferent cât am optimiza). Aleasă lizibilitatea, cerută
-         acum explicit, în locul garanției de rundă 48: fontul revine la
-         mărimea de bază a modalului (moștenită din '.rez-detail-mare',
-         15.1px — fără suprascriere proprie), iar container-ul devine
-         'flex-wrap:wrap' (nu mai 'nowrap'+'overflow-x:auto'). Rezultat:
-         pe ecrane suficient de late, tot pe un singur rând (ca la rundă
-         48); pe cele mai înguste (sub ~390px), revine la exact stilul de
-         la rundă 46 — rupere CURATĂ, doar între cele 3 „bucăți" (data de
-         start + blocul săgeată/durată, apoi data de sfârșit), niciodată în
-         mijlocul unei date/ore — nu mai depinde de scroll orizontal, care
-         avea oricum o hibă vizuală reală (cf. mai jos, rundă 48/49).
-         Totodată, cerere separată (rundă 48): durata partidei apare acum
-         DEASUPRA săgeții dintre cele două date+ore —
-         '.rez-detail-perioada-sageata' grupează săgeata cu eticheta de
-         durată, într-o coloană proprie. */
-      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
+         Rundă 48 → 49: încercare de „un singur rând, la orice lățime" (font
+         redus la 9.5px) → abandonată, în favoarea lizibilității (font
+         normal, rupere pe 2 rânduri — vezi istoricul complet la §70/§71).
+         Rundă 50 — Marian a acceptat definitiv 2 rânduri („Hai sa lasam pe
+         2 randuri”), dar a cerut 2 corecturi de aliniere: (1) data+ora de
+         START și cele de SFÂRȘIT trebuie să stea EXACT una sub cealaltă,
+         aliniate — cu 'flex-wrap' (rundă 49), cele 2 rânduri se centrau
+         FIECARE separat (lățimi diferite: primul rând avea și blocul
+         săgeată/durată alături, al doilea nu), deci începeau din puncte
+         diferite, dezaliniate vizual; (2) un pic mai mult spațiu între
+         blocul săgeată/durată și data de start (erau prea lipite).
+         Rezolvare: renunțat la 'flex-wrap' — acum e mereu o structură FIXĂ,
+         nu una care depinde de cât încape pe ecran: un rând ('flex', fără
+         'wrap') cu 2 „coloane” — (a) '.rez-detail-perioada-date', o coloană
+         proprie cu cele 2 perechi dată+oră, una sub cealaltă, aliniate
+         (părinte comun, deci start la aceeași poziție orizontală ca
+         sfârșitul); (b) '.rez-detail-perioada-sageata', blocul
+         săgeată/durată, ca înainte — acum cu un 'gap' puțin mai mare între
+         cele 2 coloane (14px, față de 6px înainte) — „doar puțin”, cf.
+         cererii explicite, nu o distanță mare. */
+      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:14px;}
+      .rez-detail-perioada-date{display:flex;flex-direction:column;align-items:center;gap:2px;}
       .rez-detail-perioada-parte{white-space:nowrap;}
       .rez-detail-perioada-sageata{display:flex;flex-direction:column;align-items:center;line-height:1.15;flex-shrink:0;}
       .rez-detail-durata{font-size:11px;font-weight:800;color:var(--zc-text-secondary-2,#94a3b8);text-transform:uppercase;letter-spacing:.3px;}
@@ -1693,12 +1690,14 @@
       '<div id="rez-cal-detail-identitate"></div>' +
       (htmlAvertismentPescar(r) ? '<div style="margin:-4px 0 4px;">' + htmlAvertismentPescar(r) + '</div>' : '') +
       '<div class="rez-detail-perioada">' +
-        '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_start) + '</span>' +
+        '<div class="rez-detail-perioada-date">' +
+          '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_start) + '</span>' +
+          '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_sfarsit) + '</span>' +
+        '</div>' +
         '<span class="rez-detail-perioada-sageata">' +
           '<span class="rez-detail-durata">' + escH(fmtDurataSesiune(r)) + '</span>' +
           '<span>→</span>' +
         '</span>' +
-        '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_sfarsit) + '</span>' +
       '</div>' +
       '<div class="rez-detail-stare-row">' +
         '<span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '">' + escH(statusLabel(r.status)) + '</span>' +
@@ -1818,16 +1817,30 @@
     // modalului (destul loc pentru orice număr, indiferent de câte cifre);
     // doar de la 480px în sus (telefon/tabletă mai lat, sau desktop) revin
     // unul lângă altul, ca înainte.
+    // Rundă 50 — cerere explicită a lui Marian: „fa textul din casutele cu
+    // nume si telefon sa fie editabil, nu sa trebuiasca sa introduci totul
+    // de la zero”. Până acum, câmpul pornea GOL ori de câte ori nu exista
+    // încă o suprascriere custom — identitatea reală (numele de cont/„Client
+    // telefonic”, respectiv telefonul de pe rezervare) apărea DOAR ca
+    // placeholder (text gri, ne-editabil, dispare la orice apăsare de
+    // tastă) — o corectură minoră (o literă greșit scrisă, o cifră) însemna
+    // să rescrii tot numele/telefonul din memorie. Acum câmpul pornește
+    // completat cu identitatea CURENT AFIȘATĂ (suprascrierea custom, dacă
+    // există, altfel identitatea reală) — editabilă direct, ca orice text
+    // deja scris într-un formular. Placeholder-ul (identitatea reală) rămâne
+    // ca reper, vizibil doar dacă admin-ul golește complet câmpul.
+    var numeAfisatInitial = nota.nume || numeImplicit || '';
+    var telefonAfisatInitial = telefonCustom || telefon || '';
     var htmlIdentitate =
       '<div class="rez-ident-row">' +
         '<div class="rez-field" style="margin:0;">' +
           '<label>Nume</label>' +
-          '<input type="text" id="' + meu + '-nume" value="' + escH(nota.nume || '') + '" placeholder="' + escH(numeImplicit || '') + '" style="' + stilCamp + '">' +
+          '<input type="text" id="' + meu + '-nume" value="' + escH(numeAfisatInitial) + '" placeholder="' + escH(numeImplicit || '') + '" style="' + stilCamp + '">' +
         '</div>' +
         '<div class="rez-field" style="margin:0;">' +
           '<label>Telefon</label>' +
           '<div style="display:flex;gap:6px;">' +
-            '<input type="tel" id="' + meu + '-telefon" value="' + escH(telefonCustom || '') + '" placeholder="' + escH(telefon || '') + '" style="' + stilCamp + '">' +
+            '<input type="tel" id="' + meu + '-telefon" value="' + escH(telefonAfisatInitial) + '" placeholder="' + escH(telefon || '') + '" style="' + stilCamp + '">' +
             '<button type="button" class="rez-call-btn" id="' + meu + '-suna" title="Sună">📞</button>' +
           '</div>' +
         '</div>' +
@@ -1871,11 +1884,14 @@
     };
 
     // Rundă 48 — valorile de referință față de care detectăm o modificare
-    // reală (nu doar un focus/blur fără nicio schimbare de text). Actualizate
-    // din nou, la fiecare „Salvează” reușit, mai jos.
+    // reală (nu doar un focus/blur fără nicio schimbare de text). Rundă 50 —
+    // acum egale cu ce e CHIAR AFIȘAT în câmp (identitatea reală, dacă nu
+    // exista încă o suprascriere), nu mai gol — altfel simpla completare a
+    // câmpului (fără nicio editare reală) ar fi arătat butonul „Salvează”
+    // degeaba. Actualizate din nou, la fiecare „Salvează” reușit, mai jos.
     var valInitiale = {
-      nume: nota.nume || '',
-      telefon: telefonCustom || '',
+      nume: numeAfisatInitial,
+      telefon: telefonAfisatInitial,
       text: nota.text || '',
       blocat: !!nota.blocat
     };
@@ -1927,16 +1943,27 @@
       var telefonCustomNou = document.getElementById(meu + '-telefon').value.trim();
       var text = document.getElementById(meu + '-text').value.trim();
       var blocat = document.getElementById(meu + '-blocat').checked;
+      // Rundă 50 — câmpurile pornesc acum precompletate cu identitatea REALĂ
+      // (nu mai goale, cf. mai sus), ca să fie editabile direct. Dacă
+      // rămân nemodificate față de identitatea reală (adică admin-ul n-a
+      // vrut de fapt s-o suprascrie — a modificat doar telefonul, de
+      // exemplu, lăsând numele așa cum era), trimitem NULL la server (nicio
+      // suprascriere), exact ca înainte de rundă 50 — altfel am fi „înghețat"
+      // o suprascriere identică cu identitatea reală, care n-ar mai urmări
+      // automat o eventuală schimbare ulterioară a ei (ex. pescarul își
+      // redenumește contul Zoda).
+      var numeDeTrimis = (nume && nume !== (numeImplicit || '').trim()) ? nume : null;
+      var telefonDeTrimis = (telefonCustomNou && telefonCustomNou !== (telefon || '').trim()) ? telefonCustomNou : null;
       btn.disabled = true; var txtOrig = btn.textContent; btn.textContent = 'Se salvează...';
       try {
         var res2 = await sb.rpc('seteaza_nota_pescar', {
           p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon,
-          p_text: text, p_blocat: blocat, p_nume: nume || null
+          p_text: text, p_blocat: blocat, p_nume: numeDeTrimis
         });
         if (res2.error) throw res2.error;
         var res3 = await sb.rpc('seteaza_telefon_custom_pescar', {
           p_balta_id: baltaId, p_pescar_user_id: userId || null, p_pescar_telefon: userId ? null : telefon,
-          p_telefon_custom: telefonCustomNou || null
+          p_telefon_custom: telefonDeTrimis
         });
         if (res3.error) throw res3.error;
         valInitiale = { nume: nume, telefon: telefonCustomNou, text: text, blocat: blocat };
