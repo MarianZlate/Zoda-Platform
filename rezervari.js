@@ -360,7 +360,13 @@
       .rez-btn:disabled{opacity:.5;cursor:not-allowed;}
       .rez-btn-secondary{background:transparent;border:1px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);}
       .rez-btn-danger{background:#7f1d1d;color:#fecaca;}
-      .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);}
+      .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);transition:box-shadow .3s,border-color .3s;}
+      /* Rundă 56 — evidențiere temporară pentru rezervarea țintă, la
+         sosirea printr-un link direct (ex. din email-ul de reminder,
+         'cont.html?open=rezervari&rez_id=...') — dispare singură după
+         2.5s ('setTimeout', mai sus, în JS), tranziția de mai sus o
+         face să se stingă lin, nu brusc. */
+      .rez-highlight{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.35);}
       .rez-blocare-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;}
       .rez-text-small{font-size:12px;}
       /* Rundă 44 — butonul de anulare, din modalul de detaliu, a devenit
@@ -1165,12 +1171,21 @@
   // (sau închideau) modalul vechi, invizibil, dedesubt, în timp ce cel nou,
   // vizibil deasupra, rămânea blocat pe „Se încarcă..." la nesfârșit —
   // exact bug-ul semnalat de Marian (2026-08-28, rundă 15).
-  async function deschideModalRezervarileMele() {
+  // Rundă 56 — cerere explicită a lui Marian: link-ul din email-ul de
+  // reminder (rundă 55) trebuie să ducă direct la widget-ul rezervării, nu
+  // doar la pagina de cont în general — ca pescarul să nu mai caute singur
+  // rezervarea din listă. `deschideModalRezervarileMele`/`incarcaRezervarileMele`
+  // primesc acum un `highlightId` opțional — dacă e dat, după randare,
+  // rezervarea cu acel id primește scroll automat + o evidențiere vizuală
+  // temporară (clasa `.rez-highlight`, dispare singură după 2.5s). Fără
+  // parametru, comportamentul rămâne EXACT cel de dinainte (apelul din
+  // butonul „Vezi rezervările mele" din `cont.html` nu trimite niciun id).
+  async function deschideModalRezervarileMele(highlightId) {
     deschideModalGeneric('Rezervările mele', '<div class="rez-empty">Se încarcă...</div>');
-    await incarcaRezervarileMele();
+    await incarcaRezervarileMele(highlightId);
   }
 
-  async function incarcaRezervarileMele() {
+  async function incarcaRezervarileMele(highlightId) {
     setModalBody('<div class="rez-empty">Se încarcă...</div>');
     try {
       var res = await sb.rpc('listeaza_rezervari_mele');
@@ -1184,6 +1199,14 @@
         var anuleazaBtn = document.getElementById('rez-anuleaza-' + r.id);
         if (anuleazaBtn) anuleazaBtn.onclick = function () { anuleazaMea(r.id); };
       });
+      if (highlightId != null) {
+        var elTinta = document.getElementById('rez-item-' + highlightId);
+        if (elTinta) {
+          elTinta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          elTinta.classList.add('rez-highlight');
+          setTimeout(function () { elTinta.classList.remove('rez-highlight'); }, 2500);
+        }
+      }
     } catch (e) {
       setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>');
     }
@@ -1194,7 +1217,7 @@
     var start = new Date(r.data_start);
     var arataConfirma = r.status === 'confirmata' && !r.confirmat_24h_la && (start - acum) <= 24 * 3600 * 1000 && start > acum;
     var arataAnuleaza = (r.status === 'in_asteptare' || r.status === 'confirmata') && (start - acum) >= 24 * 3600 * 1000;
-    return '<div class="rez-list-item">' +
+    return '<div class="rez-list-item" id="rez-item-' + r.id + '">' +
       '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(r.balta_nume) + ' — ' + escH(r.stand_nume) + '<span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '">' + escH(statusLabel(r.status)) + '</span></div>' +
       '<div style="margin:4px 0;">' + fmtDataOra(r.data_start) + ' → ' + fmtDataOra(r.data_sfarsit) + '</div>' +
       (r.motiv_anulare ? '<div class="rez-text-warn">Motiv: ' + escH(r.motiv_anulare) + '</div>' : '') +
