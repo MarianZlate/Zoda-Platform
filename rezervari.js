@@ -423,31 +423,35 @@
          04-09-2026" pe un rând, "18:00" singur pe rândul următor), pentru
          că fiecare '.rez-data-part'/'.rez-ora-part' (§39) e un '<span>'
          separat, cu un spațiu normal (punct de rupere valid) între ele.
-         Fix inițial: fiecare pereche dată+oră învelită într-un '<span>'
-         propriu, '.rez-detail-perioada-parte', cu 'white-space:nowrap'.
+         Fix: fiecare pereche dată+oră învelită într-un '<span>' propriu,
+         '.rez-detail-perioada-parte', cu 'white-space:nowrap'.
          Rundă 48 — cerere explicită a lui Marian, mai strictă: rândul
-         întreg trebuie să rămână pe UN SINGUR rând, „indiferent de
-         lățimea telefonului" — nu doar să se rupă „curat" la săgeată, ci
-         să nu se rupă deloc. Container-ul '.rez-detail-perioada' a
-         devenit el însuși 'flex' + 'white-space:nowrap', cu un font mult
-         mai mic implicit (mobil, 9.5px — la fel de mic ca eticheta de
-         durată de mai jos) — testat, încape cu rezervă (marjă >9px) chiar
-         și la 320px lățime de viewport, cel mai îngust ecran real obișnuit
-         azi; de la 480px în sus (breakpoint-ul deja folosit pentru
-         '.rez-ident-row', rundă 46), revine la mărimea inițială. Un
-         'overflow-x:auto' rămâne ca plasă de siguranță — dacă totuși un
-         font de sistem neobișnuit de mare tot n-ar încăpea, rândul
-         glisează orizontal în loc să se rupă urât pe 2 rânduri.
-         Totodată, cerere separată: durata partidei apare acum DEASUPRA
-         săgeții dintre cele două date+ore — '.rez-detail-perioada-sageata'
-         grupează săgeata cu eticheta de durată, într-o coloană proprie. */
-      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;overflow-x:auto;font-size:9.5px;}
+         întreg pe UN SINGUR rând, „indiferent de lățimea telefonului" —
+         font redus mult (9.5px) ca să încapă garantat, chiar și la 320px.
+         Rundă 49 — Marian a semnalat că textul devenise „prea mic, abia se
+         vede" — cerere de mărire, care intră direct în conflict cu
+         garanția strictă „un singur rând la orice lățime" de la rundă 48
+         (la un font destul de mare ca să fie lizibil confortabil, un
+         telefon îngust chiar NU mai are loc fizic pentru tot intervalul pe
+         un rând, indiferent cât am optimiza). Aleasă lizibilitatea, cerută
+         acum explicit, în locul garanției de rundă 48: fontul revine la
+         mărimea de bază a modalului (moștenită din '.rez-detail-mare',
+         15.1px — fără suprascriere proprie), iar container-ul devine
+         'flex-wrap:wrap' (nu mai 'nowrap'+'overflow-x:auto'). Rezultat:
+         pe ecrane suficient de late, tot pe un singur rând (ca la rundă
+         48); pe cele mai înguste (sub ~390px), revine la exact stilul de
+         la rundă 46 — rupere CURATĂ, doar între cele 3 „bucăți" (data de
+         start + blocul săgeată/durată, apoi data de sfârșit), niciodată în
+         mijlocul unei date/ore — nu mai depinde de scroll orizontal, care
+         avea oricum o hibă vizuală reală (cf. mai jos, rundă 48/49).
+         Totodată, cerere separată (rundă 48): durata partidei apare acum
+         DEASUPRA săgeții dintre cele două date+ore —
+         '.rez-detail-perioada-sageata' grupează săgeata cu eticheta de
+         durată, într-o coloană proprie. */
+      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
       .rez-detail-perioada-parte{white-space:nowrap;}
       .rez-detail-perioada-sageata{display:flex;flex-direction:column;align-items:center;line-height:1.15;flex-shrink:0;}
-      .rez-detail-durata{font-size:9.5px;font-weight:800;color:var(--zc-text-secondary-2,#94a3b8);text-transform:uppercase;letter-spacing:.3px;}
-      @media(min-width:480px){
-        .rez-detail-perioada{font-size:15.1px;}
-      }
+      .rez-detail-durata{font-size:11px;font-weight:800;color:var(--zc-text-secondary-2,#94a3b8);text-transform:uppercase;letter-spacing:.3px;}
       .rez-detail-stare-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
       .rez-detail-stare-row .rez-badge{margin-left:0;}
       .rez-detail-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
