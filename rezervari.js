@@ -417,19 +417,37 @@
          pentru că e o acțiune diferită în esență (administrarea profilului
          clientului, nu a acestei rezervări anume) — nu mai amestecată direct
          sub butonul de anulare, ca înainte. */
-      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;}
       /* Rundă 46 — cerere explicită a lui Marian: pe mobil, intervalul
          "dată oră → dată oră" se rupea pe 2 rânduri urât — nu la săgeată
          (unde ar arăta curat), ci exact ÎNTRE dată și oră (ex. "...→
          04-09-2026" pe un rând, "18:00" singur pe rândul următor), pentru
          că fiecare '.rez-data-part'/'.rez-ora-part' (§39) e un '<span>'
          separat, cu un spațiu normal (punct de rupere valid) între ele.
-         Fix: fiecare pereche dată+oră e acum învelită într-un '<span>'
-         propriu, '.rez-detail-perioada-parte', cu 'white-space:nowrap' —
-         nu se mai poate rupe ÎN INTERIORUL unei perechi; dacă tot nu
-         încape pe un rând, ruperea cade acum la săgeată (singurul loc
-         unde arată curat), nu în mijlocul unei date. */
+         Fix inițial: fiecare pereche dată+oră învelită într-un '<span>'
+         propriu, '.rez-detail-perioada-parte', cu 'white-space:nowrap'.
+         Rundă 48 — cerere explicită a lui Marian, mai strictă: rândul
+         întreg trebuie să rămână pe UN SINGUR rând, „indiferent de
+         lățimea telefonului" — nu doar să se rupă „curat" la săgeată, ci
+         să nu se rupă deloc. Container-ul '.rez-detail-perioada' a
+         devenit el însuși 'flex' + 'white-space:nowrap', cu un font mult
+         mai mic implicit (mobil, 9.5px — la fel de mic ca eticheta de
+         durată de mai jos) — testat, încape cu rezervă (marjă >9px) chiar
+         și la 320px lățime de viewport, cel mai îngust ecran real obișnuit
+         azi; de la 480px în sus (breakpoint-ul deja folosit pentru
+         '.rez-ident-row', rundă 46), revine la mărimea inițială. Un
+         'overflow-x:auto' rămâne ca plasă de siguranță — dacă totuși un
+         font de sistem neobișnuit de mare tot n-ar încăpea, rândul
+         glisează orizontal în loc să se rupă urât pe 2 rânduri.
+         Totodată, cerere separată: durata partidei apare acum DEASUPRA
+         săgeții dintre cele două date+ore — '.rez-detail-perioada-sageata'
+         grupează săgeata cu eticheta de durată, într-o coloană proprie. */
+      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;overflow-x:auto;font-size:9.5px;}
       .rez-detail-perioada-parte{white-space:nowrap;}
+      .rez-detail-perioada-sageata{display:flex;flex-direction:column;align-items:center;line-height:1.15;flex-shrink:0;}
+      .rez-detail-durata{font-size:9.5px;font-weight:800;color:var(--zc-text-secondary-2,#94a3b8);text-transform:uppercase;letter-spacing:.3px;}
+      @media(min-width:480px){
+        .rez-detail-perioada{font-size:15.1px;}
+      }
       .rez-detail-stare-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
       .rez-detail-stare-row .rez-badge{margin-left:0;}
       .rez-detail-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
@@ -1672,7 +1690,10 @@
       (htmlAvertismentPescar(r) ? '<div style="margin:-4px 0 4px;">' + htmlAvertismentPescar(r) + '</div>' : '') +
       '<div class="rez-detail-perioada">' +
         '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_start) + '</span>' +
-        ' → ' +
+        '<span class="rez-detail-perioada-sageata">' +
+          '<span class="rez-detail-durata">' + escH(fmtDurataSesiune(r)) + '</span>' +
+          '<span>→</span>' +
+        '</span>' +
         '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_sfarsit) + '</span>' +
       '</div>' +
       '<div class="rez-detail-stare-row">' +
@@ -1816,7 +1837,19 @@
       '<label class="rez-blocare-label">' +
         '<input type="checkbox" id="' + meu + '-blocat"' + (nota.blocat ? ' checked' : '') + '> 🚫 Blocat de la rezervări la această baltă' +
       '</label>' +
-      '<div style="display:flex;gap:8px;margin-top:8px;">' +
+      // Rundă 48 — cerere explicită a lui Marian: „pe câmpurile alea când
+      // apeși și editezi ceva, sa apara un buton de salvare ca sa evitam
+      // editarea accidentala”. Butonul „Salvează” era mereu vizibil, chiar
+      // și fără nicio modificare — un atingere accidentală (ex. la scroll
+      // pe mobil) pe un câmp de Nume/Telefon/Notă putea rămâne neobservată
+      // până la un „Salvează” ulterior, nelegat de acea editare. Rândul cu
+      // butonul pornește ascuns ('hidden', atribut HTML nativ) și apare
+      // DOAR după o modificare reală față de valorile încărcate — vezi
+      // 'verificaModificari()' mai jos, apelată la fiecare 'input'/'change'
+      // pe cele 4 câmpuri urmărite. După un „Salvează” reușit, valorile de
+      // referință se actualizează la cele tocmai salvate, iar butonul
+      // dispare din nou (nimic nemodificat rămas de trimis).
+      '<div style="display:none;gap:8px;margin-top:8px;" id="' + meu + '-save-row">' +
         '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button" style="flex:1;">Salvează</button>' +
       '</div>';
 
@@ -1833,6 +1866,41 @@
       if (v) window.location.href = 'tel:' + v;
     };
 
+    // Rundă 48 — valorile de referință față de care detectăm o modificare
+    // reală (nu doar un focus/blur fără nicio schimbare de text). Actualizate
+    // din nou, la fiecare „Salvează” reușit, mai jos.
+    var valInitiale = {
+      nume: nota.nume || '',
+      telefon: telefonCustom || '',
+      text: nota.text || '',
+      blocat: !!nota.blocat
+    };
+    var randSalveaza = document.getElementById(meu + '-save-row');
+    // Comutăm direct 'style.display' (nu atributul HTML 'hidden') — rândul
+    // are deja un 'style="display:none;..."' inline (ca să păstreze
+    // 'display:flex' când e vizibil, pentru alinierea butonului); un stil
+    // inline are prioritate mereu peste regula UA a atributului 'hidden'
+    // ('[hidden]{display:none}'), deci cele două combinate ar fi lăsat
+    // rândul vizibil tot timpul, indiferent de atribut — bug prins la
+    // verificarea vizuală cu Playwright, înainte de livrare.
+    function verificaModificari() {
+      if (!randSalveaza) return;
+      var elNume = document.getElementById(meu + '-nume');
+      var elTelefon = document.getElementById(meu + '-telefon');
+      var elText = document.getElementById(meu + '-text');
+      var elBlocat = document.getElementById(meu + '-blocat');
+      var modificat =
+        (elNume && elNume.value.trim() !== valInitiale.nume) ||
+        (elTelefon && elTelefon.value.trim() !== valInitiale.telefon) ||
+        (elText && elText.value.trim() !== valInitiale.text) ||
+        (elBlocat && elBlocat.checked !== valInitiale.blocat);
+      randSalveaza.style.display = modificat ? 'flex' : 'none';
+    }
+    [meu + '-nume', meu + '-telefon', meu + '-text'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', verificaModificari);
+    });
+
     // Rundă 45 — cerere explicită a lui Marian: bifarea „Blocat” trebuie să
     // anunțe, printr-un pop-up, că urmează să blocheze rezervările clientului
     // — declanșat la BIFARE (nu la debifare, care e o acțiune sigură/pozitivă,
@@ -1846,6 +1914,7 @@
           this.checked = false;
         }
       }
+      verificaModificari();
     };
 
     document.getElementById(meu + '-save').onclick = async function () {
@@ -1866,6 +1935,8 @@
           p_telefon_custom: telefonCustomNou || null
         });
         if (res3.error) throw res3.error;
+        valInitiale = { nume: nume, telefon: telefonCustomNou, text: text, blocat: blocat };
+        verificaModificari();
         toast('✓ Salvat.');
         if (typeof onSchimbat === 'function') onSchimbat();
       } catch (e) {
