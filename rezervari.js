@@ -2429,6 +2429,13 @@
     _manualSelectie = [];
     _manualTip = '24h';
     var minDateStr = toDateInputValue(new Date()); // admin nu are restricția de 16h a pescarului
+    // Rundă 58 — cerere explicită a lui Marian: dacă alege un cont Zoda
+    // real din sugestii, rezervarea manuală trebuie să se lege de acel
+    // cont (să apară în istoricul lui, nu ca „client” separat în „Bază
+    // clienți”). Până acum (rundă 20), alegerea unei sugestii doar
+    // completa textul din câmp — rezervarea rămânea 100% manuală. Starea
+    // de legătură se ține aici, resetată la fiecare deschidere a tabului.
+    var _manualContSelectat = null; // { id, username } sau null
 
     var html =
       '<div class="rez-field"><label>Tip partidă</label>' +
@@ -2440,6 +2447,7 @@
         '<label>Nume client</label>' +
         '<input type="text" id="rez-manual-nume" placeholder="opțional — scrie ca să vezi sugestii de conturi Zoda" autocomplete="off">' +
         '<div class="rez-autocomplete-list" id="rez-manual-nume-sugestii"></div>' +
+        '<div id="rez-manual-cont-legat" style="display:none;margin-top:6px;"></div>' +
       '</div>' +
       '<div class="rez-field"><label>Telefon client</label><input type="text" id="rez-manual-telefon" placeholder="opțional"></div>' +
       '<div class="rez-field">' +
@@ -2455,11 +2463,28 @@
       '<button class="rez-btn" id="rez-manual-submit" disabled>Adaugă rezervarea</button>';
     setModalBody(html);
 
+    // Rundă 58 — mic bloc vizual, sub câmpul de nume, care confirmă clar
+    // (și permite anularea) legătura cu un cont Zoda, când există.
+    function randeazaContLegat() {
+      var el = document.getElementById('rez-manual-cont-legat');
+      if (!el) return;
+      if (!_manualContSelectat) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      el.style.display = 'block';
+      el.innerHTML =
+        '<span class="rez-badge rez-badge-confirmata verde">✓ Legată de contul „' + escH(_manualContSelectat.username || '') + '"</span> ' +
+        '<button type="button" id="rez-manual-cont-unlink" style="background:none;border:none;color:var(--zc-text-secondary,#94a3b8);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;">Anulează legătura</button>' +
+        '<div style="font-size:11.5px;color:var(--zc-text-secondary,#94a3b8);margin-top:2px;">Rezervarea va apărea în istoricul acestui cont, nu ca pescar separat, în „Bază clienți”.</div>';
+      var btnUnlink = document.getElementById('rez-manual-cont-unlink');
+      if (btnUnlink) btnUnlink.onclick = function () { _manualContSelectat = null; randeazaContLegat(); };
+    }
+
     // ── Sugestii de conturi Zoda pe măsură ce se scrie numele (rundă 20) ──────
-    // Doar ajutor la scriere — alegerea unei sugestii completează exact
-    // numele contului în câmp, NU leagă rezervarea de acel cont (rămâne o
-    // rezervare manuală, nume_client/telefon_client, ca și până acum — vezi
-    // nota din 2026-08-28_runda20_cauta_pescari.sql pentru motiv).
+    // Rundă 58 — cerere explicită a lui Marian: dacă alege EXPLICIT o
+    // sugestie din listă (nu doar scrie un nume care se potrivește), acum
+    // rezervarea manuală chiar se leagă de acel cont (`_manualContSelectat`,
+    // trimis la salvare ca `p_user_id`) — nu doar completează textul, ca
+    // până acum. Orice tastare ulterioară în câmp anulează legătura (ca să
+    // nu rămână „agățată” de un cont vechi, dacă admin-ul rescrie numele).
     (function initSugestiiNume() {
       var numeInput = document.getElementById('rez-manual-nume');
       var sugestiiEl = document.getElementById('rez-manual-nume-sugestii');
@@ -2468,6 +2493,9 @@
       var _sugestiiTimer = null;
       function ascundeSugestii() { sugestiiEl.innerHTML = ''; sugestiiEl.style.display = 'none'; }
       numeInput.oninput = function () {
+        // Tastare directă = admin-ul rescrie numele — orice legătură de
+        // cont anterioară (dintr-un click pe sugestie) nu mai e validă.
+        if (_manualContSelectat) { _manualContSelectat = null; randeazaContLegat(); }
         var query = numeInput.value.trim();
         var myToken = ++_sugestiiToken;
         clearTimeout(_sugestiiTimer);
@@ -2479,12 +2507,17 @@
             var rezultate = (!res.error && res.data) ? res.data : [];
             if (!rezultate.length) { ascundeSugestii(); return; }
             sugestiiEl.innerHTML = rezultate.map(function (p) {
-              return '<div class="rez-autocomplete-item" data-nume="' + escH(p.username || '') + '">' + escH(p.username || '(fără nume)') +
+              return '<div class="rez-autocomplete-item" data-id="' + escH(p.id || '') + '" data-nume="' + escH(p.username || '') + '">' + escH(p.username || '(fără nume)') +
                 (p.zoda_id ? ' <span style="opacity:.6;">· ' + escH(p.zoda_id) + '</span>' : '') + '</div>';
             }).join('');
             sugestiiEl.style.display = 'block';
             Array.prototype.forEach.call(sugestiiEl.querySelectorAll('.rez-autocomplete-item'), function (item) {
-              item.onclick = function () { numeInput.value = item.dataset.nume; ascundeSugestii(); };
+              item.onclick = function () {
+                numeInput.value = item.dataset.nume;
+                _manualContSelectat = item.dataset.id ? { id: item.dataset.id, username: item.dataset.nume } : null;
+                randeazaContLegat();
+                ascundeSugestii();
+              };
             });
           } catch (e) { ascundeSugestii(); }
         }, 250);
@@ -2640,17 +2673,21 @@
       btn.disabled = true; btn.textContent = 'Se salvează...';
       try {
         var res;
+        // Rundă 58 — dacă un cont Zoda a fost ales explicit din sugestii
+        // (`_manualContSelectat`), rezervarea se leagă de el (`p_user_id`)
+        // — altfel `null`, exact comportamentul de până acum.
+        var userIdLegat = _manualContSelectat ? _manualContSelectat.id : null;
         if (_adminMultiplu && standIds.length > 1) {
           res = await sb.rpc('adauga_rezervare_multipla_admin', {
             p_stand_ids: standIds, p_tip_sesiune: _manualTip,
             p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString(),
-            p_nume_client: nume, p_telefon_client: telefon
+            p_nume_client: nume, p_telefon_client: telefon, p_user_id: userIdLegat
           });
         } else {
           res = await sb.rpc('adauga_rezervare_manuala', {
             p_stand_id: standIds[0], p_tip_sesiune: _manualTip,
             p_data_start: interval.start.toISOString(), p_data_sfarsit: interval.sfarsit.toISOString(),
-            p_nume_client: nume, p_telefon_client: telefon
+            p_nume_client: nume, p_telefon_client: telefon, p_user_id: userIdLegat
           });
         }
         if (res.error) throw res.error;
