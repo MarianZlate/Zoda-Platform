@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="rezervari.js?v=20260903l" defer></script>
+<script src="rezervari.js?v=20260903m" defer></script>
 <script>
 // ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
 // Fără GPS, fără date personale — coordonată fixă de referință (centrul
@@ -1621,6 +1621,15 @@ async function boot() {
       const body = document.getElementById('notif-body');
       if (body && body.style.display === 'none') toggleNotifPanel();
       document.getElementById('section-notificari')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Rundă 56 — cerere explicită a lui Marian: link-ul din email-ul de
+    // reminder (rundă 55) trebuie să ducă direct la widget-ul rezervării,
+    // nu doar la pagina de cont — deschide automat modalul „Rezervările
+    // mele" și evidențiază rezervarea vizată (`rez_id`), dacă e dat.
+    if (new URLSearchParams(location.search).get('open') === 'rezervari') {
+      const relIdStr = new URLSearchParams(location.search).get('rez_id');
+      const relId = relIdStr ? parseInt(relIdStr, 10) : undefined;
+      RezervariUI.deschideModalRezervarileMele(Number.isFinite(relId) ? relId : undefined);
     }
   });
   const promiseAmbasador = loadBaltiAmbasador();
