@@ -1003,7 +1003,7 @@
       return;
     }
 
-    var minDate = new Date(Date.now() + 16 * 3600 * 1000);
+    var minDate = new Date(Date.now() + 12 * 3600 * 1000);
     var minDateStr = toDateInputValue(minDate);
     var tipCurent = '12h';
     var standSelectatId = (standPreselectat && standuri.some(function (s) { return s.id === standPreselectat.id; })) ? standPreselectat.id : null;
@@ -1027,7 +1027,7 @@
       // Butonul de trimitere (`#rez-submit-btn`) NU mai e aici — a fost mutat
       // în header-ul modalului (rundă 23), cf. `deschideModalGeneric` mai
       // sus, ca să rămână vizibil fără scroll pe formulare lungi.
-      '<div style="font-size:11.5px;color:var(--zc-text-dim,#4b5563);margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 16h înainte. Balta trebuie să aprobe cererea.</div>';
+      '<div style="font-size:11.5px;color:var(--zc-text-dim,#4b5563);margin-top:8px;text-align:center;">Rezervările online sunt posibile doar cu minimum 12h înainte. Balta trebuie să aprobe cererea.</div>';
 
     setModalBody(body);
 
@@ -2451,7 +2451,7 @@
   function renderTabManual() {
     _manualSelectie = [];
     _manualTip = '24h';
-    var minDateStr = toDateInputValue(new Date()); // admin nu are restricția de 16h a pescarului
+    var minDateStr = toDateInputValue(new Date()); // admin nu are restricția de 12h a pescarului
     // Rundă 58 — cerere explicită a lui Marian: dacă alege un cont Zoda
     // real din sugestii, rezervarea manuală trebuie să se lege de acel
     // cont (să apară în istoricul lui, nu ca „client” separat în „Bază
