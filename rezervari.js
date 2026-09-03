@@ -418,6 +418,18 @@
          clientului, nu a acestei rezervări anume) — nu mai amestecată direct
          sub butonul de anulare, ca înainte. */
       .rez-detail-perioada{margin:2px 0 8px;font-weight:700;}
+      /* Rundă 46 — cerere explicită a lui Marian: pe mobil, intervalul
+         "dată oră → dată oră" se rupea pe 2 rânduri urât — nu la săgeată
+         (unde ar arăta curat), ci exact ÎNTRE dată și oră (ex. "...→
+         04-09-2026" pe un rând, "18:00" singur pe rândul următor), pentru
+         că fiecare '.rez-data-part'/'.rez-ora-part' (§39) e un '<span>'
+         separat, cu un spațiu normal (punct de rupere valid) între ele.
+         Fix: fiecare pereche dată+oră e acum învelită într-un '<span>'
+         propriu, '.rez-detail-perioada-parte', cu 'white-space:nowrap' —
+         nu se mai poate rupe ÎN INTERIORUL unei perechi; dacă tot nu
+         încape pe un rând, ruperea cade acum la săgeată (singurul loc
+         unde arată curat), nu în mijlocul unei date. */
+      .rez-detail-perioada-parte{white-space:nowrap;}
       .rez-detail-stare-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
       .rez-detail-stare-row .rez-badge{margin-left:0;}
       .rez-detail-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
@@ -428,13 +440,32 @@
          de la '.rez-btn' de bază (10px/14px). Acum butoanele din acest rând
          se dimensionează după conținut ('flex:0 1 auto', 'width:auto'), cu
          padding/font reduse — nu mai domină vizual restul modalului. */
-      .rez-detail-actions .rez-btn{width:auto;flex:0 1 auto;margin:0;padding:7px 16px;font-size:13px;}
+      /* Rundă 46 — cerere explicită a lui Marian: butonul de anulare, tot
+         "prea inalt" chiar și după reducerea de la rundă 45 — încă
+         -30% pe verticală (padding vertical 7px → 5px; ~30% mai puțin). */
+      .rez-detail-actions .rez-btn{width:auto;flex:0 1 auto;margin:0;padding:5px 16px;font-size:13px;}
       .rez-detail-divider{height:1px;background:var(--zc-border,#1e293b);margin:16px 0 10px;}
       /* Rundă 45 — butonul „Sună" de lângă câmpul editabil de telefon (din
          'randeazaIdentitateSiNotaPescar') — apelul rămâne la un singur tap,
          chiar dacă telefonul nu mai e un simplu link 'tel:' static (acum e
-         un '<input>' editabil), folosind mereu valoarea CURENTĂ din câmp. */
-      .rez-call-btn{flex:0 0 auto;width:auto;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 12px;font-size:15px;cursor:pointer;color:var(--zc-text-primary,#f1f5f9);}
+         un '<input>' editabil), folosind mereu valoarea CURENTĂ din câmp.
+         Rundă 46 — padding orizontal redus (12px→10px), ca să lase ceva
+         mai mult loc câmpului de telefon de lângă el (cf. mai jos, fix-ul
+         principal fiind însă stivuirea pe mobil, nu micșorarea butonului). */
+      .rez-call-btn{flex:0 0 auto;width:auto;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;font-size:15px;cursor:pointer;color:var(--zc-text-primary,#f1f5f9);}
+      /* Rundă 46 — rândul Nume+Telefon ('randeazaIdentitateSiNotaPescar'):
+         implicit (mobil — '.rez-modal' ajunge la 'width:100%', cf.
+         'max-width:520px'), Nume și Telefon stau unul SUB altul, fiecare
+         pe toată lățimea disponibilă — spațiu din belșug pentru orice
+         număr de telefon, indiferent de câte cifre, plus butonul de
+         apelare. De la 480px în sus (telefon mare/tabletă/desktop — modalul
+         are oricum destul spațiu orizontal), revin unul lângă altul. */
+      .rez-ident-row{display:flex;flex-direction:column;gap:8px;margin-top:10px;margin-bottom:8px;}
+      .rez-ident-row .rez-field{flex:1;min-width:0;}
+      @media(min-width:480px){
+        .rez-ident-row{flex-direction:row;flex-wrap:wrap;}
+        .rez-ident-row .rez-field{min-width:120px;}
+      }
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
       .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
       .rez-badge-confirmata{background:rgba(56,189,248,.15);color:#0369a1;}
@@ -1639,7 +1670,11 @@
     var bodyHtml = '<div class="rez-list-item rez-detail-mare" style="margin-bottom:0;">' +
       '<div id="rez-cal-detail-identitate"></div>' +
       (htmlAvertismentPescar(r) ? '<div style="margin:-4px 0 4px;">' + htmlAvertismentPescar(r) + '</div>' : '') +
-      '<div class="rez-detail-perioada">' + fmtDataOraColorat(r.data_start) + ' → ' + fmtDataOraColorat(r.data_sfarsit) + '</div>' +
+      '<div class="rez-detail-perioada">' +
+        '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_start) + '</span>' +
+        ' → ' +
+        '<span class="rez-detail-perioada-parte">' + fmtDataOraColorat(r.data_sfarsit) + '</span>' +
+      '</div>' +
       '<div class="rez-detail-stare-row">' +
         '<span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '">' + escH(statusLabel(r.status)) + '</span>' +
         (r.confirmat_24h_la ? '<span class="rez-text-ok rez-text-small">✓ Confirmat de pescar</span>' : (r.status === 'confirmata' ? '<span class="rez-text-muted2 rez-text-small">⏳ Neconfirmat încă</span>' : '')) +
@@ -1746,13 +1781,25 @@
 
     var stilCamp = 'width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:8px 10px;color:var(--zc-text-primary,#f1f5f9);font-size:13.5px;font-family:inherit;box-sizing:border-box;';
 
+    // Rundă 46 — cerere explicită a lui Marian: pe mobil, „numarul de
+    // telefon nu se vede complet din cauza butonului de apelare”. Rândul
+    // Nume+Telefon (rundă 45) era `display:flex` pur, unul lângă altul,
+    // fiecare `flex:1;min-width:120px` — pe un modal îngust (mobil, unde
+    // `.rez-modal` ajunge la `width:100%`, cf. `max-width:520px`), 120px
+    // pentru TOT câmpul de telefon (etichetă+input+buton de apelare) nu
+    // lasă loc destul pentru 10 cifre. Fix: rândul a devenit o clasă CSS
+    // dedicată (`.rez-ident-row`), nu stil inline — implicit (mobil),
+    // Nume și Telefon se așază unul SUB altul, fiecare pe toată lățimea
+    // modalului (destul loc pentru orice număr, indiferent de câte cifre);
+    // doar de la 480px în sus (telefon/tabletă mai lat, sau desktop) revin
+    // unul lângă altul, ca înainte.
     var htmlIdentitate =
-      '<div style="display:flex;gap:8px;margin-top:10px;margin-bottom:8px;flex-wrap:wrap;">' +
-        '<div class="rez-field" style="flex:1;min-width:120px;margin:0;">' +
+      '<div class="rez-ident-row">' +
+        '<div class="rez-field" style="margin:0;">' +
           '<label>Nume</label>' +
           '<input type="text" id="' + meu + '-nume" value="' + escH(nota.nume || '') + '" placeholder="' + escH(numeImplicit || '') + '" style="' + stilCamp + '">' +
         '</div>' +
-        '<div class="rez-field" style="flex:1;min-width:120px;margin:0;">' +
+        '<div class="rez-field" style="margin:0;">' +
           '<label>Telefon</label>' +
           '<div style="display:flex;gap:6px;">' +
             '<input type="tel" id="' + meu + '-telefon" value="' + escH(telefonCustom || '') + '" placeholder="' + escH(telefon || '') + '" style="' + stilCamp + '">' +
