@@ -886,6 +886,18 @@
       '</div>';
     document.body.appendChild(backdrop);
     backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    // Click oriunde pe un `<input type="date">` din acest modal (nu doar pe
+    // iconița de calendar din colț) deschide selectorul nativ de dată — cerere
+    // explicită a lui Marian: pescarii dădeau clic pe cifrele datei crezând
+    // că se poate edita direct și nu se întâmpla nimic. Delegat pe backdrop
+    // (nu pe fiecare input în parte) ca să acopere și câmpurile de dată
+    // re-randate ulterior (schimbare tip partidă, etc.) fără reatașare.
+    backdrop.addEventListener('click', function (e) {
+      var dataInput = e.target.closest ? e.target.closest('input[type="date"]') : null;
+      if (dataInput && !dataInput.disabled && !dataInput.readOnly && typeof dataInput.showPicker === 'function') {
+        try { dataInput.showPicker(); } catch (err) { /* browser fără suport / fără gest activ — ignorăm, iconița tot funcționează nativ */ }
+      }
+    });
     if (!_rezScrollLockActiv) {
       _rezScrollLockActiv = true;
       _rezScrollLockPrevBody = document.body.style.overflow;
