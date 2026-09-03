@@ -1707,8 +1707,23 @@
       '<div class="rez-detail-divider"></div>' +
       '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
-    deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
-    randeazaIdentitateSiNotaPescar(document.getElementById('rez-cal-detail-identitate'), document.getElementById('rez-cal-detail-nota'), _adminBaltaId, r.user_id, r.telefon_client, numeImplicitPescar(r));
+    // Rundă 51 — cerere explicită a lui Marian: butonul „Salvează” (Nume/
+    // Telefon/Notă/Blocat, cf. rundă 48) trebuie să apară ÎN HEADER, nu jos
+    // de tot în modal — pe un formular lung, jos „nu e vizibil" fără scroll.
+    // Exact același fix ca la rundă 23 („Trimite cererea", modalul
+    // pescarului) — butonul de acțiune principală mutat în header-ul
+    // modalului (`.rez-modal-hdr-actions`, deja 'position:sticky;top:0',
+    // deci rămâne pe ecran indiferent cât ai scrollat conținutul). Pornește
+    // ascuns (`display:none`) — apare DOAR la o modificare reală, exact ca
+    // înainte (rundă 48); `randeazaIdentitateSiNotaPescar` primește acum
+    // id-ul lui ca ultim parametru și îl folosește în locul rândului de jos
+    // — DOAR aici, în modalul din Gantt (o singură rezervare, un singur
+    // header posibil). În „Bază clienți" (mai mulți clienți, un singur
+    // header comun al tab-ului), rândul de jos rămâne neschimbat — n-ar
+    // avea sens un singur buton în header pentru mai multe carduri.
+    deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body',
+      '<button class="rez-btn rez-btn-header" id="rez-cal-detail-save" type="button" style="display:none;">Salvează</button>');
+    randeazaIdentitateSiNotaPescar(document.getElementById('rez-cal-detail-identitate'), document.getElementById('rez-cal-detail-nota'), _adminBaltaId, r.user_id, r.telefon_client, numeImplicitPescar(r), null, 'rez-cal-detail-save');
 
     var b = document.getElementById('rez-neprezentare-' + r.id);
     if (b) b.onclick = async function () {
@@ -1785,7 +1800,7 @@
   // real al rezervării) — aceeași decizie de scopare ca la numele custom
   // (§41: „ca să nu amestecăm două surse de adevăr”).
   var _notaSeq = 0;
-  async function randeazaIdentitateSiNotaPescar(identitateEl, notaEl, baltaId, userId, telefon, numeImplicit, onSchimbat) {
+  async function randeazaIdentitateSiNotaPescar(identitateEl, notaEl, baltaId, userId, telefon, numeImplicit, onSchimbat, headerBtnId) {
     if (!identitateEl && !notaEl) return;
     var acelasiContainer = identitateEl === notaEl;
     var meu = 'rez-nota-' + (++_notaSeq);
@@ -1866,9 +1881,16 @@
       // pe cele 4 câmpuri urmărite. După un „Salvează” reușit, valorile de
       // referință se actualizează la cele tocmai salvate, iar butonul
       // dispare din nou (nimic nemodificat rămas de trimis).
-      '<div style="display:none;gap:8px;margin-top:8px;" id="' + meu + '-save-row">' +
-        '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button" style="flex:1;">Salvează</button>' +
-      '</div>';
+      // Rundă 51 — cerere explicită a lui Marian: pe un formular lung,
+      // butonul de jos „nu e vizibil" fără scroll — mutat în header-ul
+      // modalului (cf. mai jos, doar când e dat un 'headerBtnId'). Când e
+      // dat, rândul de jos NU se mai randează deloc — un singur buton,
+      // nu două. Fără 'headerBtnId' (ex. „Bază clienți", mai multe carduri,
+      // un singur header comun), rândul de jos rămâne exact ca la rundă 48.
+      (headerBtnId ? '' :
+        '<div style="display:none;gap:8px;margin-top:8px;" id="' + meu + '-save-row">' +
+          '<button class="rez-btn rez-btn-secondary" id="' + meu + '-save" type="button" style="flex:1;">Salvează</button>' +
+        '</div>');
 
     if (acelasiContainer) {
       identitateEl.innerHTML = htmlIdentitate + htmlNota;
@@ -1895,7 +1917,9 @@
       text: nota.text || '',
       blocat: !!nota.blocat
     };
-    var randSalveaza = document.getElementById(meu + '-save-row');
+    // Rundă 51 — ținta vizibilității e fie butonul din header (dacă e dat
+    // 'headerBtnId'), fie rândul de jos, ca înainte — niciodată amândouă.
+    var randSalveaza = headerBtnId ? document.getElementById(headerBtnId) : document.getElementById(meu + '-save-row');
     // Comutăm direct 'style.display' (nu atributul HTML 'hidden') — rândul
     // are deja un 'style="display:none;..."' inline (ca să păstreze
     // 'display:flex' când e vizibil, pentru alinierea butonului); un stil
@@ -1914,7 +1938,11 @@
         (elTelefon && elTelefon.value.trim() !== valInitiale.telefon) ||
         (elText && elText.value.trim() !== valInitiale.text) ||
         (elBlocat && elBlocat.checked !== valInitiale.blocat);
-      randSalveaza.style.display = modificat ? 'flex' : 'none';
+      // Butonul din header e un '<button>' simplu (flex item deja, în
+      // '.rez-modal-hdr-actions') — revine la afișarea implicită (''), nu
+      // 'flex'; rândul de jos (un 'div' cu 'display:flex' cerut pentru
+      // alinierea internă a butonului) tot 'flex', ca înainte.
+      randSalveaza.style.display = modificat ? (headerBtnId ? '' : 'flex') : 'none';
     }
     [meu + '-nume', meu + '-telefon', meu + '-text'].forEach(function (id) {
       var el = document.getElementById(id);
@@ -1937,7 +1965,10 @@
       verificaModificari();
     };
 
-    document.getElementById(meu + '-save').onclick = async function () {
+    // Rundă 51 — același handler de „Salvează", legat fie de butonul din
+    // header, fie de cel din rândul de jos (oricare există, cf. mai sus).
+    var btnSalveazaEl = headerBtnId ? document.getElementById(headerBtnId) : document.getElementById(meu + '-save');
+    if (btnSalveazaEl) btnSalveazaEl.onclick = async function () {
       var btn = this;
       var nume = document.getElementById(meu + '-nume').value.trim();
       var telefonCustomNou = document.getElementById(meu + '-telefon').value.trim();
