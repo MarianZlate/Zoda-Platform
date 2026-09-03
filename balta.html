@@ -1405,9 +1405,12 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
       </div>
       <button class="modal-close" onclick="closeCapturiModalBalta()">✕</button>
     </div>
-    <!-- Butonul "Adaugă captura ta" a fost mutat (2026-09-02) direct pe pagina
-         bălții, în rândul de acțiuni de sus (#ib-actions-grid) — aici, în
-         modal, nu era vizibil pentru majoritatea oamenilor. -->
+    <!-- Butonul "Adaugă captura ta" există și pe pagina bălții, în rândul de
+         acțiuni de sus (#ib-actions-grid) — dar rămâne și aici, în modal,
+         la cererea lui Marian, ca să nu-l rateze cei care nu-l observă sus. -->
+    <div style="padding:10px 16px 0;">
+      <button id="btn-adauga-captura-ta" onclick="openCerereCaptura()" style="width:100%;background:linear-gradient(135deg,#0f766e,#0d9488);border:none;color:#e0f7ff;font-weight:700;font-size:14px;padding:12px;border-radius:10px;cursor:pointer;">📸 Adaugă captura ta</button>
+    </div>
     <div class="hof-modal-list cr-grid" id="cbm-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Se încarcă...</div></div>
   </div>
 </div>
