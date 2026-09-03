@@ -797,6 +797,11 @@ html[data-theme="light"] .logo-img-light{display:block;}
     </a>
     </div>
     <div id="ib-actions-grid">
+    <!-- Adaugă captura — mutat aici (2026-09-02, la cererea lui Marian) direct
+         pe pagina bălții, primul buton din rând, ca să fie vizibil imediat
+         fără să mai treacă cineva prin modalul "Capturi" (unde era ascuns și
+         oamenii nu-l găseau). Cheamă aceeași funcție ca înainte. -->
+    <button id="btn-adauga-captura-header" onclick="openCerereCaptura()" style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#0f766e,#0d9488);border:none;border-radius:8px;padding:7px 12px;color:#e0f7ff;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;"><span class="ib-ic">📸</span><span>Adaugă captura</span></button>
     <button id="btn-tarife" onclick="openTarifeOrWa()" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">💰</span><span>Tarife</span></button>
     <button id="btn-regulament" onclick="openInfoOverlay('regulament')" style="display:none;align-items:center;gap:7px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);border-radius:8px;padding:7px 12px;color:#38bdf8;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;"><span class="ib-ic">📋</span><span>Regulament</span></button>
     <!-- Rezervare la nivel de baltă — vizibilitate/comportament controlate
@@ -1400,9 +1405,9 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
       </div>
       <button class="modal-close" onclick="closeCapturiModalBalta()">✕</button>
     </div>
-    <div style="padding:10px 16px 0;">
-      <button id="btn-adauga-captura-ta" onclick="openCerereCaptura()" style="width:100%;background:linear-gradient(135deg,#0f766e,#0d9488);border:none;color:#e0f7ff;font-weight:700;font-size:14px;padding:12px;border-radius:10px;cursor:pointer;">📸 Adaugă captura ta</button>
-    </div>
+    <!-- Butonul "Adaugă captura ta" a fost mutat (2026-09-02) direct pe pagina
+         bălții, în rândul de acțiuni de sus (#ib-actions-grid) — aici, în
+         modal, nu era vizibil pentru majoritatea oamenilor. -->
     <div class="hof-modal-list cr-grid" id="cbm-list"><div style="padding:16px;text-align:center;color:var(--zc-text-dim);font-size:13px;grid-column:1/-1;">Se încarcă...</div></div>
   </div>
 </div>
