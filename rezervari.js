@@ -1022,16 +1022,32 @@
       avertEl.innerHTML = motiv ? '<div class="rez-text-warn" style="font-size:12.5px;margin:-6px 0 12px;">⚠️ ' + escH(motiv) + '</div>' : '';
     }
 
+    // Rundă 52 — cerere explicită a lui Marian: „data din modalul sta de
+    // rezervari se reseteaza de cate ori schimb tipul partidei... e
+    // frustrant”. Cauza: la fiecare schimbare de tip, funcția rescria
+    // câmpurile de dată de la zero, cu `value="minDateStr"` necondiționat —
+    // orice dată aleasă deja de vizitator (ex. căuta special o zi anume
+    // pentru o partidă de 24h) se pierdea, chiar dacă doar comuta tipul
+    // înainte-înapoi. Fix: înainte de a rescrie HTML-ul, citim data (datele)
+    // ȘI momentele curent alese din câmpurile ÎNCĂ EXISTENTE în DOM (dacă
+    // există) și le folosim ca valoare nouă, în loc de `minDateStr` fix —
+    // data rămâne cea aleasă de vizitator, indiferent de câte ori comută
+    // tipul de partidă. `minDateStr` rămâne folosit doar ca prim fallback,
+    // pentru randarea INIȚIALĂ (nicio dată aleasă încă).
     function renderDateFields() {
+      var dataStartAnt = (document.getElementById('rez-data-start') || {}).value || minDateStr;
+      var dataSfarsitAnt = (document.getElementById('rez-data-sfarsit') || {}).value || dataStartAnt;
+      var momStartAnt = (document.getElementById('rez-mom-start') || {}).value || 'zi';
+      var momSfarsitAnt = (document.getElementById('rez-mom-sfarsit') || {}).value || 'noapte';
       var html = '';
       if (tipCurent === 'personalizat') {
         html =
-          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment început</label><select id="rez-mom-start"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-mom-sfarsit"><option value="zi">Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
+          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>' +
+          '<div class="rez-field"><label>Moment început</label><select id="rez-mom-start"><option value="zi"' + (momStartAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momStartAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"></div>' +
+          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-mom-sfarsit"><option value="zi"' + (momSfarsitAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((balta.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momSfarsitAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((balta.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html = '<div class="rez-field"><label>Data rezervării</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+        html = '<div class="rez-field"><label>Data rezervării</label><input type="date" lang="ro" id="rez-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>';
       }
       document.getElementById('rez-date-fields').innerHTML = html;
       ['rez-data-start', 'rez-data-sfarsit', 'rez-mom-start', 'rez-mom-sfarsit'].forEach(function (id) {
@@ -2490,17 +2506,27 @@
     // 32) rămâne ales de browser, nu de noi — widget-ul nativ de dată nu
     // poate fi restilizat prin CSS ca să schimbe caracterul separator;
     // ordinea zi-lună-an, care era problema reală semnalată, e însă fixată.
+    // Rundă 52 — cerere explicită a lui Marian: aceeași hibă ca la modalul
+    // pescarului (mai jos în fișier, `renderDateFields`) — schimbarea
+    // tipului de partidă rescria data la `minDateStr`, necondiționat,
+    // pierzând orice dată deja aleasă de balta_admin. Fix identic: se
+    // citesc data (datele) ȘI momentele curent alese, din câmpurile ÎNCĂ
+    // EXISTENTE (dacă există), și se refolosesc ca valoare nouă.
     function randeazaDateFields() {
       var b = _adminBalta || {};
+      var dataStartAnt = (document.getElementById('rez-manual-data-start') || {}).value || minDateStr;
+      var dataSfarsitAnt = (document.getElementById('rez-manual-data-sfarsit') || {}).value || dataStartAnt;
+      var momStartAnt = (document.getElementById('rez-manual-mom-start') || {}).value || 'zi';
+      var momSfarsitAnt = (document.getElementById('rez-manual-mom-sfarsit') || {}).value || 'noapte';
       var html2;
       if (_manualTip === 'personalizat') {
         html2 =
-          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte">Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + minDateStr + '"></div>' +
-          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi">Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte" selected>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
+          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>' +
+          '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi"' + (momStartAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momStartAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"></div>' +
+          '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi"' + (momSfarsitAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momSfarsitAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + minDateStr + '"></div>';
+        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>';
       }
       document.getElementById('rez-manual-date-fields').innerHTML = html2;
       ['rez-manual-data-start', 'rez-manual-data-sfarsit', 'rez-manual-mom-start', 'rez-manual-mom-sfarsit'].forEach(function (id) {
