@@ -363,7 +363,20 @@
       .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);}
       .rez-blocare-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:10px;cursor:pointer;}
       .rez-text-small{font-size:12px;}
-      .rez-btn-anuleaza-mic{margin:8px auto 0;width:70%;display:block;padding:6px 16px;}
+      /* Rundă 44 — butonul de anulare, din modalul de detaliu, a devenit
+         „outline" (fundal transparent, doar contur+text roșu) în loc de
+         roșu plin — cerere implicită a lui Marian („informația e
+         împrăștiată, fără corelare/prioritizare"): „Nu s-a prezentat" (dă
+         un avertisment real pescarului) rămâne roșu PLIN ('.rez-btn-danger',
+         neatins) — cea mai gravă acțiune din modal; „Anulează" e mai
+         frecventă/neutră (eliberează standul, fără penalizare), deci
+         vizual secundară față de ea, deși tot semnalează o acțiune cu
+         urmări. Lățimea/poziționarea (fostul 'margin:8px auto 0;width:70%')
+         au fost mutate în '.rez-detail-actions .rez-btn' (mai jos) — cele
+         2 butoane stau acum unul lângă altul, într-un rând de acțiuni
+         dedicat, nu unul sub altul, pe toată lățimea. */
+      .rez-btn-anuleaza-mic{background:transparent;border:1.5px solid #b91c1c;color:#b91c1c;}
+      .rez-btn-anuleaza-mic:hover{background:rgba(185,28,28,.08);}
       /* Buton „Șterge" pe cardurile din Moderare (rundă 19) — înălțime
          redusă cu 30% față de un buton normal (padding vertical 6px→4px,
          font aliniat la 12.5px), ca să fie la fel de înalt ca pastila de
@@ -389,6 +402,29 @@
       .rez-detail-mare .rez-field label{font-size:14px;}
       .rez-detail-mare .rez-field textarea{font-size:15.1px !important;text-align:left;}
       .rez-detail-mare .rez-blocare-label{font-size:14px;justify-content:center;}
+      /* Rundă 44 — redesenul modalului de detaliu al rezervării (din Gantt),
+         la cererea explicită a lui Marian: informația era „împrăștiată, fără
+         corelare/prioritizare” — nume, dată, status, buton de anulare uriaș
+         și roșu, apoi câmpurile de notă, toate cu aceeași greutate vizuală,
+         fără nicio grupare. Restructurat pe 3 blocuri, în ordinea în care
+         balta_admin are nevoie de informație: (1) CINE + CÂND — identitate
+         și interval, cele mai importante, primele; (2) STARE — badge-ul de
+         status ȘI confirmarea pescarului, pe ACELAȘI rând (sunt ambele
+         despre „ce se știe despre rezervarea asta acum”, corelate, nu mai
+         una sub alta ca informații separate) + acțiunile disponibile,
+         imediat sub stare (efectul lor asupra stării); (3) NOTĂ & BLOCARE
+         CLIENT — despărțit vizual printr-o linie + un antet de secțiune,
+         pentru că e o acțiune diferită în esență (administrarea profilului
+         clientului, nu a acestei rezervări anume) — nu mai amestecată direct
+         sub butonul de anulare, ca înainte. */
+      .rez-detail-identitate{margin-bottom:4px;}
+      .rez-detail-perioada{margin:2px 0 8px;font-weight:700;}
+      .rez-detail-stare-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+      .rez-detail-stare-row .rez-badge{margin-left:0;}
+      .rez-detail-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+      .rez-detail-actions .rez-btn{width:auto;flex:1 1 150px;max-width:220px;margin:0;}
+      .rez-detail-divider{height:1px;background:var(--zc-border,#1e293b);margin:16px 0 10px;}
+      .rez-detail-section-label{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--zc-text-muted,#64748b);margin-bottom:6px;}
       .rez-badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;margin-left:6px;}
       .rez-badge-in_asteptare{background:rgba(245,158,11,.15);color:#b45309;}
       .rez-badge-confirmata{background:rgba(56,189,248,.15);color:#0369a1;}
@@ -675,6 +711,9 @@
       html:not([data-theme="light"]) .rez-badge-confirmata{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-badge-confirmata.verde{color:#22c55e;}
       html:not([data-theme="light"]) .rez-badge-neprezentat{color:#ef4444;}
+      html:not([data-theme="light"]) .rez-btn-anuleaza-mic{border-color:#f87171;color:#f87171;}
+      html:not([data-theme="light"]) .rez-btn-anuleaza-mic:hover{background:rgba(248,113,113,.12);}
+      html:not([data-theme="light"]) .rez-detail-divider{background:#334155;}
       html:not([data-theme="light"]) .rez-badge-onorata{color:#22c55e;}
       html:not([data-theme="light"]) .rez-istoric-btn{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
@@ -1554,13 +1593,30 @@
     // FĂRĂ să dea strike (ex. pescarul a anunțat din timp o întârziere).
     var arataNeprezentare = r.status === 'confirmata' && sStart <= acum;
     var arataAnuleaza = r.status === 'confirmata' && sEnd >= acum;
+    // Rundă 44 — cerere explicită a lui Marian: „informația e împrăștiată,
+    // fără corelare/prioritizare”. Restructurat pe 3 blocuri (cf. comentariul
+    // din CSS, mai sus, lângă `.rez-detail-identitate`): (1) cine + când —
+    // identitate și interval, primele; (2) starea rezervării — badge-ul de
+    // status și confirmarea pescarului, corelate pe același rând, urmate
+    // imediat de acțiunile care le schimbă (nu mai un buton uriaș, izolat);
+    // (3) nota/blocarea clientului, despărțită vizual — e administrare a
+    // PROFILULUI clientului, nu a acestei rezervări anume.
+    var htmlActiuni = (arataNeprezentare || arataAnuleaza)
+      ? '<div class="rez-detail-actions">' +
+          (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
+          (arataAnuleaza ? '<button class="rez-btn rez-btn-anuleaza-mic" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează</button>' : '') +
+        '</div>'
+      : '';
     var bodyHtml = '<div class="rez-list-item rez-detail-mare" style="margin-bottom:0;">' +
-      '<div><span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '" style="margin-left:0;">' + escH(statusLabel(r.status)) + '</span></div>' +
-      '<div style="margin:8px 0 4px;">' + identitatePescar(r) + '</div>' +
-      '<div style="margin:4px 0;">' + fmtDataOraColorat(r.data_start) + ' → ' + fmtDataOraColorat(r.data_sfarsit) + '</div>' +
-      (r.confirmat_24h_la ? '<div class="rez-text-ok rez-text-small">✓ Confirmat de pescar</div>' : (r.status === 'confirmata' ? '<div class="rez-text-muted2 rez-text-small">⏳ Neconfirmat încă</div>' : '')) +
-      (arataNeprezentare ? '<button class="rez-btn rez-btn-danger" style="margin-top:8px;" id="rez-neprezentare-' + r.id + '">❌ Nu s-a prezentat</button>' : '') +
-      (arataAnuleaza ? '<button class="rez-btn rez-btn-danger rez-btn-anuleaza-mic" id="rez-cal-anuleaza-' + r.id + '">🚫 Anulează rezervarea</button>' : '') +
+      '<div class="rez-detail-identitate">' + identitatePescar(r) + '</div>' +
+      '<div class="rez-detail-perioada">' + fmtDataOraColorat(r.data_start) + ' → ' + fmtDataOraColorat(r.data_sfarsit) + '</div>' +
+      '<div class="rez-detail-stare-row">' +
+        '<span class="rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '') + '">' + escH(statusLabel(r.status)) + '</span>' +
+        (r.confirmat_24h_la ? '<span class="rez-text-ok rez-text-small">✓ Confirmat de pescar</span>' : (r.status === 'confirmata' ? '<span class="rez-text-muted2 rez-text-small">⏳ Neconfirmat încă</span>' : '')) +
+      '</div>' +
+      htmlActiuni +
+      '<div class="rez-detail-divider"></div>' +
+      '<div class="rez-detail-section-label">📝 Notă &amp; blocare client</div>' +
       '<div id="rez-cal-detail-nota"></div>' +
     '</div>';
     deschideModalGeneric(r.stand_nume, bodyHtml, null, 'rez-cal-detail-body');
