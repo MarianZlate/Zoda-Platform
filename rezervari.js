@@ -2238,16 +2238,6 @@
     var minDateStr = toDateInputValue(new Date()); // admin nu are restricția de 16h a pescarului
 
     var html =
-      '<div class="rez-field">' +
-        '<label><input type="checkbox" id="rez-manual-multiplu"> Rezervare multiplă (grup/concurs — mai multe standuri)</label>' +
-      '</div>' +
-      '<div class="rez-field">' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-          '<label id="rez-manual-stand-label" style="margin:0;">Stand</label>' +
-          '<button type="button" class="rez-btn rez-btn-secondary" id="rez-manual-selall" style="display:none;width:auto;padding:4px 12px;font-size:12px;">Selectează tot</button>' +
-        '</div>' +
-        '<div class="rez-stand-grid" id="rez-manual-stand-grid"></div>' +
-      '</div>' +
       '<div class="rez-field"><label>Tip partidă</label>' +
         '<div class="rez-tip-row" id="rez-manual-tip-row"></div>' +
       '</div>' +
@@ -2259,6 +2249,16 @@
         '<div class="rez-autocomplete-list" id="rez-manual-nume-sugestii"></div>' +
       '</div>' +
       '<div class="rez-field"><label>Telefon client</label><input type="text" id="rez-manual-telefon" placeholder="opțional"></div>' +
+      '<div class="rez-field">' +
+        '<label><input type="checkbox" id="rez-manual-multiplu"> Rezervare multiplă (grup/concurs — mai multe standuri)</label>' +
+      '</div>' +
+      '<div class="rez-field">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
+          '<label id="rez-manual-stand-label" style="margin:0;">Stand</label>' +
+          '<button type="button" class="rez-btn rez-btn-secondary" id="rez-manual-selall" style="display:none;width:auto;padding:4px 12px;font-size:12px;">Selectează tot</button>' +
+        '</div>' +
+        '<div class="rez-stand-grid" id="rez-manual-stand-grid"></div>' +
+      '</div>' +
       '<button class="rez-btn" id="rez-manual-submit" disabled>Adaugă rezervarea</button>';
     setModalBody(html);
 
