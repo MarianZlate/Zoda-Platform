@@ -2157,7 +2157,20 @@
           var istoricBtn = p.rezervari.length
             ? '<button class="rez-istoric-btn" id="rez-mod-ist-btn-' + idx + '" type="button">📋 Istoric (' + p.rezervari.length + ')</button>'
             : '<span></span>';
+          // Rundă 54 — cerere explicită a lui Marian: „butonul de salveaza
+          // la fel trebuie sa apara in header, nu jos" — aceeași cerere ca la
+          // rundă 51 (modalul din Gantt), de data asta pentru cardurile din
+          // „Bază clienți". Aici nu există un header de MODAL (fiecare card
+          // e propriul lui „formular", nu un modal separat) — echivalentul e
+          // un mic rând-antet, SUS de tot în card, cu DOAR butonul „Salvează”
+          // (ascuns implicit, apare la o modificare reală, cf. rundă 48) —
+          // nimic altceva pe el, ca să nu reintroducem duplicarea eliminată
+          // la rundă 53. Cardul rămâne astfel: [antet cu Salvează] → [Nume/
+          // Telefon/Notă/Blocat] → [Istoric/Șterge, jos].
           return '<div class="rez-list-item">' +
+            '<div style="display:flex;justify-content:flex-end;margin-bottom:6px;">' +
+              '<button class="rez-btn rez-btn-header" id="rez-mod-save-' + idx + '" type="button" style="display:none;">Salvează</button>' +
+            '</div>' +
             '<div id="rez-mod-nota-' + idx + '"></div>' +
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
               istoricBtn +
@@ -2175,9 +2188,12 @@
           // Rundă 45 — `randeazaIdentitateSiNotaPescar` cere 2 containere;
           // aici, unde nu are sens o poziționare separată (cardul are deja
           // numele mare deasupra), i se dă ACELAȘI element de două ori —
-          // funcția scrie identitate+notă, în ordine, în el.
+          // funcția scrie identitate+notă, în ordine, în el. Rundă 54 —
+          // primește acum și id-ul butonului „Salvează” din antetul
+          // cardului (mai sus) — rândul de jos, cu propriul „Salvează”, nu
+          // se mai randează deloc (un singur buton, ca la modalul din Gantt).
           var elNotaModerare = document.getElementById('rez-mod-nota-' + idx);
-          randeazaIdentitateSiNotaPescar(elNotaModerare, elNotaModerare, _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
+          randeazaIdentitateSiNotaPescar(elNotaModerare, elNotaModerare, _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare, 'rez-mod-save-' + idx);
 
           // Rundă 43 — deschide/închide dropdown-ul de istoric; conținutul
           // (`randeazaIstoricClient`) e randat o singură dată, lene (abia la
