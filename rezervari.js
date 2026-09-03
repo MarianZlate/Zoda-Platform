@@ -123,6 +123,63 @@
     return esteRezervareVerde(r) ? ' verde' : '';
   }
 
+  // ── Istoricul de rezervări al unui client, în „Bază clienți" (rundă 43,
+  // cerere explicită a lui Marian: „fiecare client sa aiba un dropdown la
+  // care sa vedem istoricul rezervarilor pe balta respectiva, data cand a
+  // facut rezervarea, durata partidei, daca au fost onorate, anulate sau
+  // nu s-a prezentat"). Două piese separate de `statusLabel`/`claseNivelIncredere`
+  // de mai sus, dar construite peste ele, nu în paralel:
+  //
+  // 1) Durata efectivă a partidei — calculată din `data_sfarsit - data_start`
+  //    (nu din `tip_sesiune`, ca să rămână corectă și pentru „personalizat",
+  //    unde durata nu e fixă) — afișată în ore ("24h"), sau în zile întregi
+  //    ("2 zile") doar când durata e un multiplu de 24h ȘI trece de 24h (o
+  //    rezervare obișnuită de 24h rămâne "24h", ca să se recunoască din
+  //    prima privire, la fel ca eticheta tipului "24 ore" de la rezervare).
+  function fmtDurataSesiune(r) {
+    var ore = Math.round((new Date(r.data_sfarsit) - new Date(r.data_start)) / 3600000);
+    if (ore > 24 && ore % 24 === 0) return (ore / 24) + ' zile';
+    return ore + 'h';
+  }
+
+  // 2) Eticheta/badge-ul de rezultat pentru o rezervare din istoric — statusul
+  //    brut (`statusLabel`) nu distinge o rezervare `confirmata` care s-a
+  //    ÎNCHEIAT deja (deci a fost efectiv onorată — pescarul a venit, n-a
+  //    fost marcată "neprezentat") de una `confirmata` care abia URMEAZĂ.
+  //    Rezultat nou, calculat DOAR pentru istoric (nu schimbă nimic din
+  //    Calendar/Cereri, unde `confirmata` rămâne „aprobată" peste tot,
+  //    indiferent de dată — comportament neatins, cf. `claseNivelIncredere`
+  //    de mai sus). Restul statusurilor (anulata/respinsa/expirata/
+  //    neprezentat/in_asteptare) își păstrează eticheta+culoarea obișnuită.
+  function statusIstoricBadge(r) {
+    if (r.status === 'confirmata' && new Date(r.data_sfarsit) < new Date()) {
+      return { label: 'onorată', classAttr: 'rez-badge rez-badge-onorata' };
+    }
+    var clase = 'rez-badge rez-badge-' + r.status + (r.status === 'confirmata' ? claseNivelIncredere(r) : '');
+    return { label: statusLabel(r.status), classAttr: clase };
+  }
+
+  // Randează lista de rezervări din istoricul unui client — cea mai recentă
+  // primă (sortare descrescătoare după `data_start`), un rând per rezervare:
+  // dată, durată, stand, rezultat. Funcție separată (nu inline în
+  // `renderTabModerare`), ca să poată fi testată izolat și randată abia la
+  // deschiderea dropdown-ului (nu la randarea inițială a listei de clienți —
+  // ar însemna sute de rânduri ascunse, randate degeaba, pe o baltă cu mulți
+  // clienți).
+  function randeazaIstoricClient(rezervari) {
+    if (!rezervari.length) return '<div class="rez-istoric-empty">Nicio rezervare încă la această baltă.</div>';
+    var sortate = rezervari.slice().sort(function (a, b) { return new Date(b.data_start) - new Date(a.data_start); });
+    return sortate.map(function (r) {
+      var info = statusIstoricBadge(r);
+      return '<div class="rez-istoric-item">' +
+        '<span class="rez-istoric-data">' + escH(fmtDataDDMMYYYY(new Date(r.data_start))) + '</span>' +
+        '<span class="rez-istoric-durata">' + escH(fmtDurataSesiune(r)) + '</span>' +
+        '<span class="rez-istoric-stand">' + escH(r.stand_nume || '') + '</span>' +
+        '<span class="' + info.classAttr + '">' + escH(info.label) + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
   function toDateInputValue(d) {
     var y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
@@ -338,6 +395,22 @@
       .rez-badge-confirmata.verde{background:rgba(34,197,94,.15);color:#15803d;}
       .rez-badge-anulata,.rez-badge-respinsa,.rez-badge-expirata{background:rgba(148,163,184,.18);color:var(--zc-text-secondary,#94a3b8);}
       .rez-badge-neprezentat{background:rgba(239,68,68,.15);color:#dc2626;}
+      /* Rundă 43 — „onorată" (rezervare aprobată, deja încheiată, nemarcată
+         neprezentat) — nu e un status real din baza de date, doar o etichetă
+         calculată pentru istoricul din „Bază clienți" (cf. 'statusIstoricBadge'),
+         dar folosește aceeași nuanță de verde ca „aprobată + confirmată de
+         pescar" ('.rez-badge-confirmata.verde'), ca vocabularul de culori să
+         rămână unul singur în toată aplicația. */
+      .rez-badge-onorata{background:rgba(34,197,94,.15);color:#15803d;}
+      /* Dropdown-ul de istoric al unui client, în „Bază clienți" (rundă 43). */
+      .rez-istoric-btn{background:transparent;border:1px solid var(--zc-border,#1e293b);color:var(--zc-accent-dark,#0e7490);font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;}
+      .rez-istoric-list{margin-top:10px;padding-top:10px;border-top:1px dashed var(--zc-border,#1e293b);}
+      .rez-istoric-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 0;font-size:12.5px;}
+      .rez-istoric-item + .rez-istoric-item{border-top:1px solid var(--zc-border,#1e293b);}
+      .rez-istoric-data{font-weight:700;color:var(--zc-text-primary,#f1f5f9);min-width:74px;}
+      .rez-istoric-durata{color:var(--zc-text-muted,#64748b);min-width:40px;}
+      .rez-istoric-stand{color:var(--zc-text-secondary-2,#94a3b8);flex:1;min-width:60px;}
+      .rez-istoric-empty{font-size:12.5px;color:var(--zc-text-muted,#64748b);padding:4px 0;}
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
       /* Bara de tab-uri a panoului admin (Cereri/Calendar/Adaugă manual/
@@ -602,6 +675,8 @@
       html:not([data-theme="light"]) .rez-badge-confirmata{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-badge-confirmata.verde{color:#22c55e;}
       html:not([data-theme="light"]) .rez-badge-neprezentat{color:#ef4444;}
+      html:not([data-theme="light"]) .rez-badge-onorata{color:#22c55e;}
+      html:not([data-theme="light"]) .rez-istoric-btn{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-cal-daycell.azi{color:#38bdf8;}
@@ -1635,10 +1710,17 @@
             // mai jos la FIECARE rezervare găsită (nu doar la prima), ca să
             // prindem și cazul unui client cu rezervări mixte (o parte
             // manuale, o parte online), indiferent de ordinea în care apar.
-            areRezervariOnline: false
+            areRezervariOnline: false,
+            // Rundă 43 — istoricul complet de rezervări ale clientului la
+            // ACEASTĂ baltă (nu doar flag-uri) — `toate` e deja filtrat pe
+            // `_adminBaltaId` prin `fetchRezervariBalta`, deci nu trebuie
+            // filtrat din nou aici. Populat mai jos, la FIECARE rezervare
+            // găsită (nu doar prima), la fel ca `areRezervariOnline`.
+            rezervari: []
           };
         }
         if (r.sursa !== 'manual_admin') harta[k].areRezervariOnline = true;
+        harta[k].rezervari.push(r);
       });
       // Rundă 19: o notă poate avea acum un `nume` custom (ex. numele real al
       // unui client telefonic, în loc de „Client telefonic") — dacă există,
@@ -1656,7 +1738,8 @@
             numeImplicit: n.pescar_username || n.pescar_telefon || 'Pescar',
             numeCustom: n.nume || null,
             text: n.text, blocat: n.blocat,
-            areRezervari: false
+            areRezervari: false,
+            rezervari: []
           };
         }
       });
@@ -1700,15 +1783,26 @@
           var telBtn = p.telefon
             ? ' <a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
             : '';
+          // Rundă 43 — buton „Istoric" (dropdown) doar dacă clientul chiar are
+          // cel puțin o rezervare la această baltă (`p.rezervari`, cf. mai
+          // sus) — un client adăugat doar din formularul de mai sus, fără
+          // nicio rezervare încă, n-are ce istoric să arate.
+          var istoricBtn = p.rezervari.length
+            ? '<button class="rez-istoric-btn" id="rez-mod-ist-btn-' + idx + '" type="button">📋 Istoric (' + p.rezervari.length + ')</button>'
+            : '';
           return '<div class="rez-list-item">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
               '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
                 (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
                 telBtn +
               '</div>' +
-              '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
+              '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+                istoricBtn +
+                '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
+              '</div>' +
             '</div>' +
             '<div id="rez-mod-nota-' + idx + '"></div>' +
+            (p.rezervari.length ? '<div class="rez-istoric-list" id="rez-mod-ist-' + idx + '" style="display:none;"></div>' : '') +
           '</div>';
         }).join('') : (q
           ? '<div class="rez-empty">Niciun pescar găsit pentru „' + escH(query.trim()) + '".</div>'
@@ -1718,6 +1812,27 @@
 
         filtrata.forEach(function (p, idx) {
           randeazaBlocNotaPescar(document.getElementById('rez-mod-nota-' + idx), _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare);
+
+          // Rundă 43 — deschide/închide dropdown-ul de istoric; conținutul
+          // (`randeazaIstoricClient`) e randat o singură dată, lene (abia la
+          // primul click), nu odată cu toată lista de clienți.
+          var btnIstoric = document.getElementById('rez-mod-ist-btn-' + idx);
+          if (btnIstoric) {
+            var contIstoric = document.getElementById('rez-mod-ist-' + idx);
+            var istoricRandat = false;
+            btnIstoric.onclick = function () {
+              var esteDeschis = contIstoric.style.display !== 'none';
+              if (esteDeschis) {
+                contIstoric.style.display = 'none';
+                btnIstoric.textContent = '📋 Istoric (' + p.rezervari.length + ')';
+                return;
+              }
+              if (!istoricRandat) { contIstoric.innerHTML = randeazaIstoricClient(p.rezervari); istoricRandat = true; }
+              contIstoric.style.display = 'block';
+              btnIstoric.textContent = '▲ Istoric (' + p.rezervari.length + ')';
+            };
+          }
+
           var btnSterge = document.getElementById('rez-mod-sterge-' + idx);
           if (btnSterge) btnSterge.onclick = async function () {
             // Rundă 34 — cerere explicită a lui Marian: „nu se sterg clientii
