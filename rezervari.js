@@ -166,6 +166,24 @@
   // deschiderea dropdown-ului (nu la randarea inițială a listei de clienți —
   // ar însemna sute de rânduri ascunse, randate degeaba, pe o baltă cu mulți
   // clienți).
+  // Rundă 59 — cerere explicită a lui Marian: la o rezervare ANULATĂ, arată
+  // și cine a anulat-o (client sau baltă) — și, DOAR la rezervările ONLINE
+  // anulate de baltă, motivul real. La cele adăugate MANUAL, `motiv_anulare`
+  // e mereu completat automat cu textul fix „Anulată de administratorul
+  // bălții.” (nu e un motiv ales de balta_admin) — de-aia acolo arătăm doar
+  // cine a anulat, niciodată „motivul”, cf. cererii explicite a lui Marian.
+  // `anulat_de` ('client'/'balta_admin') e completat doar de-acum înainte —
+  // rezervările anulate ÎNAINTE de migrarea rundei 59 nu au această
+  // informație (rămâne `null`), deci rândul suplimentar nu apare deloc.
+  function randeazaDetaliuAnulare(r) {
+    if (r.status !== 'anulata' || !r.anulat_de) return '';
+    var text = r.anulat_de === 'client' ? 'Anulată de client.' : 'Anulată de baltă.';
+    if (r.anulat_de === 'balta_admin' && r.sursa !== 'manual_admin' && r.motiv_anulare) {
+      text += ' Motiv: ' + r.motiv_anulare;
+    }
+    return '<div class="rez-istoric-anulare-detaliu">' + escH(text) + '</div>';
+  }
+
   function randeazaIstoricClient(rezervari) {
     if (!rezervari.length) return '<div class="rez-istoric-empty">Nicio rezervare încă la această baltă.</div>';
     var sortate = rezervari.slice().sort(function (a, b) { return new Date(b.data_start) - new Date(a.data_start); });
@@ -176,6 +194,7 @@
         '<span class="rez-istoric-durata">' + escH(fmtDurataSesiune(r)) + '</span>' +
         '<span class="rez-istoric-stand">' + escH(r.stand_nume || '') + '</span>' +
         '<span class="' + info.classAttr + '">' + escH(info.label) + '</span>' +
+        randeazaDetaliuAnulare(r) +
       '</div>';
     }).join('');
   }
@@ -513,6 +532,10 @@
       .rez-istoric-durata{color:var(--zc-text-muted,#64748b);min-width:40px;}
       .rez-istoric-stand{color:var(--zc-text-secondary-2,#94a3b8);flex:1;min-width:60px;}
       .rez-istoric-empty{font-size:12.5px;color:var(--zc-text-muted,#64748b);padding:4px 0;}
+      /* Rundă 59 — „cine a anulat + motiv”, pe un rând propriu, sub restul
+         datelor (‘.rez-istoric-item’ e deja ‘flex-wrap:wrap’ — ‘flex-basis:
+         100%’ îl împinge automat pe linia următoare, fără markup separat). */
+      .rez-istoric-anulare-detaliu{flex-basis:100%;font-size:11.5px;color:var(--zc-text-muted,#64748b);}
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
       /* Bara de tab-uri a panoului admin (Cereri/Calendar/Adaugă manual/
