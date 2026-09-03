@@ -2135,29 +2135,34 @@
           return (p.nume || '').toLowerCase().indexOf(q) !== -1 || (p.telefon || '').toLowerCase().indexOf(q) !== -1;
         });
 
+        // Rundă 53 — cerere explicită a lui Marian: „ai numele 2 ori,
+        // numarul de telefon de 2 ori" — cardul avea, sus, un rând needitabil
+        // cu numele + o pastilă de telefon (`.rez-tel-btn`), urmat imediat,
+        // mai jos, de câmpurile EDITABILE de Nume/Telefon (rundă 45) — deci
+        // aceeași informație, needitabilă apoi editabilă, dublată. Rândul de
+        // sus a fost eliminat complet („Numele si numarul de telefon de sus
+        // dispare") — identitatea rămâne o singură dată, în câmpurile
+        // editabile. Starea „blocat" (arătată înainte ca badge pe rândul de
+        // sus) nu se pierde — checkbox-ul „Blocat" (mai jos, în același bloc
+        // de identitate/notă) e deja mereu vizibil în card, needitat de
+        // niciun toggle, deci rămâne la fel de „dintr-o privire" ca înainte.
+        // Butoanele „Istoric"/„Șterge" (fostul rând de sus) au coborât sub
+        // blocul de identitate/notă — Istoric în stânga, Șterge în dreapta,
+        // cf. cererii explicite.
         var htmlLista = filtrata.length ? filtrata.map(function (p, idx) {
-          var telBtn = p.telefon
-            ? ' <a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
-            : '';
           // Rundă 43 — buton „Istoric" (dropdown) doar dacă clientul chiar are
           // cel puțin o rezervare la această baltă (`p.rezervari`, cf. mai
           // sus) — un client adăugat doar din formularul de mai sus, fără
           // nicio rezervare încă, n-are ce istoric să arate.
           var istoricBtn = p.rezervari.length
             ? '<button class="rez-istoric-btn" id="rez-mod-ist-btn-' + idx + '" type="button">📋 Istoric (' + p.rezervari.length + ')</button>'
-            : '';
+            : '<span></span>';
           return '<div class="rez-list-item">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">' +
-              '<div style="font-weight:700;color:var(--zc-text-primary,#f1f5f9);">' + escH(p.nume) +
-                (p.blocat ? ' <span class="rez-badge rez-badge-neprezentat">blocat</span>' : '') +
-                telBtn +
-              '</div>' +
-              '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
-                istoricBtn +
-                '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
-              '</div>' +
-            '</div>' +
             '<div id="rez-mod-nota-' + idx + '"></div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
+              istoricBtn +
+              '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
+            '</div>' +
             (p.rezervari.length ? '<div class="rez-istoric-list" id="rez-mod-ist-' + idx + '" style="display:none;"></div>' : '') +
           '</div>';
         }).join('') : (q
