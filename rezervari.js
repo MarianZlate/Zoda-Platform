@@ -892,11 +892,27 @@
     // că se poate edita direct și nu se întâmpla nimic. Delegat pe backdrop
     // (nu pe fiecare input în parte) ca să acopere și câmpurile de dată
     // re-randate ulterior (schimbare tip partidă, etc.) fără reatașare.
+    //
+    // Bug găsit ulterior, semnalat de Marian: iconița de calendar nu mai
+    // deschidea selectorul, iar odată deschis, nu mai putea fi închis.
+    // Cauza: iconița nativă a browserului ȘI ACEST cod apelau `showPicker()`
+    // pe ACELAȘI click (click-ul pe iconiță ajunge tot la `<input>`, deci
+    // trece și de `closest('input[type="date"]')` de mai jos) — apelul dublu
+    // încurca starea internă a selectorului (browserul îl deschidea nativ,
+    // apoi apelul nostru îl „redeschidea" peste el, ceea ce unele browsere
+    // interpretează ca închidere/blocare). Fix: excludem exact zona iconiței
+    // (ultimii ~28px din dreapta inputului, unde browserul o desenează) din
+    // apelul nostru manual — acolo lăsăm browserul să se ocupe singur, exact
+    // ca înainte de această funcționalitate; apelăm `showPicker()` doar
+    // pentru clicuri pe restul inputului (cifrele datei), unde browserul nu
+    // face nimic implicit.
     backdrop.addEventListener('click', function (e) {
       var dataInput = e.target.closest ? e.target.closest('input[type="date"]') : null;
-      if (dataInput && !dataInput.disabled && !dataInput.readOnly && typeof dataInput.showPicker === 'function') {
-        try { dataInput.showPicker(); } catch (err) { /* browser fără suport / fără gest activ — ignorăm, iconița tot funcționează nativ */ }
-      }
+      if (!dataInput || dataInput.disabled || dataInput.readOnly || typeof dataInput.showPicker !== 'function') return;
+      if (e.target !== dataInput) return; // clic pe alt element (ex. label) ajuns aici din greșeală — ignorăm
+      var pePictograma = dataInput.offsetWidth - e.offsetX < 28;
+      if (pePictograma) return; // iconița nativă se ocupă singură — nu mai interferăm
+      try { dataInput.showPicker(); } catch (err) { /* browser fără suport / fără gest activ — ignorăm */ }
     });
     if (!_rezScrollLockActiv) {
       _rezScrollLockActiv = true;
