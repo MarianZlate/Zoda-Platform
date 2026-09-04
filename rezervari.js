@@ -931,6 +931,7 @@
   // primească automat exact același stil ca Tarife/Regulament (regulile CSS
   // de-acolo sunt pe selector de copil direct, `> a, > button`).
   function renderButonBalta(balta) {
+    injectStylesOnce();
     var btnZoda = document.getElementById('btn-rezervari');
     var btnExtern = document.getElementById('btn-rezervari-extern');
     if (!btnZoda || !btnExtern) return;
@@ -955,7 +956,24 @@
 
   // ── 1. Butonul de pe standul din balta.html ─────────────────────────────────
   // Apelat din openOverlay(id) în balta.html cu (BALTA, standObj, containerEl).
+  //
+  // Bug real, găsit după ce Marian a semnalat butonul afișat complet
+  // nestilizat pe un stand (nici fundal, nici text alb — doar butonul brut
+  // al browserului): nici `renderButonStand`, nici `renderButonBalta` de mai
+  // jos nu apelau `injectStylesOnce()` — funcția care inserează în `<head>`
+  // regulile CSS, inclusiv cea pentru `#rez-stand-btn`. Funcționa doar
+  // „din întâmplare", cât timp altceva de pe pagină (un toast, un modal
+  // deschis, panoul admin) apuca să injecteze stilurile înaintea acestui
+  // buton. Rescrierea recentă a scriptului din `balta.html` (optimizare de
+  // viteză) a schimbat ordinea de execuție la deschiderea overlay-ului de
+  // stand, și acel „altceva" nu mai apucă să ruleze primul — de-aici bug-ul
+  // vizibil. Fix robust: ambele funcții își garantează acum singure
+  // stilurile, la fel ca celelalte 3 locuri din fișier (`toast`,
+  // `deschideModalGeneric`, `randeazaPanouAdmin`) — apelul e idempotent
+  // (`injectStylesOnce` iese imediat dacă `<style id="rez-styles">` există
+  // deja), deci sigur de apelat oricând, indiferent ce a mai rulat înainte.
   function renderButonStand(balta, stand, containerEl) {
+    injectStylesOnce();
     if (!containerEl) return;
     var mod = balta && balta.rezervare_mod;
     if (!mod || mod === 'fara_rezervare') { containerEl.innerHTML = ''; return; }
