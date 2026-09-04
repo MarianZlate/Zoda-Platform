@@ -618,7 +618,7 @@
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
       /* Bara de tab-uri a panoului admin (Cereri/Calendar/Adaugă manual/
-         Bază clienți/Program/Program 7 zile/Anulare multiplă) — rundă 22: pe
+         Clienți/Program/Copie rezervari/Anulare multiplă) — rundă 22: pe
          mobil, cu 'flex-wrap:wrap' de dinainte, tab-ul cel mai lung
          ("Program sezonier") sărea des singur pe rândul al doilea; izolat,
          fără vecini și fără vreun fundal/bordură propriu (doar text + o
@@ -633,16 +633,40 @@
          ideea asta de scroll stanga-dreapta aici. e frustrant sa stai sa dai
          scroll intr-una cand ai nevoie de ceva. hai sa gasim o modalitate pe
          mobil sa afisam toate butoanele fara scrollul acela tip caroussel”.
-         Revenim la 'flex-wrap:wrap' — dar de data asta fără riscul de la
-         rundă 22, pentru că motivul (1) de mai sus tot există: fiecare tab
-         e deja propriul lui „pill", deci un tab izolat pe ultimul rând tot
-         se recunoaște limpede drept buton, nu doar text. Cu 7 tab-uri acum
-         (față de 5, la rundă 22), bara se întinde pe 2-3 rânduri pe un
-         ecran îngust — toate butoanele vizibile dintr-o privire, fără
-         niciun gest de derulare. */
-      .rez-tabs-page{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:4px;margin-bottom:16px;}
-      .rez-tab{flex:0 0 auto;white-space:nowrap;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer;border-radius:9px;}
+         Revenit atunci la 'flex-wrap:wrap' — fără riscul de la rundă 22,
+         pentru că motivul (1) de mai sus tot există: fiecare tab e deja
+         propriul lui „pill", deci un tab izolat pe ultimul rând tot se
+         recunoaște limpede drept buton, nu doar text.
+         Rundă 71 — 'flex-wrap:wrap' lăsa numărul de rânduri să depindă de
+         lățimea reală a ecranului (2 sau 3, după caz) — Marian a cerut
+         explicit „organizeaza butoanele pe 2 randuri doar”, adică un număr
+         FIX de rânduri, nu unul variabil. 'flex-wrap' singur nu poate
+         garanta asta (nu există un „max 2 rânduri” nativ în flexbox) — de-aia
+         cele 7 tab-uri sunt acum împărțite EXPLICIT, din markup, în 2
+         rânduri fixe ('.rez-tabs-row', 4 + 3), fiecare rând fiind un flex
+         separat cu 'flex:1 1 0' pe fiecare tab din el — butoanele își împart
+         egal lățimea rândului, cu textul lăsat să treacă pe 2 linii
+         ('white-space:normal') dacă nu încape pe una singură, în loc să
+         iasă din chenar. Pe desktop (breakpoint 769px, mai jos),
+         '.rez-tabs-row{display:contents}' dizolvă complet cele 2 rânduri —
+         toate cele 7 tab-uri redevin coloana verticală unică, neschimbată
+         din rundele 36-39. */
+      .rez-tabs-page{display:flex;flex-direction:column;gap:8px;padding-bottom:4px;margin-bottom:16px;}
+      .rez-tabs-row{display:flex;gap:8px;}
+      .rez-tab{position:relative;flex:1 1 0;min-width:0;white-space:normal;text-align:center;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:9px 6px;cursor:pointer;border-radius:9px;line-height:1.25;}
       .rez-tab.active{color:#0891b2;background:rgba(56,189,248,.12);border-color:#38bdf8;}
+      @media(max-width:768px){
+        .rez-tab{font-size:11.5px;padding:8px 4px;}
+      }
+      /* Contorul de cereri active, deasupra butonului „Cereri" (cerere
+         explicită a lui Marian, rundă 71) — o „pastilă" mică, roșie, în
+         colțul din dreapta-sus al butonului, ascunsă complet (display:none,
+         setat din JS) când nu există nicio cerere în așteptare, ca să nu ocupe
+         loc degeaba. Actualizată din 'atualizeazaBadgeCereri()', la fiecare
+         încărcare a listei de cereri ȘI la fiecare tură a pollingului automat
+         existent (rundă 5/70) — inclusiv cât timp balta_admin se uită la un
+         alt tab, ca numărul să rămână corect oriunde ar naviga. */
+      .rez-tab-badge{position:absolute;top:-7px;right:-6px;background:#dc2626;color:#fff;border-radius:999px;font-size:11px;font-weight:800;line-height:1.4;padding:1px 6px;min-width:16px;text-align:center;box-shadow:0 0 0 2px var(--zc-bg,#0a0f1a);}
       /* Rundă 36 — cerere explicită a lui Marian: pe desktop, tab-urile
          (Cereri/Calendar/Adaugă manual/Bază clienți/Program sezonier) mutate
          lateral — nu mai ocupă un rând întreg deasupra tabelului, ca să
@@ -690,7 +714,16 @@
       @media(min-width:769px){
         .rez-admin-layout{flex-direction:row;align-items:flex-start;gap:18px;}
         .rez-admin-layout > .rez-tabs-page{flex:0 0 176px;flex-direction:column;overflow-x:visible;margin-bottom:0;position:sticky;top:12px;}
-        .rez-admin-layout > .rez-tabs-page > .rez-tab{width:100%;text-align:left;}
+        /* Rundă 71 — pe mobil, cele 7 tab-uri sunt împărțite în 2
+           '.rez-tabs-row' fixe (mai sus), ca să încapă garantat pe 2 rânduri.
+           Pe desktop, sidebar-ul vertical trebuie să rămână o coloană unică
+           de 7 butoane, ca înainte — 'display:contents' dizolvă complet
+           wrapper-ul de rând (rămâne în DOM, dispare din arborele de
+           randare), deci cele 2 selectoare de mai jos folosesc un
+           combinator de descendent (spațiu), nu ' > ' direct, ca să
+           găsească tot '.rez-tab' indiferent de rândul în care e imbricat. */
+        .rez-admin-layout > .rez-tabs-page .rez-tabs-row{display:contents;}
+        .rez-admin-layout > .rez-tabs-page .rez-tab{width:100%;text-align:left;flex:none;white-space:nowrap;}
         .rez-admin-layout > #rez-modal-body{flex:1;min-width:0;}
       }
       @media(min-width:1500px){
@@ -1441,14 +1474,26 @@
     // Rundă 36 — '.rez-admin-layout' înfășoară tab-urile + conținutul, ca
     // să poată fi rearanjate din CSS (rând, pe mobil; lateral, pe desktop) —
     // vezi nota din CSS, de lângă '.rez-admin-layout'.
+    // Rundă 71 — 7 tab-uri, împărțite explicit în 2 '.rez-tabs-row' (4 + 3),
+    // ca să încapă garantat pe 2 rânduri pe mobil (vezi nota din CSS, de
+    // lângă '.rez-tabs-page'). Butonul „Cereri" primește și span-ul
+    // contorului (`#rez-badge-cereri`), populat/ascuns din
+    // `atualizeazaBadgeCereri()`. Redenumiri cerute explicit de Marian:
+    // „Bază clienți” → „Clienți”, „📋 Program 7 zile” → „📋 Copie rezervari” —
+    // strict eticheta vizibilă; `data-tab` ("moderare"/"program7") rămâne
+    // neschimbat, ca să nu atingem nicio logică existentă legată de el.
     containerEl.innerHTML = '<div class="rez-admin-layout"><div class="rez-tabs-page">' +
-      '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri</button>' +
-      '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
-      '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
-      '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
-      '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program</button>' +
-      '<button class="rez-tab" data-tab="program7" onclick="RezervariUI._schimbaTabAdmin(\'program7\')">📋 Program 7 zile</button>' +
-      '<button class="rez-tab" data-tab="anulare-multipla" onclick="RezervariUI._schimbaTabAdmin(\'anulare-multipla\')">☑️ Anulare multiplă</button>' +
+      '<div class="rez-tabs-row">' +
+        '<button class="rez-tab active" data-tab="cereri" onclick="RezervariUI._schimbaTabAdmin(\'cereri\')">Cereri<span id="rez-badge-cereri" class="rez-tab-badge" style="display:none;">0</span></button>' +
+        '<button class="rez-tab" data-tab="calendar" onclick="RezervariUI._schimbaTabAdmin(\'calendar\')">Calendar</button>' +
+        '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
+        '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Clienți</button>' +
+      '</div>' +
+      '<div class="rez-tabs-row">' +
+        '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program</button>' +
+        '<button class="rez-tab" data-tab="program7" onclick="RezervariUI._schimbaTabAdmin(\'program7\')">📋 Copie rezervari</button>' +
+        '<button class="rez-tab" data-tab="anulare-multipla" onclick="RezervariUI._schimbaTabAdmin(\'anulare-multipla\')">☑️ Anulare multiplă</button>' +
+      '</div>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div></div>';
 
@@ -1467,11 +1512,12 @@
   }
 
   function schimbaTabAdmin(tab) {
-    // La ieșirea din „Cereri" (spre orice alt tab), oprim refresh-ul automat
-    // — n-are rost să continue să bată RPC-ul din fundal cât timp
-    // balta_admin se uită în altă parte; `renderTabCereri()` îl repornește
-    // oricum, dacă revine.
-    if (tab !== 'cereri') opresteRefreshAutomatCereri();
+    // Rundă 71 — NU mai oprim pollingul automat la ieșirea din „Cereri":
+    // rămâne pornit cât timp panoul e deschis (oprit doar la rundă nouă a
+    // `randeazaPanouAdmin`, ex. schimbare de baltă), pentru că acum
+    // actualizează și contorul de deasupra butonului „Cereri" — care trebuie
+    // să rămână corect indiferent de tab-ul pe care se uită balta_admin, nu
+    // doar cât timp stă chiar pe „Cereri". Vezi `pornesteRefreshAutomatCereri`.
     _adminTabCurent = tab;
     document.querySelectorAll('.rez-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === tab); });
     renderTabAdminCurent();
@@ -1862,6 +1908,14 @@
   // declanșează redesenarea; o cerere nouă, apărută între timp, mai
   // primește și un toast, ca balta_admin să observe imediat, chiar dacă nu
   // se uită fix la ecran.
+  // Rundă 71 — același timer actualizează acum ȘI contorul de deasupra
+  // butonului „Cereri" (cerere explicită a lui Marian) — DAR, spre
+  // deosebire de lista + toast-ul de mai sus (care rămân scopate STRICT la
+  // tab-ul „Cereri", ca înainte), contorul trebuie să rămână corect
+  // indiferent de tab-ul pe care se uită balta_admin. De-aia timer-ul nu se
+  // mai oprește la schimbarea tab-ului (`schimbaTabAdmin` nu-l mai
+  // oprește) — rulează continuu cât timp panoul e deschis, oprit doar la o
+  // rundă nouă a `randeazaPanouAdmin` (schimbare de baltă).
   var _cereriPollTimer = null;
   var _cereriIdsAnterior = null; // string, id-uri sortate, unite prin ',' — null = nu s-a randat încă
   var CERERI_POLL_MS = 20000;
@@ -1870,17 +1924,31 @@
     if (_cereriPollTimer) { clearInterval(_cereriPollTimer); _cereriPollTimer = null; }
   }
 
+  // Contorul de cereri active, de deasupra butonului „Cereri" (rundă 71) —
+  // pur cosmetic, ascuns complet când nu e nicio cerere în așteptare, ca să
+  // nu ocupe loc/atenție degeaba.
+  function atualizeazaBadgeCereri(numar) {
+    var el = document.getElementById('rez-badge-cereri');
+    if (!el) return;
+    if (numar > 0) {
+      el.textContent = numar > 99 ? '99+' : String(numar);
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  }
+
   function pornesteRefreshAutomatCereri() {
     opresteRefreshAutomatCereri();
     _cereriPollTimer = setInterval(async function () {
-      // Apărare suplimentară — dacă din orice motiv timer-ul n-a fost oprit
-      // la schimbarea tab-ului (nu ar trebui să se întâmple, cf.
-      // `schimbaTabAdmin`, dar mai bine verificăm), nu mai randăm peste un
-      // alt tab activ.
-      if (_adminTabCurent !== 'cereri') { opresteRefreshAutomatCereri(); return; }
       try {
         var toate = await fetchRezervariBalta();
         var cereri = toate.filter(function (r) { return r.status === 'in_asteptare'; });
+        atualizeazaBadgeCereri(cereri.length);
+        // Contorul de mai sus se actualizează întotdeauna; lista +
+        // toast-ul de „cerere nouă" de mai jos rămân STRICT pentru tab-ul
+        // „Cereri" — comportament identic cu până acum pe restul tab-urilor.
+        if (_adminTabCurent !== 'cereri') return;
         var idsAnteriorStr = _cereriIdsAnterior;
         var idsAcumStr = cereri.map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }).join(',');
         if (idsAcumStr === idsAnteriorStr) return; // nimic nou — nicio redesenare
@@ -1918,6 +1986,7 @@
       var toate = await fetchRezervariBalta();
       var cereri = toate.filter(function (r) { return r.status === 'in_asteptare'; });
       randeazaListaCereri(cereri);
+      atualizeazaBadgeCereri(cereri.length);
       _cereriIdsAnterior = cereri.map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }).join(',');
       pornesteRefreshAutomatCereri();
     } catch (e) { setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message) + '</div>'); }
@@ -3042,7 +3111,7 @@
       el.innerHTML =
         '<span class="rez-badge rez-badge-confirmata verde">✓ Legată de contul „' + escH(_manualContSelectat.username || '') + '"</span> ' +
         '<button type="button" id="rez-manual-cont-unlink" style="background:none;border:none;color:var(--zc-text-secondary,#94a3b8);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;">Anulează legătura</button>' +
-        '<div style="font-size:11.5px;color:var(--zc-text-secondary,#94a3b8);margin-top:2px;">Rezervarea va apărea în istoricul acestui cont, nu ca pescar separat, în „Bază clienți”.</div>';
+        '<div style="font-size:11.5px;color:var(--zc-text-secondary,#94a3b8);margin-top:2px;">Rezervarea va apărea în istoricul acestui cont, nu ca pescar separat, în „Clienți”.</div>';
       var btnUnlink = document.getElementById('rez-manual-cont-unlink');
       if (btnUnlink) btnUnlink.onclick = function () { _manualContSelectat = null; randeazaContLegat(); };
     }
