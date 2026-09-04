@@ -618,17 +618,29 @@
       .rez-strike{color:#b45309;font-size:11.5px;font-weight:800;}
       .rez-tabs{display:flex;gap:6px;padding:0 18px;border-bottom:1px solid var(--zc-border,#1e293b);position:sticky;top:57px;background:var(--zc-bg,#0a0f1a);z-index:1;}
       /* Bara de tab-uri a panoului admin (Cereri/Calendar/Adaugă manual/
-         Moderare/Program sezonier) — rundă 22: pe mobil, cu 'flex-wrap:wrap'
-         de dinainte, tab-ul cel mai lung ("Program sezonier") sărea des
-         singur pe rândul al doilea; izolat, fără vecini și fără vreun
-         fundal/bordură propriu (doar text + o linie de subliniere pe cel
-         activ), nu se mai citea deloc ca buton — arăta ca un simplu titlu.
-         Fix: (1) tab-urile au acum fundal+bordură+colțuri rotunjite proprii
-         — un „pill" — ca să se recunoască drept clickabile indiferent de
-         context, izolate sau nu; (2) bara nu se mai rupe pe mai multe
-         rânduri — derulează orizontal ('overflow-x:auto'), la fel ca
-         Gantt-ul de mai jos, un gest deja familiar în acest panou. */
-      .rez-tabs-page{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:16px;}
+         Bază clienți/Program/Program 7 zile/Anulare multiplă) — rundă 22: pe
+         mobil, cu 'flex-wrap:wrap' de dinainte, tab-ul cel mai lung
+         ("Program sezonier") sărea des singur pe rândul al doilea; izolat,
+         fără vecini și fără vreun fundal/bordură propriu (doar text + o
+         linie de subliniere pe cel activ), nu se mai citea deloc ca buton —
+         arăta ca un simplu titlu. Fix de-atunci: (1) tab-urile au primit
+         fundal+bordură+colțuri rotunjite proprii — un „pill" — ca să se
+         recunoască drept clickabile indiferent de context, izolate sau nu;
+         (2) bara nu se mai rupea pe mai multe rânduri — derula orizontal.
+         Rundă 70 — Marian a arătat, cu 2 capturi, exact acest scroll
+         orizontal pe mobil (bara „Cereri/Calendar/Adaugă manual/Ba...", cu
+         „Bază clienți" tăiat la margine) și a cerut explicit: „nu-mi place
+         ideea asta de scroll stanga-dreapta aici. e frustrant sa stai sa dai
+         scroll intr-una cand ai nevoie de ceva. hai sa gasim o modalitate pe
+         mobil sa afisam toate butoanele fara scrollul acela tip caroussel”.
+         Revenim la 'flex-wrap:wrap' — dar de data asta fără riscul de la
+         rundă 22, pentru că motivul (1) de mai sus tot există: fiecare tab
+         e deja propriul lui „pill", deci un tab izolat pe ultimul rând tot
+         se recunoaște limpede drept buton, nu doar text. Cu 7 tab-uri acum
+         (față de 5, la rundă 22), bara se întinde pe 2-3 rânduri pe un
+         ecran îngust — toate butoanele vizibile dintr-o privire, fără
+         niciun gest de derulare. */
+      .rez-tabs-page{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:4px;margin-bottom:16px;}
       .rez-tab{flex:0 0 auto;white-space:nowrap;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer;border-radius:9px;}
       .rez-tab.active{color:#0891b2;background:rgba(56,189,248,.12);border-color:#38bdf8;}
       /* Rundă 36 — cerere explicită a lui Marian: pe desktop, tab-urile
