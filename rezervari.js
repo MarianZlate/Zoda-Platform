@@ -1486,11 +1486,29 @@
         corpZile +
         '</body></html>';
 
-      var fereastra = window.open('', '_blank');
-      if (!fereastra) { toast('Browserul a blocat fereastra nouă — permite ferestre pop-up pentru acest site și încearcă din nou.', true); return; }
-      fereastra.document.open();
-      fereastra.document.write(html);
-      fereastra.document.close();
+      // Cerere explicită a lui Marian: pe mobil, fila nouă apărea minusculă,
+      // totul înghesuit în stânga sus, cu mult spațiu gol în rest — semn clar
+      // că telefonul ignora `<meta name="viewport">` din HTML-ul generat.
+      // Cauza: `window.open('', '_blank')` + `document.write(html)` scrie
+      // conținutul PESTE o pagină deja deschisă, goală (`about:blank`) — pe
+      // multe browsere mobile, meta-tagul de viewport scris ulterior așa nu
+      // mai e recitit corect, pagina rămâne „blocată" pe lățimea implicită
+      // de desktop. Fix: în loc să scriem peste o pagină goală, navigăm
+      // fereastra nouă direct la un URL real (`Blob` + `URL.createObjectURL`)
+      // — browserul o tratează ca pe orice altă pagină încărcată normal,
+      // deci citește corect viewport-ul și umple tot ecranul, ca pe desktop.
+      var blob = new Blob([html], { type: 'text/html' });
+      var blobUrl = URL.createObjectURL(blob);
+      var fereastra = window.open(blobUrl, '_blank');
+      if (!fereastra) {
+        URL.revokeObjectURL(blobUrl);
+        toast('Browserul a blocat fereastra nouă — permite ferestre pop-up pentru acest site și încearcă din nou.', true);
+        return;
+      }
+      // Eliberăm URL-ul temporar după ce fila nouă a apucat sigur să se
+      // încarce — o revocare imediată ar putea întrerupe încărcarea pe unele
+      // browsere mobile mai lente.
+      setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 60000);
     } catch (e) {
       toast('Nu am putut genera programul: ' + (e.message || 'eroare necunoscută.'), true);
     } finally {
