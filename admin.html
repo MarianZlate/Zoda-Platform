@@ -481,6 +481,7 @@ th,td{padding:8px 6px;}
     <button class="tab" onclick="switchTab('settings')">⚙️ Setări platformă</button>
     <button class="tab" onclick="switchTab('followup')">📋 Bălți Follow-up</button>
     <button class="tab" onclick="switchTab('moderare')" style="position:relative;">🛡️ Moderare<span id="moderare-pending-badge" class="tab-badge" style="display:none;"></span></button>
+    <button class="tab" onclick="switchTab('restaurare')">♻️ Restaurare rezervări</button>
   </div>
 
   <!-- BALTI PANEL -->
@@ -845,6 +846,39 @@ th,td{padding:8px 6px;}
     <div id="modg-panel-blocari" style="display:none;"></div>
     <div id="modg-panel-banuri" style="display:none;"></div>
     <div id="modg-panel-chat" style="display:none;"></div>
+  </div>
+
+  <!-- PANEL RESTAURARE REZERVĂRI — doar zoda_admin (nu balta_admin — balta_admin
+       nu are și nu trebuie să aibă acces la fișierele de backup din R2, care
+       stau doar în Cloudflare, sub contul Zoda). Pereche a sistemului de
+       backup automat 2x/zi (fișiere JSON per baltă, scrise de un Worker
+       Cloudflare separat) — vezi `2026-09-03_backup_rezervari.sql` /
+       `2026-09-03_restaurare_rezervari.sql`. Autorizarea reală e verificată
+       ÎN RPC (`admin_restaureaza_rezervari`, cere `user_roles.rol='zoda_admin'`),
+       la fel ca toate RPC-urile admin-only de pe această pagină — tab-ul de
+       aici e doar interfața, nu „security by obscurity”. -->
+  <div id="panel-restaurare" style="display:none;">
+    <div class="section-title">♻️ Restaurare rezervări dintr-un backup</div>
+    <div style="font-size:13px;color:#94a3b8;margin-bottom:14px;max-width:640px;">
+      Alege balta și fișierul JSON de backup (descărcat din R2 — vezi
+      structura <code>backups/rezervari/&lt;id-baltă&gt;-&lt;nume&gt;/&lt;data&gt;.json</code>).
+      Sistemul adaugă ÎNAPOI doar rezervările care lipsesc acum — nu
+      suprascrie și nu atinge niciodată o rezervare care există deja.
+    </div>
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:16px;max-width:520px;">
+      <div class="fg">
+        <label>BALTA</label>
+        <select id="restaurare-balta-select" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+          <option value="">Se încarcă lista de bălți...</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>FIȘIER DE BACKUP (.json)</label>
+        <input type="file" accept="application/json,.json" id="restaurare-fisier-input" style="width:100%;color:#94a3b8;font-size:13px;">
+      </div>
+      <div id="restaurare-status" style="margin-top:8px;font-size:13px;color:#94a3b8;"></div>
+      <button id="restaurare-confirm-btn" type="button" style="display:none;margin-top:12px;background:#b45309;color:#fff;font-weight:700;font-size:14px;padding:9px 18px;border:none;border-radius:8px;cursor:pointer;">Confirmă restaurarea</button>
+    </div>
   </div>
 
 </div>
@@ -1283,7 +1317,7 @@ function closeConfirm() {
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare','restaurare'][i]===tab));
   const pB = document.getElementById('panel-balti');      if(pB) pB.style.display      = tab==='balti'      ? 'block' : 'none';
   const pST= document.getElementById('panel-statistici'); if(pST) pST.style.display    = tab==='statistici' ? 'block' : 'none';
   const pA = document.getElementById('panel-aprobari');   if(pA) pA.style.display      = tab==='aprobari'   ? 'block' : 'none';
@@ -1295,6 +1329,7 @@ function switchTab(tab) {
   const pM = document.getElementById('panel-mesaje');     if(pM) pM.style.display      = tab==='mesaje'     ? 'block' : 'none';
   const pFU= document.getElementById('panel-followup');   if(pFU) pFU.style.display    = tab==='followup'   ? 'block' : 'none';
   const pMD= document.getElementById('panel-moderare');   if(pMD) pMD.style.display    = tab==='moderare'   ? 'block' : 'none';
+  const pRS= document.getElementById('panel-restaurare'); if(pRS) pRS.style.display    = tab==='restaurare' ? 'block' : 'none';
   if(tab==='statistici') { setStatsInterval(30); }
   if(tab==='aprobari') loadAprobari();
   if(tab==='users')    loadUsers();
@@ -1305,6 +1340,118 @@ function switchTab(tab) {
   if(tab==='mesaje')   loadMesaje();
   if(tab==='followup') loadFollowup();
   if(tab==='moderare') switchModerareGlobalaTab('raportari');
+  if(tab==='restaurare') loadRestaurarePanel();
+}
+
+// ── RESTAURARE REZERVĂRI (zoda_admin) ──────────────────────────────────────
+// Pereche a backup-ului automat 2x/zi (Worker Cloudflare separat, scrie
+// câte un JSON per baltă în R2). Mutat aici, NU în `rezervari-admin.html`
+// (panoul balta_admin), la cererea explicită a lui Marian: „nu o sa urce
+// niciun balta admin vreodata vreun fisier pentru restaurare pentru ca nu
+// au acces [la R2]. Restaurarea o pastram doar la nivel de zoda_admin.”
+// Autorizarea reală vine din RPC (`admin_restaureaza_rezervari` cere
+// `user_roles.rol='zoda_admin'`) — acest tab e vizibil doar aici pentru că
+// toată pagina `admin.html` e deja gated la zoda_admin, la fel ca restul
+// tab-urilor (Moderare, Setări platformă etc.).
+var _restaurareBackupCurent = null;
+
+async function loadRestaurarePanel() {
+  _restaurareBackupCurent = null;
+  var sel = document.getElementById('restaurare-balta-select');
+  var status = document.getElementById('restaurare-status');
+  var btnConfirm = document.getElementById('restaurare-confirm-btn');
+  var fileInput = document.getElementById('restaurare-fisier-input');
+  status.innerHTML = '';
+  btnConfirm.style.display = 'none';
+  fileInput.value = '';
+
+  try {
+    const { data, error } = await sb.from('balti').select('id, nume').order('nume');
+    if (error) throw error;
+    sel.innerHTML = (data || []).map(b => `<option value="${b.id}">${escH(b.nume)} (#${b.id})</option>`).join('')
+      || '<option value="">Nicio baltă găsită</option>';
+  } catch (e) {
+    sel.innerHTML = '<option value="">Eroare la încărcarea bălților</option>';
+  }
+
+  fileInput.onchange = async function (e) {
+    var fisier = e.target.files && e.target.files[0];
+    btnConfirm.style.display = 'none';
+    _restaurareBackupCurent = null;
+    if (!fisier) { status.innerHTML = ''; return; }
+
+    status.innerHTML = '<span>Se citește fișierul...</span>';
+    var backup;
+    try {
+      var text = await fisier.text();
+      backup = JSON.parse(text);
+    } catch (err) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Fișierul nu e un JSON valid.</span>';
+      return;
+    }
+    if (!backup || !Array.isArray(backup.rezervari)) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Nu recunosc structura acestui fișier — alege un fișier de backup generat de sistemul de backup automat.</span>';
+      return;
+    }
+
+    var baltaAleasaId = parseInt(sel.value, 10);
+    if (!baltaAleasaId) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Alege mai întâi balta.</span>';
+      return;
+    }
+
+    var avertismentBalta = '';
+    if (backup.balta_id != null && backup.balta_id !== baltaAleasaId) {
+      avertismentBalta = `<div style="color:#f59e0b;margin-bottom:8px;">⚠️ Acest fișier pare să fie backup-ul altei bălți (${escH(backup.balta_nume || ('#' + backup.balta_id))}), nu al celei selectate. Orice rezervare care nu aparține de fapt bălții alese va fi exclusă automat, nu va fi adăugată.</div>`;
+    }
+
+    status.innerHTML = avertismentBalta + '<span>Se verifică ce lipsește (previzualizare — nu se scrie nimic încă)...</span>';
+    try {
+      const { data, error } = await sb.rpc('admin_restaureaza_rezervari', {
+        p_balta_id: baltaAleasaId, p_rezervari: backup.rezervari, p_doar_previzualizare: true
+      });
+      if (error) throw error;
+      var r = (data || [])[0] || { total_in_fisier: 0, apartin_altei_balti: 0, deja_existente: 0, restaurate: 0 };
+      var deAdaugat = r.total_in_fisier - r.apartin_altei_balti - r.deja_existente;
+
+      var rezumat = avertismentBalta +
+        `<div>Fișier: <b>${r.total_in_fisier}</b> rezervări${backup.generat_la ? ' (generat ' + new Date(backup.generat_la).toLocaleString('ro-RO') + ')' : ''}.</div>` +
+        `<div>Deja există în baza de date: <b>${r.deja_existente}</b> (rămân neatinse).</div>` +
+        (r.apartin_altei_balti > 0 ? `<div>Nu aparțin bălții alese: <b>${r.apartin_altei_balti}</b> (excluse).</div>` : '');
+
+      if (deAdaugat > 0) {
+        status.innerHTML = rezumat + `<div style="margin-top:6px;font-weight:700;color:#f59e0b;">→ ${deAdaugat} rezervări lipsă, gata de restaurat.</div>`;
+        _restaurareBackupCurent = { balta_id: baltaAleasaId, rezervari: backup.rezervari };
+        btnConfirm.textContent = `Confirmă restaurarea (${deAdaugat})`;
+        btnConfirm.style.display = 'inline-block';
+      } else {
+        status.innerHTML = rezumat + '<div style="margin-top:6px;color:#4ade80;">✓ Nimic de restaurat — toate rezervările din fișier există deja.</div>';
+      }
+    } catch (err) {
+      status.innerHTML = `<span style="color:#f59e0b;">⚠️ ${escH(err.message || 'Eroare la verificare.')}</span>`;
+    }
+  };
+
+  btnConfirm.onclick = async function () {
+    if (!_restaurareBackupCurent) return;
+    var btnEl = this;
+    btnEl.disabled = true; btnEl.textContent = 'Se restaurează...';
+    try {
+      const { data, error } = await sb.rpc('admin_restaureaza_rezervari', {
+        p_balta_id: _restaurareBackupCurent.balta_id, p_rezervari: _restaurareBackupCurent.rezervari, p_doar_previzualizare: false
+      });
+      if (error) throw error;
+      var r = (data || [])[0] || { restaurate: 0 };
+      status.innerHTML = `<div style="color:#4ade80;font-weight:700;">✓ ${r.restaurate} rezervări restaurate cu succes.</div>`;
+      showToast(`✓ ${r.restaurate} rezervări restaurate.`);
+      btnEl.style.display = 'none';
+      _restaurareBackupCurent = null;
+      fileInput.value = '';
+    } catch (err) {
+      showToast(err.message || 'Eroare la restaurare.', true);
+      btnEl.disabled = false; btnEl.textContent = 'Confirmă restaurarea';
+    }
+  };
 }
 
 // ── MODERARE GLOBALĂ (zoda_admin) — raportări/blocări/banuri, cross-baltă ──
