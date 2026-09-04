@@ -428,13 +428,24 @@
          STRICT la „Bază clienți" — celelalte liste care refolosesc
          '.rez-list-item' ("Rezervările mele", „Cereri", modalul de detaliu
          din Gantt) rămân neatinse. */
-      .rez-list-item.rez-mod-card{border-width:2px;border-radius:12px;padding:12px 14px;margin-bottom:14px;background:var(--zc-bg-panel,#111827);}
+      .rez-list-item.rez-mod-card{border-width:2px;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:var(--zc-bg-panel,#111827);}
       /* Modul de vizualizare (implicit) al unui card din „Bază clienți" —
          înlocuiește formularul mereu-editabil de dinainte; „✏️ Editare"
-         (dreapta sus) comută spre formularul vechi, neschimbat. */
-      .rez-mod-view{display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
-      .rez-mod-view-nume{font-size:15px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
+         (rundă 68 — coborât jos, lângă „Istoric"/„Șterge") comută spre
+         formularul vechi, neschimbat. Rundă 68 — cerere explicită a lui
+         Marian: „numele clientului si numarul de telefon putin mai mari
+         si organizata putin informatia sa arate mai profi" — spațiere
+         puțin mai generoasă între nume/telefon/notă (gap 6px→8px), plus
+         dimensiunile de mai jos. */
+      .rez-mod-view{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
+      .rez-mod-view-nume{font-size:17px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
       .rez-mod-view-nota{font-size:12.5px;color:var(--zc-text-secondary-2,#94a3b8);white-space:pre-wrap;}
+      /* Rundă 68 — telefonul din modul de vizualizare al „Bază clienți",
+         puțin mai mare decât pastila standard '.rez-tel-btn' (12.5px),
+         aceeași idee ca la '.rez-detail-mare .rez-tel-btn' (mai jos în
+         acest fișier, modalul de detaliu din Gantt) — scopat STRICT la
+         acest card, nu la toate locurile care refolosesc '.rez-tel-btn'. */
+      .rez-mod-view .rez-tel-btn{font-size:14px;}
       /* Rundă 56 — evidențiere temporară pentru rezervarea țintă, la
          sosirea printr-un link direct (ex. din email-ul de reminder,
          'cont.html?open=rezervari&rez_id=...') — dispare singură după
@@ -462,6 +473,13 @@
          font aliniat la 12.5px), ca să fie la fel de înalt ca pastila de
          telefon (.rez-tel-btn) de lângă el, cerere explicită a lui Marian. */
       .rez-btn-sterge-mic{width:auto;padding:4px 12px;font-size:12.5px;white-space:nowrap;}
+      /* Rundă 68 — cerere explicită a lui Marian: „butonul ala de editare
+         mai mic si pus jos intre 'istoric' si 'sterge', de aceleasi
+         dimensiuni ca aceste 2 butoane" — butonul „✏️ Editare”/„✕ Renunță”
+         din cardurile „Bază clienți” (adăugat la rundă 67 în antetul
+         cardului) a coborât în rândul de jos, între „Istoric” și „Șterge”,
+         la aceeași dimensiune redusă ca '.rez-btn-sterge-mic' de mai sus. */
+      .rez-btn-editare-mic{width:auto;padding:4px 12px;font-size:12.5px;white-space:nowrap;}
       /* Sugestii de conturi Zoda la completarea numelui clientului în tab-ul
          „Adaugă manual" (rundă 20) — dropdown ancorat sub câmpul de nume. */
       .rez-autocomplete-list{position:absolute;left:0;right:0;top:100%;margin-top:2px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;max-height:170px;overflow-y:auto;z-index:5;display:none;box-shadow:0 8px 20px rgba(0,0,0,.35);}
@@ -2641,27 +2659,37 @@
           // mod de VIZUALIZARE (nume mare, telefon ca pastilă apelabilă,
           // badge „blocat”, nota — dacă există — ca text simplu), construit
           // direct din datele deja încărcate (`p`, cf. mai sus — niciun RPC
-          // suplimentar doar ca să afișezi cardul). Butonul „✏️ Editare”, în
-          // dreapta sus (cerere explicită), comută spre formularul VECHI,
-          // neschimbat (`randeazaIdentitateSiNotaPescar`, aceeași funcție
-          // folosită și de modalul din Gantt — NU atinsă, ca să nu schimbăm
-          // nimic acolo) — randat LENE, abia la primul clic pe „Editare”
-          // (același tipar ca la „Istoric”, mai jos), nu pentru fiecare
-          // client de la deschiderea tab-ului. Un clic ulterior („✕ Renunță”)
-          // revine la vizualizare, fără să salveze nimic — un „Salvează”
-          // nesalvat rămâne pur și simplu abandonat, ca la închiderea unui
-          // modal fără salvare. Cardul rămâne, per total: [antet cu
-          // Salvează + Editare/Renunță] → [Vizualizare SAU formular editare]
-          // → [Istoric/Șterge, jos] — neschimbat mai jos de identitate.
+          // suplimentar doar ca să afișezi cardul). Butonul „✏️ Editare”
+          // comută spre formularul VECHI, neschimbat (`randeazaIdentitateSiNotaPescar`,
+          // aceeași funcție folosită și de modalul din Gantt — NU atinsă, ca
+          // să nu schimbăm nimic acolo) — randat LENE, abia la primul clic pe
+          // „Editare” (același tipar ca la „Istoric”, mai jos), nu pentru
+          // fiecare client de la deschiderea tab-ului. Un clic ulterior
+          // („✕ Renunță”) revine la vizualizare, fără să salveze nimic — un
+          // „Salvează” nesalvat rămâne pur și simplu abandonat, ca la
+          // închiderea unui modal fără salvare.
+          //
+          // Rundă 68 — cerere explicită a lui Marian: „butonul ala de
+          // editare mai mic si pus jos intre 'istoric' si 'sterge', de
+          // aceleasi dimensiuni ca aceste 2 butoane”. Butonul „✏️ Editare”/
+          // „✕ Renunță” a coborât din antetul cardului (unde stătea de la
+          // rundă 67) în rândul de jos, între „Istoric” și „Șterge”, la
+          // aceeași dimensiune redusă (`.rez-btn-editare-mic`, în oglindă cu
+          // `.rez-btn-sterge-mic`, mai sus în fișier). Antetul cardului
+          // rămâne DOAR cu „Salvează” (ascuns implicit, apare la o
+          // modificare reală, cf. rundă 48/54) — „mereu vizibil fără scroll”
+          // în timpul editării, neschimbat. Cardul rămâne, per total: [antet
+          // cu Salvează] → [Vizualizare SAU formular editare] → [Istoric /
+          // Editare / Șterge, jos].
           return '<div class="rez-list-item rez-mod-card">' +
-            '<div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:8px;">' +
+            '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">' +
               '<button class="rez-btn rez-btn-header" id="rez-mod-save-' + idx + '" type="button" style="display:none;">Salvează</button>' +
-              '<button class="rez-btn rez-btn-secondary rez-btn-header" id="rez-mod-toggle-' + idx + '" type="button">✏️ Editare</button>' +
             '</div>' +
             '<div id="rez-mod-view-' + idx + '"></div>' +
             '<div id="rez-mod-nota-' + idx + '" style="display:none;"></div>' +
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
               istoricBtn +
+              '<button class="rez-btn rez-btn-secondary rez-btn-editare-mic" id="rez-mod-toggle-' + idx + '" type="button">✏️ Editare</button>' +
               '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
             '</div>' +
             (p.rezervari.length ? '<div class="rez-istoric-list" id="rez-mod-ist-' + idx + '" style="display:none;"></div>' : '') +
@@ -2713,11 +2741,11 @@
           }
 
           // Rundă 67 — comutarea Vizualizare ⇄ Editare, cerere explicită a
-          // lui Marian (buton „Editare” în dreapta sus a cardului). „Renunță”
-          // nu salvează nimic — revine pur și simplu la vizualizare; datele
-          // deja salvate anterior rămân, orice modificare nesalvată din
-          // formular se pierde, exact ca la închiderea unui modal fără
-          // „Salvează”.
+          // lui Marian (buton „Editare”, cf. rundă 68 mutat jos, lângă
+          // „Istoric”/„Șterge”). „Renunță” nu salvează nimic — revine pur și
+          // simplu la vizualizare; datele deja salvate anterior rămân, orice
+          // modificare nesalvată din formular se pierde, exact ca la
+          // închiderea unui modal fără „Salvează”.
           var btnToggle = document.getElementById('rez-mod-toggle-' + idx);
           var btnSalveazaHdr = document.getElementById('rez-mod-save-' + idx);
           if (btnToggle) btnToggle.onclick = function () {
