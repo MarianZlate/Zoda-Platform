@@ -2428,7 +2428,7 @@ function goToBaltileMele(e) {
   if (!MY_BALTI_ADMIN || !MY_BALTI_ADMIN.length) return;
   if (MY_BALTI_ADMIN.length === 1) {
     saveIndexState();
-    window.location.href = 'balta.html?id=' + MY_BALTI_ADMIN[0].id;
+    window.location.href = 'balta.html?id=' + MY_BALTI_ADMIN[0].id + '&edit=1';
     return;
   }
   openBaltileMeleModal();
@@ -2436,7 +2436,7 @@ function goToBaltileMele(e) {
 function openBaltileMeleModal() {
   const list = document.getElementById('baltile-mele-list');
   list.innerHTML = MY_BALTI_ADMIN.map(b => `
-    <a href="balta.html?id=${b.id}" onclick="saveIndexState()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">
+    <a href="balta.html?id=${b.id}&edit=1" onclick="saveIndexState()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--zc-bg);border:1px solid var(--zc-border);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .2s;" onmouseover="this.style.borderColor='#38bdf8'" onmouseout="this.style.borderColor='var(--zc-border)'">
       <div>
         <div style="font-size:16px;font-weight:700;color:var(--zc-text-primary);">${escH(b.nume)}</div>
         <div style="font-size:13px;color:var(--zc-text-muted);margin-top:2px;">📍 ${escH(b.judet || '—')}</div>
