@@ -417,6 +417,24 @@
       .rez-btn-secondary{background:transparent;border:1px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);}
       .rez-btn-danger{background:#7f1d1d;color:#fecaca;}
       .rez-list-item{border:1px solid var(--zc-border,#1e293b);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;color:var(--zc-text-secondary-2,#cbd5e1);transition:box-shadow .3s,border-color .3s;}
+      /* Cardurile din „Bază clienți" (rundă 67, cerere explicită a lui
+         Marian: „vreau sa facem si borderul fiecarui client mai accentuat
+         putin ca sa fie separarea mai vizibila intre clienti") — selector
+         combinat ('.rez-list-item.rez-mod-card'), nu doar '.rez-mod-card',
+         ca să câștige garantat în fața regulii de mai sus, indiferent de
+         ordinea din fișier — bordură dublă ca grosime + o suprafață proprie
+         (fundal de panou), ca fiecare client să se citească vizual ca o
+         cutie separată, nu doar ca un rând subțire printre altele. Scopat
+         STRICT la „Bază clienți" — celelalte liste care refolosesc
+         '.rez-list-item' ("Rezervările mele", „Cereri", modalul de detaliu
+         din Gantt) rămân neatinse. */
+      .rez-list-item.rez-mod-card{border-width:2px;border-radius:12px;padding:12px 14px;margin-bottom:14px;background:var(--zc-bg-panel,#111827);}
+      /* Modul de vizualizare (implicit) al unui card din „Bază clienți" —
+         înlocuiește formularul mereu-editabil de dinainte; „✏️ Editare"
+         (dreapta sus) comută spre formularul vechi, neschimbat. */
+      .rez-mod-view{display:flex;flex-direction:column;align-items:flex-start;gap:6px;}
+      .rez-mod-view-nume{font-size:15px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
+      .rez-mod-view-nota{font-size:12.5px;color:var(--zc-text-secondary-2,#94a3b8);white-space:pre-wrap;}
       /* Rundă 56 — evidențiere temporară pentru rezervarea țintă, la
          sosirea printr-un link direct (ex. din email-ul de reminder,
          'cont.html?open=rezervari&rez_id=...') — dispare singură după
@@ -2612,15 +2630,36 @@
           // „Bază clienți". Aici nu există un header de MODAL (fiecare card
           // e propriul lui „formular", nu un modal separat) — echivalentul e
           // un mic rând-antet, SUS de tot în card, cu DOAR butonul „Salvează”
-          // (ascuns implicit, apare la o modificare reală, cf. rundă 48) —
-          // nimic altceva pe el, ca să nu reintroducem duplicarea eliminată
-          // la rundă 53. Cardul rămâne astfel: [antet cu Salvează] → [Nume/
-          // Telefon/Notă/Blocat] → [Istoric/Șterge, jos].
-          return '<div class="rez-list-item">' +
-            '<div style="display:flex;justify-content:flex-end;margin-bottom:6px;">' +
+          // (ascuns implicit, apare la o modificare reală, cf. rundă 48).
+          //
+          // Rundă 67 — cerere explicită a lui Marian: „in loc sa avem totul
+          // editabil asa direct, hai sa adaugam un buton de editare in
+          // dreapta sus ca sa putem afisa clientii mai vizibil intr-un
+          // format mai ok, iar cand se apasa butonul 'editare' sa arate ca
+          // acum”. Cardul pornea direct în modul editare (câmpuri de input
+          // pentru Nume/Telefon/Notă, mereu vizibile) — acum pornește într-un
+          // mod de VIZUALIZARE (nume mare, telefon ca pastilă apelabilă,
+          // badge „blocat”, nota — dacă există — ca text simplu), construit
+          // direct din datele deja încărcate (`p`, cf. mai sus — niciun RPC
+          // suplimentar doar ca să afișezi cardul). Butonul „✏️ Editare”, în
+          // dreapta sus (cerere explicită), comută spre formularul VECHI,
+          // neschimbat (`randeazaIdentitateSiNotaPescar`, aceeași funcție
+          // folosită și de modalul din Gantt — NU atinsă, ca să nu schimbăm
+          // nimic acolo) — randat LENE, abia la primul clic pe „Editare”
+          // (același tipar ca la „Istoric”, mai jos), nu pentru fiecare
+          // client de la deschiderea tab-ului. Un clic ulterior („✕ Renunță”)
+          // revine la vizualizare, fără să salveze nimic — un „Salvează”
+          // nesalvat rămâne pur și simplu abandonat, ca la închiderea unui
+          // modal fără salvare. Cardul rămâne, per total: [antet cu
+          // Salvează + Editare/Renunță] → [Vizualizare SAU formular editare]
+          // → [Istoric/Șterge, jos] — neschimbat mai jos de identitate.
+          return '<div class="rez-list-item rez-mod-card">' +
+            '<div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:8px;">' +
               '<button class="rez-btn rez-btn-header" id="rez-mod-save-' + idx + '" type="button" style="display:none;">Salvează</button>' +
+              '<button class="rez-btn rez-btn-secondary rez-btn-header" id="rez-mod-toggle-' + idx + '" type="button">✏️ Editare</button>' +
             '</div>' +
-            '<div id="rez-mod-nota-' + idx + '"></div>' +
+            '<div id="rez-mod-view-' + idx + '"></div>' +
+            '<div id="rez-mod-nota-' + idx + '" style="display:none;"></div>' +
             '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:10px;">' +
               istoricBtn +
               '<button class="rez-btn rez-btn-danger rez-btn-sterge-mic" id="rez-mod-sterge-' + idx + '" type="button">🗑️ Șterge</button>' +
@@ -2634,6 +2673,27 @@
         document.getElementById('rez-mod-lista').innerHTML = htmlLista;
 
         filtrata.forEach(function (p, idx) {
+          // Rundă 67 — modul de vizualizare (implicit), construit direct din
+          // `p` (deja încărcat mai sus, din `listeaza_note_pescari` + lista
+          // de rezervări) — niciun RPC suplimentar doar ca să afișezi cardul.
+          // Notă: telefonul arătat aici e cel REAL, de pe rezervare — o
+          // eventuală suprascriere de telefon (rundă 45) se vede abia în
+          // modul editare, care o citește separat (`citeste_telefon_custom_pescar`);
+          // simplificare deliberată, ca vizualizarea să rămână instantă.
+          var elView = document.getElementById('rez-mod-view-' + idx);
+          if (elView) {
+            elView.innerHTML =
+              '<div class="rez-mod-view">' +
+                '<div class="rez-mod-view-nume">' + escH(p.nume || 'Pescar') +
+                  (p.blocat ? ' <span class="rez-badge" style="background:rgba(239,68,68,.15);color:#dc2626;">🚫 blocat</span>' : '') +
+                '</div>' +
+                (p.telefon
+                  ? '<a class="rez-tel-btn" href="tel:' + escH(p.telefon) + '"><span>📞</span>' + escH(p.telefon) + '</a>'
+                  : '<span class="rez-text-small" style="color:var(--zc-text-muted,#64748b);">Fără telefon</span>') +
+                (p.text ? '<div class="rez-mod-view-nota">📝 ' + escH(p.text) + '</div>' : '') +
+              '</div>';
+          }
+
           // Rundă 45 — `randeazaIdentitateSiNotaPescar` cere 2 containere;
           // aici, unde nu are sens o poziționare separată (cardul are deja
           // numele mare deasupra), i se dă ACELAȘI element de două ori —
@@ -2641,8 +2701,39 @@
           // primește acum și id-ul butonului „Salvează” din antetul
           // cardului (mai sus) — rândul de jos, cu propriul „Salvează”, nu
           // se mai randează deloc (un singur buton, ca la modalul din Gantt).
+          // Rundă 67 — randat LENE, abia la primul clic pe „Editare” (mai
+          // jos), nu odată cu tot cardul — funcția rămâne complet neatinsă,
+          // aceeași folosită și de modalul din Gantt.
           var elNotaModerare = document.getElementById('rez-mod-nota-' + idx);
-          randeazaIdentitateSiNotaPescar(elNotaModerare, elNotaModerare, _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare, 'rez-mod-save-' + idx);
+          var editRandat = false;
+          function randeazaFormularEditare() {
+            if (editRandat) return;
+            editRandat = true;
+            randeazaIdentitateSiNotaPescar(elNotaModerare, elNotaModerare, _adminBaltaId, p.userId, p.telefon, p.numeImplicit, renderTabModerare, 'rez-mod-save-' + idx);
+          }
+
+          // Rundă 67 — comutarea Vizualizare ⇄ Editare, cerere explicită a
+          // lui Marian (buton „Editare” în dreapta sus a cardului). „Renunță”
+          // nu salvează nimic — revine pur și simplu la vizualizare; datele
+          // deja salvate anterior rămân, orice modificare nesalvată din
+          // formular se pierde, exact ca la închiderea unui modal fără
+          // „Salvează”.
+          var btnToggle = document.getElementById('rez-mod-toggle-' + idx);
+          var btnSalveazaHdr = document.getElementById('rez-mod-save-' + idx);
+          if (btnToggle) btnToggle.onclick = function () {
+            var inEditare = elNotaModerare.style.display !== 'none';
+            if (inEditare) {
+              elNotaModerare.style.display = 'none';
+              if (elView) elView.style.display = '';
+              if (btnSalveazaHdr) btnSalveazaHdr.style.display = 'none';
+              btnToggle.textContent = '✏️ Editare';
+            } else {
+              if (elView) elView.style.display = 'none';
+              elNotaModerare.style.display = '';
+              btnToggle.textContent = '✕ Renunță';
+              randeazaFormularEditare();
+            }
+          };
 
           // Rundă 43 — deschide/închide dropdown-ul de istoric; conținutul
           // (`randeazaIstoricClient`) e randat o singură dată, lene (abia la
