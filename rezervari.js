@@ -371,6 +371,22 @@
         #rzp-print-area{position:absolute;left:0;top:0;width:100%;}
         #rzp-print-area button{display:none;}
       }
+      /* Tab „Anulare multiplă" (cerere explicită a lui Marian — vezi
+         comentariul din JS, lângă 'renderTabAnulareMultipla'): reutilizează
+         '.rzp-zi'/'.rzp-tabel' de mai sus pentru gruparea pe zi, dar are și
+         propriile clase — bara de sus cu numărul de selectate + butonul de
+         anulare, filtrele de durată, și rândurile cu checkbox. */
+      .rez-am-bara-sus{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:10px;position:sticky;top:0;z-index:3;}
+      .rez-am-numar{font-size:13.5px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);}
+      .rez-am-filtre{display:flex;gap:8px;margin-bottom:14px;}
+      .rez-am-filtru-btn{background:transparent;border:1.5px solid var(--zc-border,#1e293b);color:var(--zc-text-secondary-2,#94a3b8);border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;}
+      .rez-am-filtru-btn.active{border-color:#38bdf8;background:rgba(56,189,248,.12);color:#0891b2;}
+      .rez-am-zi-check{display:flex;align-items:center;gap:8px;cursor:pointer;}
+      .rez-am-zi-check input{width:auto;flex:0 0 auto;}
+      .rez-am-rand{display:flex;align-items:flex-start;gap:10px;padding:7px 4px;border-bottom:1px solid var(--zc-border,#1e293b);font-size:13px;cursor:pointer;}
+      .rez-am-rand:last-child{border-bottom:none;}
+      .rez-am-rand input{width:auto;flex:0 0 auto;margin-top:3px;}
+      .rez-am-info{color:var(--zc-text-primary,#f1f5f9);line-height:1.6;}
       .rez-tip-row{display:flex;gap:8px;flex-wrap:wrap;}
       .rez-tip-card{flex:1;min-width:100px;border:1.5px solid var(--zc-border,#1e293b);border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
       .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
@@ -1372,6 +1388,7 @@
       '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
       '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program</button>' +
       '<button class="rez-tab" data-tab="program7" onclick="RezervariUI._schimbaTabAdmin(\'program7\')">📋 Program 7 zile</button>' +
+      '<button class="rez-tab" data-tab="anulare-multipla" onclick="RezervariUI._schimbaTabAdmin(\'anulare-multipla\')">☑️ Anulare multiplă</button>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div></div>';
 
@@ -1407,6 +1424,7 @@
     if (_adminTabCurent === 'moderare') return renderTabModerare();
     if (_adminTabCurent === 'program') return renderTabProgram();
     if (_adminTabCurent === 'program7') return renderTabProgram7Zile();
+    if (_adminTabCurent === 'anulare-multipla') return renderTabAnulareMultipla();
   }
 
   async function fetchRezervariBalta() {
@@ -1555,6 +1573,180 @@
         randeazaProgram7(grupePeZi) +
       '</div>'
     );
+  }
+
+  // ── Anulare multiplă (tab nou) ──────────────────────────────────────────
+  // Cerere explicită a lui Marian: „am adaugat noi optiune de adaugare
+  // rezervari multiple, dar nu avem optiune de anulare rezervari multiple...
+  // daca adaug manual rezervare pentru mai multe standuri sau adaug un
+  // concurs si se anuleaza, pai trebuie sa iau manual fiecare rezervare in
+  // parte sa o anulez si dureaza o vesnicie". A ales explicit varianta cu o
+  // listă dedicată + filtre rapide (zi / durată), în locul selecției directe
+  // pe barele mici din Calendar — mai ușor de bifat rapid, mai ales pe
+  // telefon.
+  //
+  // Scop deliberat NEschimbat: nicio funcție SQL nouă. Fiecare rezervare din
+  // selecție e anulată printr-un apel separat către `anuleaza_rezervare_admin`
+  // — RPC-ul deja existent, deja testat, care aplică exact aceleași reguli ca
+  // la anularea individuală din Calendar (motiv obligatoriu + email doar la
+  // cele online, text fix fără email la cele manuale, `anulat_de` completat
+  // corect, cf. rundă 59). Simplul fapt că bifezi mai multe deodată nu ocolește
+  // nicio regulă existentă — doar economisește click-urile repetate.
+  //
+  // Scop: DOAR rezervări `confirmata`, încă neterminate — cele `in_asteptare`
+  // au propriul flux dedicat (tab „Cereri”, aprobare/respingere individuală,
+  // altă semantică), iar cele deja încheiate/anulate n-au ce căuta într-un
+  // instrument de anulare.
+  var _amSelectie = [];
+  var _amFiltruDurata = 'toate'; // 'toate' | 'scurt' (~12h) | 'lung' (24h+)
+  var _amRezervari = [];
+
+  async function renderTabAnulareMultipla() {
+    setModalBody('<div class="rez-empty">Se încarcă...</div>');
+    _amSelectie = [];
+    _amFiltruDurata = 'toate';
+    try {
+      var toate = await fetchRezervariBalta();
+      var acum = new Date();
+      _amRezervari = toate.filter(function (r) {
+        return r.status === 'confirmata' && new Date(r.data_sfarsit) >= acum;
+      });
+      randeazaAnulareMultipla();
+    } catch (e) {
+      setModalBody('<div class="rez-empty">Eroare: ' + escH(e.message || 'necunoscută') + '</div>');
+    }
+  }
+
+  // Clasificare pe durată — pe baza intervalului REAL (data_sfarsit -
+  // data_start), nu a unei coloane `tip_sesiune` (aceeași abordare ca la
+  // durata afișată pe barele din Calendar, cf. nota de acolo): „~12h” pentru
+  // sesiunile scurte (tip „Zi”), „24h+” pentru restul (tip „24 ore” sau
+  // „personalizat”, ambele de-o zi întreagă sau mai mult). Prag la 14h, la
+  // jumătatea distanței între 12 și 24, ca să nu clasifice greșit o sesiune
+  // de 12h care a durat puțin peste program.
+  function orePentruAnulareMultipla(r) {
+    return Math.round((new Date(r.data_sfarsit) - new Date(r.data_start)) / 3600000);
+  }
+
+  function randeazaAnulareMultipla() {
+    var filtrate = _amRezervari.filter(function (r) {
+      if (_amFiltruDurata === 'toate') return true;
+      var ore = orePentruAnulareMultipla(r);
+      return _amFiltruDurata === 'scurt' ? ore <= 14 : ore > 14;
+    });
+    var grupePeZi = grupeazaProgram7PeZi(filtrate);
+
+    var filtreHtml = '<div class="rez-am-filtre">' +
+      '<button type="button" class="rez-am-filtru-btn' + (_amFiltruDurata === 'toate' ? ' active' : '') + '" data-filtru="toate">Toate</button>' +
+      '<button type="button" class="rez-am-filtru-btn' + (_amFiltruDurata === 'scurt' ? ' active' : '') + '" data-filtru="scurt">~12h</button>' +
+      '<button type="button" class="rez-am-filtru-btn' + (_amFiltruDurata === 'lung' ? ' active' : '') + '" data-filtru="lung">24h+</button>' +
+    '</div>';
+
+    var listaHtml = grupePeZi.length ? grupePeZi.map(function (g) {
+      var toateIdZi = g.rezervari.map(function (r) { return r.id; });
+      var toateBifateZi = toateIdZi.length > 0 && toateIdZi.every(function (id) { return _amSelectie.indexOf(id) !== -1; });
+      var randuri = g.rezervari.map(function (r) {
+        var bifat = _amSelectie.indexOf(r.id) !== -1;
+        var ore = orePentruAnulareMultipla(r);
+        var telefon = r.telefon_client
+          ? '<a class="rez-tel-btn" href="tel:' + escH(r.telefon_client) + '"><span>📞</span>' + escH(r.telefon_client) + '</a>'
+          : '—';
+        var sursaBadge = r.sursa === 'manual_admin'
+          ? '<span class="rez-badge" style="background:#e2e8f0;color:#334155;">manual</span>'
+          : '<span class="rez-badge" style="background:rgba(56,189,248,.15);color:#0891b2;">online</span>';
+        return '<label class="rez-am-rand">' +
+          '<input type="checkbox" class="rez-am-check" data-id="' + r.id + '"' + (bifat ? ' checked' : '') + '>' +
+          '<span class="rez-am-info">' +
+            '<strong>' + escH(r.stand_nume || '') + '</strong> · ' + escH(fmtDataOra(r.data_start)) + ' → ' + escH(fmtDataOra(r.data_sfarsit)) + ' (' + ore + 'h)<br>' +
+            escH(numeImplicitPescar(r)) + ' ' + telefon + sursaBadge +
+          '</span>' +
+        '</label>';
+      }).join('');
+      return '<div class="rzp-zi">' +
+        '<h3><label class="rez-am-zi-check"><input type="checkbox" class="rez-am-check-zi" data-ids="' + toateIdZi.join(',') + '"' + (toateBifateZi ? ' checked' : '') + '> ' + escH(ZILE_SAPT_RO[g.ziua]) + ', ' + escH(g.cheie) + ' (' + toateIdZi.length + ')</label></h3>' +
+        randuri +
+      '</div>';
+    }).join('') : '<div class="rez-empty">Nicio rezervare confirmată, viitoare, de anulat' + (_amFiltruDurata !== 'toate' ? ' cu acest filtru' : '') + '.</div>';
+
+    setModalBody(
+      '<div class="rez-am-bara-sus">' +
+        '<div class="rez-am-numar">' + _amSelectie.length + ' selectate</div>' +
+        '<button type="button" class="rez-btn rez-btn-danger" id="rez-am-anuleaza" style="width:auto;"' + (_amSelectie.length ? '' : ' disabled') + '>Anulează selectate (' + _amSelectie.length + ')</button>' +
+      '</div>' +
+      filtreHtml +
+      listaHtml
+    );
+
+    Array.prototype.forEach.call(document.querySelectorAll('.rez-am-filtru-btn'), function (btn) {
+      btn.onclick = function () { _amFiltruDurata = btn.dataset.filtru; randeazaAnulareMultipla(); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.rez-am-check'), function (chk) {
+      chk.onchange = function () {
+        var id = parseInt(chk.dataset.id, 10);
+        var idx = _amSelectie.indexOf(id);
+        if (chk.checked && idx === -1) _amSelectie.push(id);
+        if (!chk.checked && idx !== -1) _amSelectie.splice(idx, 1);
+        randeazaAnulareMultipla();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.rez-am-check-zi'), function (chk) {
+      chk.onchange = function () {
+        var ids = chk.dataset.ids ? chk.dataset.ids.split(',').map(function (s) { return parseInt(s, 10); }) : [];
+        ids.forEach(function (id) {
+          var idx = _amSelectie.indexOf(id);
+          if (chk.checked && idx === -1) _amSelectie.push(id);
+          if (!chk.checked && idx !== -1) _amSelectie.splice(idx, 1);
+        });
+        randeazaAnulareMultipla();
+      };
+    });
+    var btnAnuleaza = document.getElementById('rez-am-anuleaza');
+    if (btnAnuleaza) btnAnuleaza.onclick = executaAnulareMultipla;
+  }
+
+  async function executaAnulareMultipla() {
+    var idsSelectate = _amSelectie.slice();
+    if (!idsSelectate.length) return;
+    if (!confirm('Sigur anulezi ' + idsSelectate.length + ' rezervăr' + (idsSelectate.length === 1 ? 'e' : 'i') + '? Acțiunea nu poate fi întoarsă înapoi.')) return;
+
+    var selectate = _amRezervari.filter(function (r) { return idsSelectate.indexOf(r.id) !== -1; });
+    // Rundă 33 (cf. mai sus, anularea individuală din Calendar): rezervările
+    // manuale primesc automat textul fix, fără prompt — doar cele online cer
+    // un motiv real, introdus O SINGURĂ DATĂ aici (nu per rezervare), aplicat
+    // tuturor celor online din selecția curentă. Fiecare pescar cu o
+    // rezervare online anulată primește automat emailul existent (cf. rundă
+    // 57) — cerere explicită a lui Marian, la fel ca la anularea individuală.
+    var areOnline = selectate.some(function (r) { return r.sursa !== 'manual_admin'; });
+    var motivOnline = null;
+    if (areOnline) {
+      var motivIntrodus = prompt('Motiv anulare pentru rezervările online din selecție (obligatoriu — pescarii vor fi notificați prin email):');
+      if (motivIntrodus === null) return; // a apăsat Cancel — nu anulăm nimic, nici măcar rezervările manuale din selecție
+      if (!motivIntrodus.trim()) { toast('Motivul anulării e obligatoriu.', true); return; }
+      motivOnline = motivIntrodus.trim();
+    }
+
+    var btnAnuleaza = document.getElementById('rez-am-anuleaza');
+    if (btnAnuleaza) { btnAnuleaza.disabled = true; btnAnuleaza.textContent = 'Se anulează...'; }
+
+    var reusite = 0, esuate = 0;
+    for (var i = 0; i < selectate.length; i++) {
+      var r = selectate[i];
+      var motiv = r.sursa === 'manual_admin' ? 'Anulată de administratorul bălții.' : motivOnline;
+      try {
+        var res = await sb.rpc('anuleaza_rezervare_admin', { p_rezervare_id: r.id, p_motiv: motiv });
+        if (res.error) throw res.error;
+        reusite++;
+      } catch (e) {
+        esuate++;
+        console.error('Anulare eșuată pentru rezervarea ' + r.id + ':', e);
+      }
+    }
+
+    toast(
+      esuate ? (reusite + ' anulate, ' + esuate + ' eșuate — detalii în consolă.') : (reusite + ' rezervăr' + (reusite === 1 ? 'e anulată' : 'i anulate') + '.'),
+      esuate > 0
+    );
+    renderTabAnulareMultipla();
   }
 
   // Identitatea implicită a unui pescar dintr-o rezervare — username-ul de
