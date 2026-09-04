@@ -164,3 +164,72 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// ── RENEWAL AUTOMATĂ A ABONAMENTULUI (pushsubscriptionchange) ───────────
+// De ce există acest bloc: browserul poate invalida sau roti SINGUR endpoint-ul
+// de push al userului (de obicei tocmai după o perioadă în care userul NU a mai
+// deschis pagina/PWA-ul) — fără avertisment vizibil pentru user. Până acum,
+// service worker-ul nu asculta deloc acest eveniment, deci endpoint-ul vechi
+// rămânea salvat, neschimbat, în `push_subscriptions`. Worker-ul zoda-push-send
+// continua să trimită push-uri spre acel endpoint mort, care eșuau silențios —
+// userul nu primea nimic pe telefon, deși rândul din `notificari` se crea normal
+// și apărea în listă abia când redeschidea manual aplicația. Acest listener
+// reabonează automat, din fundal, ȘI ÎNCEARCĂ să actualizeze rândul din Supabase
+// fără să aștepte vreo vizită — repară situația chiar dacă userul nu deschide
+// aplicația o vreme.
+//
+// Necesită funcția RPC `zoda_renew_push_subscription` în Supabase (livrată
+// separat ca fișier .sql, de rulat manual în SQL Editor) — vezi
+// 2026-09-04_renew_push_subscription.sql.
+const SW_SUPA_URL = 'https://emnesflrzptqfttlzusw.supabase.co';
+const SW_SUPA_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbmVzZmxyenB0cWZ0dGx6dXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NTc5NDUsImV4cCI6MjA5NzUzMzk0NX0.LoR6peujcdm1SLZ8SUSdtSH8wDa_ptCUEYT3qtAPZXk';
+// Aceeași cheie publică VAPID ca în cont.html/index.html — dacă o schimbi
+// acolo vreodată, schimb-o și aici (nu există un singur loc comun, fiind
+// fișiere HTML separate + acest worker, fără build step).
+const SW_VAPID_PUBLIC_KEY = 'BME-SOgjhV3uy7WCn1AGeYju0XnBsOqGqGW2Vp9SCrwGFlJr9L_d3Ni82FuDqkKDpDh6O9wx2EGAxukg9Wrfwqo';
+
+function swUrlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+self.addEventListener('pushsubscriptionchange', (event) => {
+  // Unele browsere dau event.oldSubscription, altele nu — dacă lipsește, nu
+  // avem cum să identificăm rândul vechi din Supabase ca să-l actualizăm;
+  // reabonarea tot merge, dar sincronizarea cu DB va aștepta următoarea
+  // deschidere a paginii (initPushToggleState din cont.html/index.html).
+  const oldEndpoint = event.oldSubscription ? event.oldSubscription.endpoint : null;
+  const appServerKey =
+    (event.oldSubscription && event.oldSubscription.options && event.oldSubscription.options.applicationServerKey) ||
+    swUrlBase64ToUint8Array(SW_VAPID_PUBLIC_KEY);
+
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe({ userVisibleOnly: true, applicationServerKey: appServerKey })
+      .then((newSub) => {
+        if (!oldEndpoint) return;
+        const json = newSub.toJSON();
+        return fetch(`${SW_SUPA_URL}/rest/v1/rpc/zoda_renew_push_subscription`, {
+          method: 'POST',
+          headers: {
+            'apikey': SW_SUPA_ANON_KEY,
+            'Authorization': `Bearer ${SW_SUPA_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            p_old_endpoint: oldEndpoint,
+            p_new_endpoint: json.endpoint,
+            p_p256dh: json.keys.p256dh,
+            p_auth_key: json.keys.auth,
+          }),
+        });
+      })
+      .catch(() => {
+        // Eșec silențios (ex. reabonare refuzată de browser) — la următoarea
+        // deschidere a paginii, initPushToggleState() detectează getSubscription()
+        // == null și userul poate reactiva manual din "Contul meu".
+      })
+  );
+});
