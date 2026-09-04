@@ -350,6 +350,27 @@
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
       .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#0891b2;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
       .rez-tel-btn:hover{background:rgba(56,189,248,.18);}
+      /* Tab „Program 7 zile" (redesign — vezi comentariul din JS, lângă
+         'renderTabProgram7Zile'): randat acum inline în panoul admin, nu
+         mai într-un document separat cu propriul <style>, deci clasele de
+         mai jos (folosite doar aici) nu aveau nicio regulă definită până
+         acum — le adăugăm în foaia de stil comună, consistent cu temele
+         light/dark existente (variabile --zc-*). */
+      .rzp-sub{color:var(--zc-text-secondary-2,#94a3b8);font-size:13px;margin-bottom:14px;}
+      .rzp-zi{margin-bottom:22px;}
+      .rzp-zi h3{font-size:15px;margin:0 0 6px;color:var(--zc-accent-dark,#0e7490);border-bottom:2px solid var(--zc-accent-dark,#0e7490);padding-bottom:3px;}
+      .rzp-tabel{width:100%;border-collapse:collapse;font-size:13px;}
+      .rzp-tabel th, .rzp-tabel td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--zc-border,#1e293b);color:var(--zc-text-primary,#f1f5f9);}
+      .rzp-tabel th{color:var(--zc-text-secondary-2,#94a3b8);font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;}
+      /* La tipărire (buton „🖨️ Printează" din tab) — ascundem tot restul
+         paginii (bara de tab-uri, backdrop-ul modalului etc.) și lăsăm
+         vizibil doar programul, ca la vechiul PDF, dar fără fereastră nouă. */
+      @media print {
+        body *{visibility:hidden;}
+        #rzp-print-area, #rzp-print-area *{visibility:visible;}
+        #rzp-print-area{position:absolute;left:0;top:0;width:100%;}
+        #rzp-print-area button{display:none;}
+      }
       .rez-tip-row{display:flex;gap:8px;flex-wrap:wrap;}
       .rez-tip-card{flex:1;min-width:100px;border:1.5px solid var(--zc-border,#1e293b);border-radius:10px;padding:9px 8px;cursor:pointer;text-align:center;}
       .rez-tip-card.active{border-color:#38bdf8;background:rgba(56,189,248,.08);}
@@ -1350,7 +1371,7 @@
       '<button class="rez-tab" data-tab="manual" onclick="RezervariUI._schimbaTabAdmin(\'manual\')">Adaugă manual</button>' +
       '<button class="rez-tab" data-tab="moderare" onclick="RezervariUI._schimbaTabAdmin(\'moderare\')">Bază clienți</button>' +
       '<button class="rez-tab" data-tab="program" onclick="RezervariUI._schimbaTabAdmin(\'program\')">Program</button>' +
-      '<button class="rez-tab" id="rez-print-btn" style="margin-top:6px;" onclick="RezervariUI._descarcaProgram7Zile()">🖨️ Program 7 zile</button>' +
+      '<button class="rez-tab" data-tab="program7" onclick="RezervariUI._schimbaTabAdmin(\'program7\')">📋 Program 7 zile</button>' +
       '</div>' +
       '<div id="rez-modal-body"><div class="rez-empty">Se încarcă...</div></div></div>';
 
@@ -1385,6 +1406,7 @@
     if (_adminTabCurent === 'manual') return renderTabManual();
     if (_adminTabCurent === 'moderare') return renderTabModerare();
     if (_adminTabCurent === 'program') return renderTabProgram();
+    if (_adminTabCurent === 'program7') return renderTabProgram7Zile();
   }
 
   async function fetchRezervariBalta() {
@@ -1395,11 +1417,7 @@
 
   // Cerere explicită a lui Marian: un „program pe hârtie" al următoarelor 7
   // zile, ca balta_admin să poată ști cine vine chiar și fără semnal la
-  // internet (deschis dinainte, cât mai e net, apoi salvat ca PDF/printat).
-  // Nu adăugăm nicio librărie de PDF — deschidem o filă nouă, curată, cu
-  // stilul de print separat de restul paginii, și lăsăm dialogul nativ
-  // „Printează" al browserului să facă salvarea ca PDF (funcționează
-  // identic pe desktop și mobil, fără nicio dependență externă).
+  // internet.
   //
   // Rundă ulterioară, cerere explicită a lui Marian: „la salvarea asta pe 7
   // zile sa-mi afiseze diferentiat pe zile si standurile sa fie in ordine,
@@ -1407,113 +1425,136 @@
   // per zi, cu antet „Zi, dd-mm-yyyy") + sortare standurilor ascendent în
   // interiorul fiecărei zile (comparație „numeric: true", ca „2" să iasă
   // înaintea lui „10" — o sortare alfabetică simplă le-ar fi pus invers).
+  //
+  // Rundă ulterioară, reconsiderare completă a abordării — Marian: „ma
+  // gandesc ca pe telefon un pdf poate nu e cea mai accesibila solutie...
+  // vreau sa o fac cat mai simplu pentru cei mai putin tehnici si sa poata
+  // copia nr de telefon din rezervari sa poata contacta clientii daca e
+  // nevoie". Renunțăm complet la fereastra separată/PDF: acum e un tab
+  // obișnuit, în chiar acest panou (`rezervari-admin.html`, deja deschis
+  // zilnic de balta_admin, deci deja cache-uit offline de service worker
+  // odată vizitat) — nimic de descărcat, niciun fișier de căutat. Telefonul
+  // fiecărei rezervări e un buton apelabil direct (`.rez-tel-btn`, `tel:`,
+  // aceeași componentă folosită deja în tab-ul „Cereri") — apăsat, sună
+  // direct; ținut apăsat, telefonul oferă „Copiază" nativ, exact ce a cerut
+  // Marian, fără nicio logică suplimentară de-a noastră.
+  //
+  // Acces REAL fără semnal: la fiecare încărcare reușită, salvăm o copie a
+  // rândurilor relevante în `localStorage` (per baltă). Dacă la următoarea
+  // deschidere RPC-ul eșuează (exact cazul „fără semnal la baltă"), cădem pe
+  // acea copie locală și arătăm clar când a fost salvată — balta_admin știe
+  // mereu dacă se uită la ceva proaspăt sau la ultima variantă cunoscută.
   var ZILE_SAPT_RO = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
-  async function descarcaProgram7Zile() {
+
+  function cheieCacheProgram7(baltaId) { return 'zoda-program7-' + baltaId; }
+
+  function salveazaCacheProgram7(baltaId, rezervariRelevante) {
+    try {
+      localStorage.setItem(cheieCacheProgram7(baltaId), JSON.stringify({
+        savedAt: new Date().toISOString(),
+        rezervari: rezervariRelevante
+      }));
+    } catch (e) { /* localStorage indisponibil/plin — nu blocăm afișarea curentă din cauza asta */ }
+  }
+
+  function citesteCacheProgram7(baltaId) {
+    try {
+      var raw = localStorage.getItem(cheieCacheProgram7(baltaId));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return (parsed && Array.isArray(parsed.rezervari)) ? parsed : null;
+    } catch (e) { return null; }
+  }
+
+  // Grupează pe zi calendaristică (ziua din `data_start`) și sortează
+  // standurile crescător (numeric) în interiorul fiecărei zile — logica e
+  // aceeași indiferent dacă rândurile vin proaspete de la server sau din
+  // cache-ul local offline.
+  function grupeazaProgram7PeZi(relevante) {
+    var sortate = relevante.slice().sort(function (a, b) { return new Date(a.data_start) - new Date(b.data_start); });
+    var grupePeZi = [];
+    sortate.forEach(function (r) {
+      var d = new Date(r.data_start);
+      var cheie = fmtDataDDMMYYYY(d);
+      var grupa = grupePeZi.length ? grupePeZi[grupePeZi.length - 1] : null;
+      if (!grupa || grupa.cheie !== cheie) {
+        grupa = { cheie: cheie, ziua: d.getDay(), rezervari: [] };
+        grupePeZi.push(grupa);
+      }
+      grupa.rezervari.push(r);
+    });
+    grupePeZi.forEach(function (g) {
+      g.rezervari.sort(function (a, b) {
+        var cmp = String(a.stand_nume || '').localeCompare(String(b.stand_nume || ''), undefined, { numeric: true, sensitivity: 'base' });
+        return cmp !== 0 ? cmp : (new Date(a.data_start) - new Date(b.data_start));
+      });
+    });
+    return grupePeZi;
+  }
+
+  function randeazaProgram7(grupePeZi) {
+    return grupePeZi.length ? grupePeZi.map(function (g) {
+      var randuriZi = g.rezervari.map(function (r) {
+        var badge = r.status === 'in_asteptare' ? ' <span class="rez-badge" style="background:#fef3c7;color:#92400e;">în așteptare</span>' : '';
+        var telefon = r.telefon_client
+          ? '<a class="rez-tel-btn" href="tel:' + escH(r.telefon_client) + '"><span>📞</span>' + escH(r.telefon_client) + '</a>'
+          : '—';
+        return '<tr>' +
+          '<td>' + escH(fmtDataOra(r.data_start)) + '<br>→ ' + escH(fmtDataOra(r.data_sfarsit)) + '</td>' +
+          '<td>' + escH(r.stand_nume || '') + '</td>' +
+          '<td>' + escH(numeImplicitPescar(r)) + badge + '</td>' +
+          '<td>' + telefon + '</td>' +
+        '</tr>';
+      }).join('');
+      return '<div class="rzp-zi">' +
+        '<h3>' + escH(ZILE_SAPT_RO[g.ziua]) + ', ' + escH(g.cheie) + '</h3>' +
+        '<table class="rzp-tabel"><thead><tr><th>Interval</th><th>Stand</th><th>Pescar</th><th>Telefon</th></tr></thead><tbody>' + randuriZi + '</tbody></table>' +
+      '</div>';
+    }).join('') : '<div class="rez-empty">Nicio rezervare în următoarele 7 zile.</div>';
+  }
+
+  async function renderTabProgram7Zile() {
     if (!_adminBaltaId) return;
-    var btn = document.getElementById('rez-print-btn');
-    var textOriginal = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = 'Se pregătește...'; }
+    setModalBody('<div class="rez-empty">Se încarcă...</div>');
+
+    var acum = new Date();
+    var limita = new Date(acum.getTime() + 7 * 24 * 3600 * 1000);
+    var relevante = null;
+    var eroareRetea = false;
+
     try {
       var toate = await fetchRezervariBalta();
-      var acum = new Date();
-      var limita = new Date(acum.getTime() + 7 * 24 * 3600 * 1000);
-      var relevante = toate.filter(function (r) {
+      relevante = toate.filter(function (r) {
         return (r.status === 'confirmata' || r.status === 'in_asteptare') &&
           new Date(r.data_sfarsit) >= acum && new Date(r.data_start) <= limita;
-      }).sort(function (a, b) { return new Date(a.data_start) - new Date(b.data_start); });
-
-      // Grupare pe zi calendaristică (ziua din `data_start`) — `relevante`
-      // e deja sortată cronologic mai sus, deci grupurile ies în ordine
-      // corectă doar adunând rândurile consecutive cu aceeași cheie de zi.
-      var grupePeZi = [];
-      relevante.forEach(function (r) {
-        var d = new Date(r.data_start);
-        var cheie = fmtDataDDMMYYYY(d);
-        var grupa = grupePeZi.length ? grupePeZi[grupePeZi.length - 1] : null;
-        if (!grupa || grupa.cheie !== cheie) {
-          grupa = { cheie: cheie, ziua: d.getDay(), rezervari: [] };
-          grupePeZi.push(grupa);
-        }
-        grupa.rezervari.push(r);
       });
+      salveazaCacheProgram7(_adminBaltaId, relevante);
+    } catch (e) {
+      eroareRetea = true;
+    }
 
-      // În interiorul fiecărei zile: standuri crescător (numeric, nu
-      // alfabetic — „2" înaintea lui „10"), iar la fel de stand, cronologic.
-      grupePeZi.forEach(function (g) {
-        g.rezervari.sort(function (a, b) {
-          var cmp = String(a.stand_nume || '').localeCompare(String(b.stand_nume || ''), undefined, { numeric: true, sensitivity: 'base' });
-          return cmp !== 0 ? cmp : (new Date(a.data_start) - new Date(b.data_start));
-        });
-      });
-
-      var corpZile = grupePeZi.length ? grupePeZi.map(function (g) {
-        var randuriZi = g.rezervari.map(function (r) {
-          var badge = r.status === 'in_asteptare' ? ' <span class="rzp-badge">în așteptare — neaprobată încă</span>' : '';
-          return '<tr>' +
-            '<td>' + escH(fmtDataOra(r.data_start)) + '<br>→ ' + escH(fmtDataOra(r.data_sfarsit)) + '</td>' +
-            '<td>' + escH(r.stand_nume || '') + '</td>' +
-            '<td>' + escH(numeImplicitPescar(r)) + badge + '</td>' +
-            '<td>' + escH(r.telefon_client || '') + '</td>' +
-          '</tr>';
-        }).join('');
-        return '<div class="rzp-zi">' +
-          '<h2>' + escH(ZILE_SAPT_RO[g.ziua]) + ', ' + escH(g.cheie) + '</h2>' +
-          '<table><thead><tr><th>Interval</th><th>Stand</th><th>Pescar</th><th>Telefon</th></tr></thead><tbody>' + randuriZi + '</tbody></table>' +
-        '</div>';
-      }).join('') : '<div style="text-align:center;color:#666;padding:24px;">Nicio rezervare în următoarele 7 zile.</div>';
-
-      var html = '<!DOCTYPE html><html lang="ro"><head><meta charset="UTF-8">' +
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-        '<title>Program rezervări — ' + escH(_adminBaltaNume) + '</title>' +
-        '<style>' +
-          'body{font-family:"Segoe UI",system-ui,sans-serif;color:#111;padding:22px;}' +
-          'h1{font-size:19px;margin-bottom:2px;}' +
-          '.rzp-sub{color:#555;font-size:13px;margin-bottom:18px;}' +
-          '.rzp-zi{margin-bottom:22px;}' +
-          '.rzp-zi h2{font-size:15px;margin:0 0 6px;color:#0e7490;border-bottom:2px solid #0e7490;padding-bottom:3px;}' +
-          '.rzp-zi{page-break-inside:avoid;}' +
-          'table{width:100%;border-collapse:collapse;font-size:13px;}' +
-          'th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;vertical-align:top;}' +
-          'th{background:#eee;}' +
-          '.rzp-badge{display:inline-block;background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px;margin-left:4px;white-space:nowrap;}' +
-          '.rzp-noprint{margin-bottom:16px;}' +
-          '.rzp-noprint button{background:#0e7490;color:#fff;font-weight:700;font-size:14px;padding:10px 18px;border:none;border-radius:8px;cursor:pointer;}' +
-          '@media print{ .rzp-noprint{display:none;} body{padding:6px;} }' +
-        '</style></head><body>' +
-        '<div class="rzp-noprint"><button onclick="window.print()">🖨️ Printează / Salvează ca PDF</button></div>' +
-        '<h1>📅 Program rezervări — ' + escH(_adminBaltaNume) + '</h1>' +
-        '<div class="rzp-sub">Următoarele 7 zile, de la ' + escH(fmtDataOra(acum.toISOString())) + '</div>' +
-        corpZile +
-        '</body></html>';
-
-      // Cerere explicită a lui Marian: pe mobil, fila nouă apărea minusculă,
-      // totul înghesuit în stânga sus, cu mult spațiu gol în rest — semn clar
-      // că telefonul ignora `<meta name="viewport">` din HTML-ul generat.
-      // Cauza: `window.open('', '_blank')` + `document.write(html)` scrie
-      // conținutul PESTE o pagină deja deschisă, goală (`about:blank`) — pe
-      // multe browsere mobile, meta-tagul de viewport scris ulterior așa nu
-      // mai e recitit corect, pagina rămâne „blocată" pe lățimea implicită
-      // de desktop. Fix: în loc să scriem peste o pagină goală, navigăm
-      // fereastra nouă direct la un URL real (`Blob` + `URL.createObjectURL`)
-      // — browserul o tratează ca pe orice altă pagină încărcată normal,
-      // deci citește corect viewport-ul și umple tot ecranul, ca pe desktop.
-      var blob = new Blob([html], { type: 'text/html' });
-      var blobUrl = URL.createObjectURL(blob);
-      var fereastra = window.open(blobUrl, '_blank');
-      if (!fereastra) {
-        URL.revokeObjectURL(blobUrl);
-        toast('Browserul a blocat fereastra nouă — permite ferestre pop-up pentru acest site și încearcă din nou.', true);
+    var bannerOffline = '';
+    if (eroareRetea) {
+      var cache = citesteCacheProgram7(_adminBaltaId);
+      if (cache) {
+        relevante = cache.rezervari;
+        bannerOffline = '<div class="rez-toast-inline" style="background:#3b2a0f;border:1px solid #f59e0b;color:#fbbf24;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:14px;">' +
+          '📴 Fără semnal — arată ultima variantă salvată, din ' + escH(fmtDataOra(cache.savedAt)) + '.</div>';
+      } else {
+        setModalBody('<div class="rez-empty">📴 Fără semnal și nicio variantă salvată local încă. Deschide acest tab o dată cât ai semnal, ca să rămână salvat pentru data viitoare fără net.</div>');
         return;
       }
-      // Eliberăm URL-ul temporar după ce fila nouă a apucat sigur să se
-      // încarce — o revocare imediată ar putea întrerupe încărcarea pe unele
-      // browsere mobile mai lente.
-      setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 60000);
-    } catch (e) {
-      toast('Nu am putut genera programul: ' + (e.message || 'eroare necunoscută.'), true);
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = textOriginal; }
     }
+
+    var grupePeZi = grupeazaProgram7PeZi(relevante);
+    setModalBody(
+      '<div id="rzp-print-area">' +
+        '<button class="rez-tab" style="margin-bottom:14px;" onclick="window.print()">🖨️ Printează</button>' +
+        bannerOffline +
+        '<div class="rzp-sub">Următoarele 7 zile, de la ' + escH(fmtDataOra(acum.toISOString())) + '</div>' +
+        randeazaProgram7(grupePeZi) +
+      '</div>'
+    );
   }
 
   // Identitatea implicită a unui pescar dintr-o rezervare — username-ul de
@@ -2901,8 +2942,7 @@
     deschideModalRezervarileMele: deschideModalRezervarileMele,
     randeazaPanouAdmin: randeazaPanouAdmin,
     _closeModal: closeModal,
-    _schimbaTabAdmin: schimbaTabAdmin,
-    _descarcaProgram7Zile: descarcaProgram7Zile
+    _schimbaTabAdmin: schimbaTabAdmin
   };
 
 })(window);
