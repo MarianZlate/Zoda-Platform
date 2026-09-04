@@ -439,7 +439,13 @@
          dimensiunile de mai jos. */
       .rez-mod-view{display:flex;flex-direction:column;align-items:flex-start;gap:8px;}
       .rez-mod-view-nume{font-size:17px;font-weight:800;color:var(--zc-text-primary,#f1f5f9);}
-      .rez-mod-view-nota{font-size:12.5px;color:var(--zc-text-secondary-2,#94a3b8);white-space:pre-wrap;}
+      /* Rundă 69 — cerere explicită a lui Marian: „nota aia e cam mica si
+         greu de citit. mareste fontul cu 12% si fa textul negru pe modul
+         light, vezi ce culoare vizibila il faci pe modul dark” — 12.5px→14px
+         (+12%), negru literal pe light (nu culoarea muted de dinainte,
+         '--zc-text-secondary-2'); varianta pentru dark, mai jos, lângă
+         celelalte suprascrieri 'html:not([data-theme="light"])'. */
+      .rez-mod-view-nota{font-size:14px;color:#000;white-space:pre-wrap;}
       /* Rundă 68 — telefonul din modul de vizualizare al „Bază clienți",
          puțin mai mare decât pastila standard '.rez-tel-btn' (12.5px),
          aceeași idee ca la '.rez-detail-mare .rez-tel-btn' (mai jos în
@@ -877,6 +883,12 @@
       html:not([data-theme="light"]) .rez-btn-anuleaza-mic:hover{background:rgba(248,113,113,.12);}
       html:not([data-theme="light"]) .rez-detail-divider{background:#334155;}
       html:not([data-theme="light"]) .rez-badge-onorata{color:#22c55e;}
+      /* Rundă 69 — nota din cardurile „Bază clienți” (mai sus, '.rez-mod-view-nota')
+         e negru literal pe fundal deschis (light); pe fundal închis (dark),
+         negrul ar fi practic invizibil — înlocuit aici cu un gri-deschis
+         ('--zc-text-strong' din paleta dark, #e2e8f0), clar vizibil pe
+         fundalul de panou întunecat. */
+      html:not([data-theme="light"]) .rez-mod-view-nota{color:#e2e8f0;}
       html:not([data-theme="light"]) .rez-istoric-btn{color:#38bdf8;}
       html:not([data-theme="light"]) .rez-strike{color:#f59e0b;}
       html:not([data-theme="light"]) .rez-tab.active{color:#38bdf8;}
