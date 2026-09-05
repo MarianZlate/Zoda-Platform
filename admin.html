@@ -571,6 +571,32 @@ th,td{padding:8px 6px;}
         <div id="stats-top-balti-rezervari">Se încarcă...</div>
       </div>
       <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">📈 Statistici per baltă — toate bălțile</div>
+        <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Vizite și capturi sunt pe intervalul selectat mai sus; urmăritorii și standurile sunt numărul curent (nu depind de interval).</div>
+        <div style="position:relative;margin-bottom:10px;">
+          <input type="text" id="stats-gen-balta-search" oninput="filtreazaStatsGeneralePerBalta()" placeholder="🔍 Caută baltă după nume..."
+            style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+        </div>
+        <div class="table-wrap">
+          <table class="users-table" id="stats-gen-per-balta-table">
+            <thead>
+              <tr>
+                <th>Baltă</th>
+                <th>Județ</th>
+                <th>👁️ Vizite</th>
+                <th>⭐ Urmăritori</th>
+                <th>📸 Capturi trimise</th>
+                <th>✅ Capturi aprobate</th>
+                <th>🎣 Standuri</th>
+              </tr>
+            </thead>
+            <tbody id="stats-gen-per-balta-tbody">
+              <tr><td colspan="7" class="empty-state">Se încarcă...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="balta-admin-card">
         <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">🎣 Rezervări online, per baltă (în interval)</div>
         <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Doar rezervări online (exclude cele adăugate manual de balta_admin) — câte au fost făcute, câte anulate și cine le-a anulat.</div>
         <div style="position:relative;margin-bottom:10px;">
@@ -2310,6 +2336,31 @@ function filtreazaStatsRezPerBalta() {
     </tr>`).join('');
 }
 
+// Rezultatul brut al admin_statistici_generale_per_balta (vizite/urmăritori/
+// capturi/standuri, TOATE bălțile), păstrat local pentru filtrare instant la
+// căutare, fără reinterogare.
+let _statsGeneralePerBaltaData = [];
+function filtreazaStatsGeneralePerBalta() {
+  const q = (document.getElementById('stats-gen-balta-search')?.value || '').toLowerCase().trim();
+  const rows = q ? _statsGeneralePerBaltaData.filter(r => (r.balta_nume||'').toLowerCase().includes(q)) : _statsGeneralePerBaltaData;
+  const tbody = document.getElementById('stats-gen-per-balta-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${_statsGeneralePerBaltaData.length ? 'Nicio baltă nu se potrivește căutării.' : 'Nicio baltă găsită.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${escH(r.balta_nume || ('Baltă #'+r.balta_id))}</td>
+      <td style="color:#64748b;">${escH(r.judet||'—')}</td>
+      <td style="font-weight:800;color:#38bdf8;">${r.vizite}</td>
+      <td>${r.urmaritori}</td>
+      <td>${r.capturi_trimise}</td>
+      <td>${r.capturi_aprobate}</td>
+      <td>${r.standuri}</td>
+    </tr>`).join('');
+}
+
 async function loadStatistici() {
   const grid = document.getElementById('stats-grid');
   const topEl = document.getElementById('stats-top-balti');
@@ -2326,7 +2377,7 @@ async function loadStatistici() {
     { count: capturiAprobate },
     { count: capturiRespinse },
     { data: cereriData },
-    { data: vizite },
+    { count: totalVizite },
     { count: totalPublic },
     { count: totalBasic },
     { count: totalUnlisted },
@@ -2337,7 +2388,12 @@ async function loadStatistici() {
     sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','approved').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
     sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','rejected').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
     sb.from('notificari').select('meta').eq('tip','cerere_publicare_balta').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
-    sb.from('vizite_log').select('balta_id').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    // 'count: exact, head: true' cere lui Postgres un COUNT(*) separat, exact —
+    // spre deosebire de un SELECT normal (limitat implicit la 1000 de rânduri
+    // de Supabase, indiferent câte există real — de-aici cifra suspect de
+    // rotundă "1000" pe care o vedea Marian). Un count exact nu transferă
+    // niciun rând, deci nu e afectat de limita aia.
+    sb.from('vizite_log').select('balta_id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','public'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','basic'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','unlisted'),
@@ -2349,7 +2405,6 @@ async function loadStatistici() {
   const rezStats = (statsRezervari && statsRezervari[0]) || { total_cereri:0, confirmate:0, respinse:0, anulate:0, neprezentari:0 };
 
   const cereriUnice = new Set((cereriData||[]).map(c => c.meta?.balta_id)).size;
-  const totalVizite = (vizite||[]).length;
   const rataAprobare = capturiTrimise > 0 ? Math.round((capturiAprobate/capturiTrimise)*100) : 0;
 
   const cards = [
@@ -2374,24 +2429,42 @@ async function loadStatistici() {
       <div style="font-size:12.9px;color:#94a3b8;margin-top:4px;">${c.label}</div>
     </div>`).join('');
 
-  // Top 10 bălți dupa vizite in interval
-  const countByBalta = {};
-  (vizite||[]).forEach(v => { countByBalta[v.balta_id] = (countByBalta[v.balta_id]||0) + 1; });
-  const topIds = Object.entries(countByBalta).sort((a,b) => b[1]-a[1]).slice(0,10);
-  if (!topIds.length) {
+  // Top 10 bălți după vizite în interval — agregat direct în SQL (GROUP BY),
+  // nu mai citim rândurile brute din vizite_log în client (vezi nota de la
+  // fetch-ul de mai sus: peste 1000 de vizite reale, un top calculat pe un
+  // eșantion trunchiat și fără ordine garantată dădea clasamente absurde —
+  // ex. mai multe vizite afișate pe 7 zile decât pe 30 de zile pentru
+  // aceeași baltă. Un GROUP BY în Postgres nu are limita asta.
+  const { data: topVizite, error: topViziteErr } = await sb.rpc('admin_top_balti_vizite', { p_de_la: deLa, p_pana_la: panaLaExclusiv, p_limita: 10 });
+  if (topViziteErr) {
+    topEl.innerHTML = `<div style="color:#f87171;font-size:13px;">⚠️ ${escH(topViziteErr.message)}</div>`;
+  } else if (!topVizite || !topVizite.length) {
     topEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Nicio vizită înregistrată în acest interval.</div>';
   } else {
-  const { data: baltiNume } = await sb.from('balti').select('id,nume,judet').in('id', topIds.map(t => +t[0]));
-  const numeMap = {};
-  (baltiNume||[]).forEach(b => { numeMap[b.id] = b; });
-  topEl.innerHTML = topIds.map(([id, count], i) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
-      <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMap[id]?.nume || 'Baltă #'+id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMap[id]?.judet||'')}</span></div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-weight:800;color:#38bdf8;font-size:15px;">${count}</div>
-        <button onclick="genereazaRaportBalta(${id})" title="Descarcă raport PDF" style="background:transparent;border:1px solid #1e293b;color:#94a3b8;font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;">📄</button>
-      </div>
-    </div>`).join('');
+    const { data: baltiNume } = await sb.from('balti').select('id,nume,judet').in('id', topVizite.map(t => t.balta_id));
+    const numeMap = {};
+    (baltiNume||[]).forEach(b => { numeMap[b.id] = b; });
+    topEl.innerHTML = topVizite.map((t, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMap[t.balta_id]?.nume || 'Baltă #'+t.balta_id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMap[t.balta_id]?.judet||'')}</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-weight:800;color:#38bdf8;font-size:15px;">${t.nr_vizite}</div>
+          <button onclick="genereazaRaportBalta(${t.balta_id})" title="Descarcă raport PDF" style="background:transparent;border:1px solid #1e293b;color:#94a3b8;font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;">📄</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Statistici generale, pentru FIECARE baltă (vizite/urmăritori/capturi/
+  // standuri) — agregate direct în SQL, aceeași rațiune ca la top-ul de mai
+  // sus.
+  const { data: statsGenerale, error: statsGeneraleErr } = await sb.rpc('admin_statistici_generale_per_balta', { p_de_la: deLa, p_pana_la: panaLaExclusiv });
+  const tbodyGen = document.getElementById('stats-gen-per-balta-tbody');
+  if (statsGeneraleErr) {
+    _statsGeneralePerBaltaData = [];
+    tbodyGen.innerHTML = `<tr><td colspan="7" class="empty-state">⚠️ ${escH(statsGeneraleErr.message)}</td></tr>`;
+  } else {
+    _statsGeneralePerBaltaData = statsGenerale || [];
+    filtreazaStatsGeneralePerBalta();
   }
 
   // Top bălți după rezervări în interval — RPC admin-only (rezervari are RLS
