@@ -573,21 +573,28 @@ th,td{padding:8px 6px;}
       <div class="balta-admin-card">
         <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">📈 Statistici per baltă — toate bălțile</div>
         <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Vizite și capturi sunt pe intervalul selectat mai sus; urmăritorii și standurile sunt numărul curent (nu depind de interval).</div>
-        <div style="position:relative;margin-bottom:10px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
           <input type="text" id="stats-gen-balta-search" oninput="filtreazaStatsGeneralePerBalta()" placeholder="🔍 Caută baltă după nume..."
-            style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+            style="flex:1;min-width:180px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+          <select id="stats-gen-viz-filter" onchange="filtreazaStatsGeneralePerBalta()"
+            style="background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;cursor:pointer;">
+            <option value="public">✅ Doar publice</option>
+            <option value="basic">🔍 Doar basic</option>
+            <option value="unlisted">🔒 Doar unlisted</option>
+            <option value="toate">Toate bălțile</option>
+          </select>
         </div>
         <div class="table-wrap">
           <table class="users-table" id="stats-gen-per-balta-table">
             <thead>
               <tr>
-                <th>Baltă</th>
-                <th>Județ</th>
-                <th>👁️ Vizite</th>
-                <th>⭐ Urmăritori</th>
-                <th>📸 Capturi trimise</th>
-                <th>✅ Capturi aprobate</th>
-                <th>🎣 Standuri</th>
+                <th class="stats-gen-th" data-col="balta_nume" onclick="sorteazaStatsGenerale('balta_nume')" style="cursor:pointer;user-select:none;">Baltă<span id="stats-gen-sort-balta_nume" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="judet" onclick="sorteazaStatsGenerale('judet')" style="cursor:pointer;user-select:none;">Județ<span id="stats-gen-sort-judet" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="vizite" onclick="sorteazaStatsGenerale('vizite')" style="cursor:pointer;user-select:none;">👁️ Vizite<span id="stats-gen-sort-vizite" class="stats-gen-sort-ic"> ▼</span></th>
+                <th class="stats-gen-th" data-col="urmaritori" onclick="sorteazaStatsGenerale('urmaritori')" style="cursor:pointer;user-select:none;">⭐ Urmăritori<span id="stats-gen-sort-urmaritori" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="capturi_trimise" onclick="sorteazaStatsGenerale('capturi_trimise')" style="cursor:pointer;user-select:none;">📸 Capturi trimise<span id="stats-gen-sort-capturi_trimise" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="capturi_aprobate" onclick="sorteazaStatsGenerale('capturi_aprobate')" style="cursor:pointer;user-select:none;">✅ Capturi aprobate<span id="stats-gen-sort-capturi_aprobate" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="standuri" onclick="sorteazaStatsGenerale('standuri')" style="cursor:pointer;user-select:none;">🎣 Standuri<span id="stats-gen-sort-standuri" class="stats-gen-sort-ic"></span></th>
               </tr>
             </thead>
             <tbody id="stats-gen-per-balta-tbody">
@@ -2337,16 +2344,50 @@ function filtreazaStatsRezPerBalta() {
 }
 
 // Rezultatul brut al admin_statistici_generale_per_balta (vizite/urmăritori/
-// capturi/standuri, TOATE bălțile), păstrat local pentru filtrare instant la
-// căutare, fără reinterogare.
+// capturi/standuri, TOATE bălțile), păstrat local pentru filtrare + sortare
+// instant, fără reinterogare. Implicit: doar bălțile publice (cerere
+// explicită — restul (basic/unlisted) doar la cerere, din dropdown), sortat
+// după vizite descrescător (aceeași ordine cu care vine deja din RPC).
 let _statsGeneralePerBaltaData = [];
+let _statsGenSortCol = 'vizite';
+let _statsGenSortDir = 'desc';
+const STATS_GEN_COLOANE_TEXT = new Set(['balta_nume', 'judet']); // restul sunt numerice
+
+function sorteazaStatsGenerale(col) {
+  if (_statsGenSortCol === col) {
+    _statsGenSortDir = _statsGenSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    _statsGenSortCol = col;
+    // Text -> crescător (A-Z) implicit; numeric -> descrescător (cele mai
+    // mari primele) implicit, ambele cele mai utile la primul click.
+    _statsGenSortDir = STATS_GEN_COLOANE_TEXT.has(col) ? 'asc' : 'desc';
+  }
+  document.querySelectorAll('.stats-gen-sort-ic').forEach(el => el.textContent = '');
+  const ic = document.getElementById('stats-gen-sort-' + col);
+  if (ic) ic.textContent = _statsGenSortDir === 'desc' ? ' ▼' : ' ▲';
+  filtreazaStatsGeneralePerBalta();
+}
+
 function filtreazaStatsGeneralePerBalta() {
   const q = (document.getElementById('stats-gen-balta-search')?.value || '').toLowerCase().trim();
-  const rows = q ? _statsGeneralePerBaltaData.filter(r => (r.balta_nume||'').toLowerCase().includes(q)) : _statsGeneralePerBaltaData;
+  const vizFiltru = document.getElementById('stats-gen-viz-filter')?.value || 'public';
+  let rows = _statsGeneralePerBaltaData;
+  if (vizFiltru !== 'toate') rows = rows.filter(r => r.vizibilitate === vizFiltru);
+  if (q) rows = rows.filter(r => (r.balta_nume||'').toLowerCase().includes(q));
+
+  const col = _statsGenSortCol, dir = _statsGenSortDir;
+  const esteText = STATS_GEN_COLOANE_TEXT.has(col);
+  rows = rows.slice().sort((a, b) => {
+    let cmp;
+    if (esteText) cmp = String(a[col]||'').localeCompare(String(b[col]||''), 'ro');
+    else cmp = (a[col]||0) - (b[col]||0);
+    return dir === 'desc' ? -cmp : cmp;
+  });
+
   const tbody = document.getElementById('stats-gen-per-balta-tbody');
   if (!tbody) return;
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${_statsGeneralePerBaltaData.length ? 'Nicio baltă nu se potrivește căutării.' : 'Nicio baltă găsită.'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${_statsGeneralePerBaltaData.length ? 'Nicio baltă nu se potrivește filtrelor.' : 'Nicio baltă găsită.'}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(r => `
