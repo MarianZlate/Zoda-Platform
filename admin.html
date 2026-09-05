@@ -4169,7 +4169,7 @@ async function loadUsers() {
   const tbody = document.getElementById('users-tbody');
   tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Se încarcă...</td></tr>';
 
-  const { data: profiles, error: profErr } = await sb.from('user_profiles').select('id, email, created_at, username, zoda_id, este_ambasador').order('created_at', { ascending: false });
+  const { data: profiles, error: profErr } = await sb.from('user_profiles').select('id, email, created_at, username, zoda_id, este_ambasador, deleted_at').order('created_at', { ascending: false });
   const { data: roles, error: roleErr } = await sb.from('user_roles').select('id, rol');
 
   if(profErr || !profiles?.length) {
@@ -4234,6 +4234,16 @@ function renderUsersTable() {
     // Ambasador e independent de rolul principal — poate fi și zoda_admin ȘI ambasador simultan
     const ambasadorBadge = u.este_ambasador ? '<span class="role-badge" style="background:rgba(124,58,237,.15);color:#c4b5fd;border:1px solid rgba(124,58,237,.35);margin-left:4px;">🎥 Ambasador</span>' : '';
 
+    // Cont în ștergere (soft delete, 30 zile de grație — vezi showDeletedScreen/recoverAccount
+    // din cont.html) — apare în continuare aici pentru că interogarea de mai sus nu filtrează
+    // după deleted_at; badge-ul face diferența vizibilă față de un cont activ.
+    let deletedBadge = '';
+    if (u.deleted_at) {
+      const deleteAfter = new Date(new Date(u.deleted_at).getTime() + 30 * 24 * 60 * 60 * 1000);
+      const zileRamase = Math.max(0, Math.ceil((deleteAfter - new Date()) / (1000 * 60 * 60 * 24)));
+      deletedBadge = `<span class="role-badge" style="background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35);margin-left:4px;" title="Cont șters de utilizator la ${new Date(u.deleted_at).toLocaleDateString('ro-RO')} — se poate recupera singur dacă se reloghează, altfel se șterge definitiv automat">🗑️ Șters (${zileRamase}z rămase)</span>`;
+    }
+
     const numeSigur = escH(u.username||u.email||'').replace(/'/g,"\\'");
     const btnAmbasador = u.este_ambasador
       ? `<button class="btn-revoke-balta-admin" onclick="revocaAmbasador('${u.id}','${numeSigur}')">Revocă ambasador</button>`
@@ -4271,7 +4281,7 @@ function renderUsersTable() {
     return `
     <tr>
       <td class="col-email">${nameHtml}</td>
-      <td class="col-rol">${rolBadge}${ambasadorBadge}</td>
+      <td class="col-rol">${rolBadge}${ambasadorBadge}${deletedBadge}</td>
       <td class="col-data" style="color:#4b5563;">${createdAt}</td>
       <td class="col-actiuni">${actiuni}${chatMuteBtns}</td>
     </tr>`;
