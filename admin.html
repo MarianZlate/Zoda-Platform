@@ -3935,10 +3935,19 @@ function renderBaltiTable() {
 async function setBaltaVis(id, vis) {
   const { error } = await sb.from('balti').update({ vizibilitate: vis }).eq('id', id);
   if(error) { showToast('Eroare la actualizare', true); return; }
+  clearPublicBaltiCache();
   const msg = vis === 'public' ? '✓ Baltă publicată!' : vis === 'basic' ? '🔍 Baltă setată ca listare de bază' : '🔒 Baltă setată Unlisted';
   showToast(msg);
   loadBalti();
   loadStats();
+}
+
+// index.html/balta.html țin lista de bălți publice în localStorage (TTL 30 min,
+// cheia 'zoda_cache_balti_publice'), pe același domeniu — o ștergem la orice
+// schimbare de vizibilitate din admin ca să nu rămână bălți/bazine "fantomă"
+// vizibile public câteva zeci de minute după ce au fost setate Unlisted.
+function clearPublicBaltiCache() {
+  try { localStorage.removeItem('zoda_cache_balti_publice'); } catch(e) {}
 }
 
 function confirmDeleteBalta(id, nume) {
@@ -5261,6 +5270,7 @@ async function saveEditBalta() {
     saveBtn.disabled = false; saveBtn.textContent = '💾 Salvează modificările';
     return;
   }
+  clearPublicBaltiCache();
 
   // Upload hartă nouă
   const editHartaUrl  = window._editHartaUrl;   // pre-uploadat la selectare
