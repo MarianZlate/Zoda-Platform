@@ -571,6 +571,33 @@ th,td{padding:8px 6px;}
         <div id="stats-top-balti-rezervari">Se încarcă...</div>
       </div>
       <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">🎣 Rezervări online, per baltă (în interval)</div>
+        <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Doar rezervări online (exclude cele adăugate manual de balta_admin) — câte au fost făcute, câte anulate și cine le-a anulat.</div>
+        <div style="position:relative;margin-bottom:10px;">
+          <input type="text" id="stats-rez-balta-search" oninput="filtreazaStatsRezPerBalta()" placeholder="🔍 Caută baltă după nume..."
+            style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+        </div>
+        <div class="table-wrap">
+          <table class="users-table" id="stats-rez-per-balta-table">
+            <thead>
+              <tr>
+                <th>Baltă</th>
+                <th>Online făcute</th>
+                <th>Confirmate</th>
+                <th>Anulate</th>
+                <th>↳ de client</th>
+                <th>↳ de baltă</th>
+                <th>Respinse</th>
+                <th>Neprezentări</th>
+              </tr>
+            </thead>
+            <tbody id="stats-rez-per-balta-tbody">
+              <tr><td colspan="8" class="empty-state">Se încarcă...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="balta-admin-card">
         <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">🚫 Suspendări rezervări (cazier — vizibil doar aici)</div>
         <div id="stats-suspendari">Se încarcă...</div>
       </div>
@@ -2243,14 +2270,55 @@ function setStatsInterval(days) {
   loadStatistici();
 }
 
+// Input-urile <input type="date"> dau doar 'YYYY-MM-DD', fără fus orar.
+// Trimis ca atare, Postgres interpretează string-ul ca UTC, nu ca miezul
+// nopții românesc — la marginile intervalului lipseau/apăreau în plus 2-3h
+// de date (decalajul UTC+2/+3 al României). Construim explicit miezul nopții
+// LOCAL (fusul browserului, în practică al României) și-l convertim corect
+// în UTC prin toISOString(); `plusZile` mută data cu N zile înainte de asta
+// (folosit pentru limita de sus, ca "începutul zilei URMĂTOARE", exclusivă —
+// nu mai depinde deloc de fus la marginea zilei, spre deosebire de vechiul
+// 'T23:59:59').
+function inceputZiuaLocala(dataStr, plusZile) {
+  const [y, m, d] = dataStr.split('-').map(Number);
+  return new Date(y, m - 1, d + (plusZile || 0), 0, 0, 0, 0).toISOString();
+}
+
+// Rezultatul brut al admin_statistici_rezervari_per_balta, păstrat aici ca să
+// putem filtra local (căutare după nume) fără să reinterogăm serverul la
+// fiecare literă tastată.
+let _statsRezPerBaltaData = [];
+function filtreazaStatsRezPerBalta() {
+  const q = (document.getElementById('stats-rez-balta-search')?.value || '').toLowerCase().trim();
+  const rows = q ? _statsRezPerBaltaData.filter(r => (r.balta_nume||'').toLowerCase().includes(q)) : _statsRezPerBaltaData;
+  const tbody = document.getElementById('stats-rez-per-balta-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${_statsRezPerBaltaData.length ? 'Nicio baltă nu se potrivește căutării.' : 'Nicio rezervare online în acest interval.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${escH(r.balta_nume || ('Baltă #'+r.balta_id))}</td>
+      <td style="font-weight:800;color:#38bdf8;">${r.total_online}</td>
+      <td>${r.confirmate}</td>
+      <td>${r.anulate}</td>
+      <td>${r.anulate_de_client}</td>
+      <td>${r.anulate_de_balta}</td>
+      <td>${r.respinse}</td>
+      <td>${r.neprezentari}</td>
+    </tr>`).join('');
+}
+
 async function loadStatistici() {
   const grid = document.getElementById('stats-grid');
   const topEl = document.getElementById('stats-top-balti');
   grid.innerHTML = '<div class="empty-state">Se încarcă...</div>';
 
-  const deLa = document.getElementById('stats-de-la').value || '2020-01-01';
-  const panaLa = document.getElementById('stats-pana-la').value || dataLocalaAzi();
-  const panaLaExclusiv = panaLa + 'T23:59:59';
+  const deLaStr = document.getElementById('stats-de-la').value || '2020-01-01';
+  const panaLaStr = document.getElementById('stats-pana-la').value || dataLocalaAzi();
+  const deLa = inceputZiuaLocala(deLaStr);
+  const panaLaExclusiv = inceputZiuaLocala(panaLaStr, 1); // începutul zilei următoare, exclusiv
 
   const [
     { count: useriNoi },
@@ -2264,12 +2332,12 @@ async function loadStatistici() {
     { count: totalUnlisted },
     { data: statsRezervari },
   ] = await Promise.all([
-    sb.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','approved').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','rejected').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('notificari').select('meta').eq('tip','cerere_publicare_balta').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('vizite_log').select('balta_id').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
+    sb.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','approved').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','rejected').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('notificari').select('meta').eq('tip','cerere_publicare_balta').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('vizite_log').select('balta_id').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','public'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','basic'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','unlisted'),
@@ -2341,6 +2409,19 @@ async function loadStatistici() {
         <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMapRez[t.balta_id]?.nume || 'Baltă #'+t.balta_id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMapRez[t.balta_id]?.judet||'')}</span></div>
         <div style="font-weight:800;color:#38bdf8;font-size:15px;">${t.nr_rezervari}</div>
       </div>`).join('');
+  }
+
+  // Rezervări online, detaliat pe FIECARE baltă cu activitate în interval
+  // (nu doar top 10) — strict online (sursa <> 'manual_admin', filtrat deja
+  // în RPC), cu breakdown pe status + cine a anulat (client/balta_admin).
+  const { data: statsPerBalta, error: statsPerBaltaErr } = await sb.rpc('admin_statistici_rezervari_per_balta', { p_de_la: deLa, p_pana_la: panaLaExclusiv });
+  const tbodyPB = document.getElementById('stats-rez-per-balta-tbody');
+  if (statsPerBaltaErr) {
+    _statsRezPerBaltaData = [];
+    tbodyPB.innerHTML = `<tr><td colspan="8" class="empty-state">⚠️ ${escH(statsPerBaltaErr.message)}</td></tr>`;
+  } else {
+    _statsRezPerBaltaData = statsPerBalta || [];
+    filtreazaStatsRezPerBalta();
   }
 
   // Cazier suspendări — vizibil doar aici (admin.html = zoda_admin only,
