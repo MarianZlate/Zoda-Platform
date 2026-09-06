@@ -371,10 +371,20 @@
          dar devine invizibilă (opacity:0) și suprapusă exact peste o căsuță
          "machetă" care arată identic, dar al cărei text (luna scrisă în
          litere) e complet sub controlul nostru — niciun browser nu-l poate
-         reformata, pentru că nu e un input de tip dată, e text simplu. */
+         reformata, pentru că nu e un input de tip dată, e text simplu.
+         Rundă 67 — corecție la rundă 66: cu inputul invizibil sub tot
+         chenarul, clic-ul AJUNGE la el pe toată suprafața, dar comportamentul
+         nativ al unui input de tip dată deschide calendarul DOAR la clic pe
+         iconița proprie a browserului (parte fixă a randării native, la fel
+         de invizibilă ca restul) — clic pe zona de text doar poziționează
+         cursorul, nu deschide nimic. Fix: inputul devine netransparent la
+         clic (pointer-events:none, clic-urile nu mai ajung deloc la el), iar
+         căsuța machetă vizibilă primește ea clic-urile și deschide calendarul
+         explicit, prin JS (showPicker), pe toată suprafața — nu doar pe
+         iconiță. */
       .rez-date-wrap{position:relative;min-height:38px;}
-      .rez-date-wrap input[type="date"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;margin:0;}
-      .rez-date-vis{pointer-events:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;box-sizing:border-box;min-height:38px;}
+      .rez-date-wrap input[type="date"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;z-index:2;margin:0;}
+      .rez-date-vis{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;box-sizing:border-box;min-height:38px;}
       .rez-date-vis.rez-date-vis-gol{color:var(--zc-text-secondary-2,#94a3b8);}
       .rez-date-vis-ic{opacity:.55;flex-shrink:0;}
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
@@ -3295,6 +3305,13 @@
         var f = formateazaDataText(inp.value);
         vis.classList.toggle('rez-date-vis-gol', !f);
         vis.innerHTML = '<span>' + (f ? escH(f) : 'Alege data') + '</span><span class="rez-date-vis-ic">📅</span>';
+        // Rundă 67 — vezi nota de la `.rez-date-vis`, sus în fișier: inputul
+        // nativ nu mai primește niciun clic (pointer-events:none), deci noi
+        // deschidem calendarul explicit, la clic oriunde pe căsuța machetă.
+        vis.onclick = function () {
+          try { if (typeof inp.showPicker === 'function') { inp.showPicker(); return; } } catch (e) {}
+          inp.focus();
+        };
       });
     }
 
