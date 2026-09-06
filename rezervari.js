@@ -894,6 +894,11 @@
          apare identic la FIECARE zi (nu doar unele), deci înălțimea antetului
          rămâne uniformă, la fel ca la fix-ul din rundă 30 (nota de mai sus). */
       .rez-cal-zisapt{font-size:10.1px;color:var(--zc-text-muted,#64748b);white-space:nowrap;}
+      /* Rundă 69 — cerere explicită a lui Marian: ziua săptămânii, la fel de
+         albastră ca data, pe coloana zilei curente ("azi") — color:inherit
+         preia exact aceeași nuanță (light/dark) pe care .rez-cal-daycell.azi
+         o are deja definită mai sus, fără s-o mai scriem încă o dată aici. */
+      .rez-cal-daycell.azi .rez-cal-zisapt{color:inherit;font-weight:800;}
       /* Sub-rândul cu cele 2 subcoloane, Zi/Noapte, sub numărul zilei. */
       .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid rgba(15,23,42,.35);}
       .rez-cal-subcell{flex:1;font-size:9.3px;font-weight:800;color:var(--zc-text-dim,#4b5563);padding:2px 0;text-transform:uppercase;letter-spacing:.03em;}
