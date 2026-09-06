@@ -34,6 +34,23 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  // Rundă 65 — cerere explicită a lui Marian: `lang="ro"` (rundă 41) fixează
+  // ORDINEA zi-lună-an în majoritatea browserelor, dar TEXTUL exact afișat de
+  // un `<input type="date">` nativ tot rămâne la mâna browserului — nu poate
+  // fi controlat 100% din pagină (vezi nota de la rundă 41, mai jos în fișier).
+  // Ca să nu mai existe NICIO ambiguitate posibilă, afișăm în plus, sub
+  // fiecare astfel de input din formularul de adăugare manuală, luna scrisă
+  // în litere ("6 septembrie 2026") — text simplu, needitabil, care nu poate
+  // fi niciodată reformatat de vreun browser/sistem de operare.
+  var LUNI_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+  function formateazaDataText(yyyymmdd) {
+    var p = String(yyyymmdd || '').split('-');
+    if (p.length !== 3) return '';
+    var an = p[0], luna = parseInt(p[1], 10), zi = parseInt(p[2], 10);
+    if (!zi || !luna || luna < 1 || luna > 12) return '';
+    return zi + ' ' + LUNI_RO[luna - 1] + ' ' + an;
+  }
+
   var _toastEl = null;
   function toast(msg, isErr) {
     if (typeof global.showToast === 'function') { global.showToast(msg, !!isErr); return; }
@@ -347,6 +364,7 @@
       .rez-field label{display:block;font-size:12.5px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:5px;}
       .rez-field input, .rez-field select{width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;outline:none;box-sizing:border-box;}
       .rez-field input[type="checkbox"]{width:auto;flex:0 0 auto;background:none;border:none;padding:0;}
+      .rez-date-text-ro{margin-top:5px;font-size:13px;font-weight:700;color:#38bdf8;}
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
       .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#0891b2;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
       .rez-tel-btn:hover{background:rgba(56,189,248,.18);}
@@ -3236,19 +3254,31 @@
       var html2;
       if (_manualTip === 'personalizat') {
         html2 =
-          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>' +
+          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-text" class="rez-date-text-ro"></div></div>' +
           '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi"' + (momStartAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momStartAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"></div>' +
+          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"><div id="rez-manual-data-sfarsit-text" class="rez-date-text-ro"></div></div>' +
           '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi"' + (momSfarsitAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momSfarsitAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"></div>';
+        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-text" class="rez-date-text-ro"></div></div>';
       }
       document.getElementById('rez-manual-date-fields').innerHTML = html2;
+      actualizeazaTextDataManual();
       ['rez-manual-data-start', 'rez-manual-data-sfarsit', 'rez-manual-mom-start', 'rez-manual-mom-sfarsit'].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.onchange = function () { actualizeazaAvertizareManual(); updateSubmitState(); };
+        if (el) el.onchange = function () { actualizeazaAvertizareManual(); updateSubmitState(); actualizeazaTextDataManual(); };
       });
       actualizeazaAvertizareManual();
+    }
+
+    // Rundă 65 — vezi nota de la `formateazaDataText`, sus în fișier.
+    function actualizeazaTextDataManual() {
+      ['rez-manual-data-start', 'rez-manual-data-sfarsit'].forEach(function (id) {
+        var inp = document.getElementById(id);
+        var txt = document.getElementById(id + '-text');
+        if (!inp || !txt) return;
+        var f = formateazaDataText(inp.value);
+        txt.textContent = f ? '🗓️ ' + f : '';
+      });
     }
 
     function actualizeazaAvertizareManual() {
