@@ -204,7 +204,14 @@
   function randeazaIstoricClient(rezervari) {
     if (!rezervari.length) return '<div class="rez-istoric-empty">Nicio rezervare încă la această baltă.</div>';
     var sortate = rezervari.slice().sort(function (a, b) { return new Date(b.data_start) - new Date(a.data_start); });
-    return sortate.map(function (r) {
+    // Rundă 70 — vezi nota de la .rez-istoric-header, sus în fișier (stiluri).
+    var header = '<div class="rez-istoric-item rez-istoric-header">' +
+      '<span class="rez-istoric-data">Data</span>' +
+      '<span class="rez-istoric-durata">Durată</span>' +
+      '<span class="rez-istoric-stand">Stand</span>' +
+      '<span>Stare</span>' +
+    '</div>';
+    return header + sortate.map(function (r) {
       var info = statusIstoricBadge(r);
       return '<div class="rez-istoric-item">' +
         '<span class="rez-istoric-data">' + escH(fmtDataDDMMYYYY(new Date(r.data_start))) + '</span>' +
@@ -651,6 +658,16 @@
       .rez-istoric-durata{color:var(--zc-text-muted,#64748b);min-width:40px;}
       .rez-istoric-stand{color:var(--zc-text-secondary-2,#94a3b8);flex:1;min-width:60px;}
       .rez-istoric-empty{font-size:12.5px;color:var(--zc-text-muted,#64748b);padding:4px 0;}
+      /* Rundă 70 — cerere explicită a lui Marian: header cu numele coloanelor
+         (Data, Durată, Stand, Stare), ca să nu mai fie ghicite cifrele goale
+         de deasupra rândurilor de istoric — aceleași clase, aceleași lățimi
+         minime ca rândurile reale, ca eticheta „Stare” să cadă exact deasupra
+         pastilei de status (flex:1 de pe .rez-istoric-stand împinge restul
+         la dreapta, la fel ca la rândurile normale).*/
+      .rez-istoric-header{font-size:10.5px;font-weight:700;color:var(--zc-text-muted,#64748b);text-transform:uppercase;letter-spacing:.03em;}
+      .rez-istoric-header .rez-istoric-data,
+      .rez-istoric-header .rez-istoric-durata,
+      .rez-istoric-header .rez-istoric-stand{color:inherit;font-weight:700;}
       /* Rundă 59 — „cine a anulat + motiv”, pe un rând propriu, sub restul
          datelor (‘.rez-istoric-item’ e deja ‘flex-wrap:wrap’ — ‘flex-basis:
          100%’ îl împinge automat pe linia următoare, fără markup separat). */
