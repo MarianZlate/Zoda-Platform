@@ -498,28 +498,17 @@ th,td{padding:8px 6px;}
       <button id="balti-search-clear" onclick="document.getElementById('balti-search').value='';renderBaltiTable();" title="Șterge căutarea"
         style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;line-height:1;padding:4px;">✕</button>
     </div>
-    <div class="se-sort-bar" style="align-items:center;">
-      <label style="font-size:12px;color:#4b5563;font-weight:700;letter-spacing:.04em;align-self:center;margin-right:2px;">SORTEAZĂ:</label>
-      <select id="balti-sort-field" onchange="renderBaltiTable()" style="background:#111827;border:1px solid #1e293b;color:#e2e8f0;font-size:13px;font-weight:600;padding:7px 10px;border-radius:8px;cursor:pointer;outline:none;">
-        <option value="nume">Alfabetic (nume)</option>
-        <option value="judet">Județ</option>
-        <option value="vizibilitate">Vizibilitate (Basic/Unlisted/Public)</option>
-        <option value="harta">Hartă (Da/Nu)</option>
-      </select>
-      <button class="se-sort-btn" onclick="setBaltiSortDir('asc')" id="balti-sort-asc" style="border-color:#38bdf8;color:#38bdf8;">🔼 Crescător</button>
-      <button class="se-sort-btn" onclick="setBaltiSortDir('desc')" id="balti-sort-desc">🔽 Descrescător</button>
-    </div>
     <div class="table-wrap">
       <table class="balti-table">
         <thead>
           <tr>
-            <th class="col-id">ID</th>
-            <th class="col-nume">Nume baltă</th>
-            <th class="col-judet">Județ</th>
-            <th class="col-standuri">Standuri</th>
-            <th class="col-harta">Hartă</th>
-            <th class="col-zodaid">Admin</th>
-            <th class="col-status">Status</th>
+            <th class="col-id" data-col="id" onclick="sorteazaBalti('id')" style="cursor:pointer;user-select:none;">ID<span id="balti-sort-id" class="balti-sort-ic"></span></th>
+            <th class="col-nume" data-col="nume" onclick="sorteazaBalti('nume')" style="cursor:pointer;user-select:none;">Nume baltă<span id="balti-sort-nume" class="balti-sort-ic"> ▲</span></th>
+            <th class="col-judet" data-col="judet" onclick="sorteazaBalti('judet')" style="cursor:pointer;user-select:none;">Județ<span id="balti-sort-judet" class="balti-sort-ic"></span></th>
+            <th class="col-standuri" data-col="standuri" onclick="sorteazaBalti('standuri')" style="cursor:pointer;user-select:none;">Standuri<span id="balti-sort-standuri" class="balti-sort-ic"></span></th>
+            <th class="col-harta" data-col="harta" onclick="sorteazaBalti('harta')" style="cursor:pointer;user-select:none;">Hartă<span id="balti-sort-harta" class="balti-sort-ic"></span></th>
+            <th class="col-zodaid" data-col="admin_zoda_id" onclick="sorteazaBalti('admin_zoda_id')" style="cursor:pointer;user-select:none;">Admin<span id="balti-sort-admin_zoda_id" class="balti-sort-ic"></span></th>
+            <th class="col-status" data-col="vizibilitate" onclick="sorteazaBalti('vizibilitate')" style="cursor:pointer;user-select:none;">Status<span id="balti-sort-vizibilitate" class="balti-sort-ic"></span></th>
             <th class="col-actiuni">Acțiuni</th>
           </tr>
         </thead>
@@ -4014,7 +4003,9 @@ function invalidateCache(baltaId) {
 let _baltiCache = [];
 let _baltiStanduriCount = {};
 let _baltiHasHarta = new Set();
+let _baltiSortCol = 'nume';
 let _baltiSortDir = 'asc';
+const BALTI_COLOANE_TEXT = new Set(['nume', 'judet', 'admin_zoda_id', 'vizibilitate']); // restul (id, standuri, harta) sunt numerice
 
 async function loadBalti() {
   const tbody = document.getElementById('balti-tbody');
@@ -4044,12 +4035,20 @@ async function loadBalti() {
   renderBaltiTable();
 }
 
-function setBaltiSortDir(dir) {
-  _baltiSortDir = dir;
-  document.getElementById('balti-sort-asc').style.borderColor = dir === 'asc' ? '#38bdf8' : '#1e293b';
-  document.getElementById('balti-sort-asc').style.color = dir === 'asc' ? '#38bdf8' : '#94a3b8';
-  document.getElementById('balti-sort-desc').style.borderColor = dir === 'desc' ? '#38bdf8' : '#1e293b';
-  document.getElementById('balti-sort-desc').style.color = dir === 'desc' ? '#38bdf8' : '#94a3b8';
+// Sortare prin click pe header, identic cu tabelul "Statistici per baltă"
+// (sorteazaStatsGenerale): primul click pe o coloană nouă alege direcția
+// implicită cea mai utilă (text -> A-Z, numeric -> cele mai mari primele),
+// al doilea click pe aceeași coloană inversează direcția.
+function sorteazaBalti(col) {
+  if (_baltiSortCol === col) {
+    _baltiSortDir = _baltiSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    _baltiSortCol = col;
+    _baltiSortDir = BALTI_COLOANE_TEXT.has(col) ? 'asc' : 'desc';
+  }
+  document.querySelectorAll('.balti-sort-ic').forEach(el => el.textContent = '');
+  const ic = document.getElementById('balti-sort-' + col);
+  if (ic) ic.textContent = _baltiSortDir === 'desc' ? ' ▼' : ' ▲';
   renderBaltiTable();
 }
 
@@ -4057,7 +4056,7 @@ function renderBaltiTable() {
   const tbody = document.getElementById('balti-tbody');
   if (!_baltiCache.length) return;
 
-  const field = document.getElementById('balti-sort-field')?.value || 'nume';
+  const col = _baltiSortCol;
   const dir = _baltiSortDir === 'desc' ? -1 : 1;
   const standuriCount = _baltiStanduriCount;
   const hasHarta = _baltiHasHarta;
@@ -4077,14 +4076,17 @@ function renderBaltiTable() {
 
   const sorted = [...filtered].sort((a, b) => {
     let va, vb;
-    if (field === 'nume') { va = a.nume || ''; vb = b.nume || ''; }
-    else if (field === 'judet') { va = a.judet || 'zzz'; vb = b.judet || 'zzz'; }
-    else if (field === 'vizibilitate') { va = a.vizibilitate || ''; vb = b.vizibilitate || ''; }
-    else if (field === 'harta') { va = hasHarta.has(a.id) ? 1 : 0; vb = hasHarta.has(b.id) ? 1 : 0; }
+    if (col === 'id') { va = a.id; vb = b.id; }
+    else if (col === 'nume') { va = a.nume || ''; vb = b.nume || ''; }
+    else if (col === 'judet') { va = a.judet || 'zzz'; vb = b.judet || 'zzz'; }
+    else if (col === 'standuri') { va = standuriCount[a.id] || 0; vb = standuriCount[b.id] || 0; }
+    else if (col === 'harta') { va = hasHarta.has(a.id) ? 1 : 0; vb = hasHarta.has(b.id) ? 1 : 0; }
+    else if (col === 'admin_zoda_id') { va = a.admin_zoda_id || 'zzz'; vb = b.admin_zoda_id || 'zzz'; }
+    else if (col === 'vizibilitate') { va = a.vizibilitate || ''; vb = b.vizibilitate || ''; }
     else { va = a.nume || ''; vb = b.nume || ''; }
 
     if (typeof va === 'number') return (va - vb) * dir;
-    return va.localeCompare(vb, 'ro', { sensitivity: 'base' }) * dir;
+    return String(va).localeCompare(String(vb), 'ro', { sensitivity: 'base' }) * dir;
   });
 
   if (!sorted.length) {
