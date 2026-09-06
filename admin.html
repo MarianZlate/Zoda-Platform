@@ -165,12 +165,13 @@ th,td{padding:8px 6px;}
 .balti-table tr:hover td,
 .users-table tr:hover td{background:#0f172a;}
 
-/* Mobil: coloane secundare ascunse */
+/* Mobil: coloane secundare ascunse (status trece ca text sub numele bălții) */
 .balti-table .col-id,
 .balti-table .col-judet,
 .balti-table .col-standuri,
 .balti-table .col-harta,
 .balti-table .col-zodaid,
+.balti-table .col-status,
 .users-table .col-data{display:none;}
 
 /* users-table: email, rol, actiuni mereu vizibile */
@@ -186,12 +187,31 @@ th,td{padding:8px 6px;}
   .balti-table th,
   .users-table th{padding:10px 14px;}
 }
+/* Mobil (< 769px): rândurile tabelului "Bălți" devin carduri flex (nume+status/admin în stânga,
+   acțiuni în dreapta, pe max 2 rânduri de butoane), ca să dispară scroll-ul orizontal. Doar balti-table. */
+@media(max-width:768px){
+  .balti-table{min-width:0;border-collapse:separate;}
+  .balti-table thead{display:none;}
+  .balti-table,
+  .balti-table tbody,
+  .balti-table tr{display:block;width:100%;}
+  .balti-table tr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #0f172a;}
+  .balti-table tr:last-child{border-bottom:none;}
+  .balti-table td{display:block;border-bottom:none;padding:0;}
+  .balti-table .col-nume{flex:1;min-width:0;padding:10px 0 10px 12px;}
+  .balti-table .col-actiuni{flex:0 0 auto;width:auto;max-width:60%;padding:10px 12px 10px 0;}
+  .status-mobile-inline{margin-top:4px;}
+  .balti-table .action-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .balti-table .action-btns > *{width:100%;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;line-height:1.25;}
+}
 @media(min-width:769px){
   .balti-table .col-id,
   .balti-table .col-standuri,
   .balti-table .col-harta,
-  .balti-table .col-zodaid{display:table-cell;}
-  .zodaid-mobile-inline{display:none;}
+  .balti-table .col-zodaid,
+  .balti-table .col-status{display:table-cell;}
+  .zodaid-mobile-inline,
+  .status-mobile-inline{display:none;}
   .balti-table td,
   .users-table td{padding:12px 14px;}
   /* Coloanele cu conținut scurt restrânse, ca spațiul eliberat să meargă la Nume/Acțiuni */
@@ -4094,24 +4114,25 @@ function renderBaltiTable() {
     return;
   }
 
-  tbody.innerHTML = sorted.map(b => `
+  tbody.innerHTML = sorted.map(b => {
+    const vizBadgeHtml = b.vizibilitate === 'public'
+      ? '<span class="vis-badge vis-public">🌍 Publică</span>'
+      : b.vizibilitate === 'basic'
+        ? '<span class="vis-badge" style="background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.35);">🔍 Basic</span>'
+        : '<span class="vis-badge vis-unlisted">🔒 Unlisted</span>';
+    return `
     <tr>
       <td class="col-id" style="color:#4b5563;font-size:12px;">#${b.id}</td>
       <td class="col-nume">
         <strong style="color:#f1f5f9;">${escH(b.nume)}</strong>
-        <div class="zodaid-mobile-inline" style="font-family:monospace;font-size:11.8px;margin-top:2px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? '👤 ' + escH(b.admin_zoda_id) : '👤 fără admin'}</div>
+        <div class="status-mobile-inline">${vizBadgeHtml}</div>
+        <div class="zodaid-mobile-inline" style="font-family:monospace;font-size:11.8px;margin-top:4px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? '👤 ' + escH(b.admin_zoda_id) : '👤 fără admin'}</div>
       </td>
       <td class="col-judet" style="color:#64748b;">📍 ${b.judet || '—'}</td>
       <td class="col-standuri" style="color:#64748b;">${standuriCount[b.id] || 0}</td>
       <td class="col-harta" style="${hasHarta.has(b.id) ? 'color:#38bdf8;font-weight:700;' : 'color:#ef4444;'}">${hasHarta.has(b.id) ? 'Da' : 'Nu'}</td>
       <td class="col-zodaid" style="font-family:monospace;font-size:12px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? escH(b.admin_zoda_id) : '—'}</td>
-      <td class="col-status">
-        ${b.vizibilitate === 'public'
-          ? '<span class="vis-badge vis-public">🌍 Publică</span>'
-          : b.vizibilitate === 'basic'
-            ? '<span class="vis-badge" style="background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.35);">🔍 Basic</span>'
-            : '<span class="vis-badge vis-unlisted">🔒 Unlisted</span>'}
-      </td>
+      <td class="col-status">${vizBadgeHtml}</td>
       <td class="col-actiuni">
         <div class="action-btns">
           ${b.vizibilitate === 'public'
@@ -4126,7 +4147,8 @@ function renderBaltiTable() {
           <button class="btn-del" onclick="confirmDeleteBalta(${b.id},'${b.nume.replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function setBaltaVis(id, vis) {
