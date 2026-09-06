@@ -364,7 +364,19 @@
       .rez-field label{display:block;font-size:12.5px;font-weight:700;color:var(--zc-text-secondary-2,#94a3b8);margin-bottom:5px;}
       .rez-field input, .rez-field select{width:100%;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;outline:none;box-sizing:border-box;}
       .rez-field input[type="checkbox"]{width:auto;flex:0 0 auto;background:none;border:none;padding:0;}
-      .rez-date-text-ro{margin-top:5px;font-size:13px;font-weight:700;color:#38bdf8;}
+      /* Rundă 66 — corecție la rundă 65: textul lămuritor de sub căsuță nu
+         ajunge citit de majoritatea oamenilor, care citesc ce e ÎN căsuță —
+         exact acolo unde browserul poate reformata data în orice ordine.
+         Fix real: căsuța native rămâne funcțională (calendar, validare min),
+         dar devine invizibilă (opacity:0) și suprapusă exact peste o căsuță
+         "machetă" care arată identic, dar al cărei text (luna scrisă în
+         litere) e complet sub controlul nostru — niciun browser nu-l poate
+         reformata, pentru că nu e un input de tip dată, e text simplu. */
+      .rez-date-wrap{position:relative;min-height:38px;}
+      .rez-date-wrap input[type="date"]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2;margin:0;}
+      .rez-date-vis{pointer-events:none;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--zc-bg-panel,#111827);border:1.5px solid var(--zc-border,#1e293b);border-radius:8px;padding:9px 11px;color:var(--zc-text-primary,#f1f5f9);font-size:15px;box-sizing:border-box;min-height:38px;}
+      .rez-date-vis.rez-date-vis-gol{color:var(--zc-text-secondary-2,#94a3b8);}
+      .rez-date-vis-ic{opacity:.55;flex-shrink:0;}
       #rez-nume[readonly]{opacity:.7;cursor:not-allowed;}
       .rez-tel-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:3px 9px;text-decoration:none;color:#0891b2;font-size:12.5px;font-weight:700;vertical-align:middle;white-space:nowrap;}
       .rez-tel-btn:hover{background:rgba(56,189,248,.18);}
@@ -3254,30 +3266,35 @@
       var html2;
       if (_manualTip === 'personalizat') {
         html2 =
-          '<div class="rez-field"><label>Din data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-text" class="rez-date-text-ro"></div></div>' +
+          '<div class="rez-field"><label>Din data</label><div class="rez-date-wrap"><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-vis" class="rez-date-vis"></div></div></div>' +
           '<div class="rez-field"><label>Moment început</label><select id="rez-manual-mom-start"><option value="zi"' + (momStartAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momStartAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>' +
-          '<div class="rez-field"><label>Până în data</label><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"><div id="rez-manual-data-sfarsit-text" class="rez-date-text-ro"></div></div>' +
+          '<div class="rez-field"><label>Până în data</label><div class="rez-date-wrap"><input type="date" lang="ro" id="rez-manual-data-sfarsit" min="' + minDateStr + '" value="' + dataSfarsitAnt + '"><div id="rez-manual-data-sfarsit-vis" class="rez-date-vis"></div></div></div>' +
           '<div class="rez-field"><label>Moment sfârșit</label><select id="rez-manual-mom-sfarsit"><option value="zi"' + (momSfarsitAnt === 'zi' ? ' selected' : '') + '>Dimineață (' + escH((b.ora_zi_start || '06:00').slice(0, 5)) + ')</option><option value="noapte"' + (momSfarsitAnt === 'noapte' ? ' selected' : '') + '>Seară (' + escH((b.ora_noapte_start || '18:00').slice(0, 5)) + ')</option></select></div>';
       } else {
-        html2 = '<div class="rez-field"><label>Data</label><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-text" class="rez-date-text-ro"></div></div>';
+        html2 = '<div class="rez-field"><label>Data</label><div class="rez-date-wrap"><input type="date" lang="ro" id="rez-manual-data-start" min="' + minDateStr + '" value="' + dataStartAnt + '"><div id="rez-manual-data-start-vis" class="rez-date-vis"></div></div></div>';
       }
       document.getElementById('rez-manual-date-fields').innerHTML = html2;
       actualizeazaTextDataManual();
       ['rez-manual-data-start', 'rez-manual-data-sfarsit', 'rez-manual-mom-start', 'rez-manual-mom-sfarsit'].forEach(function (id) {
         var el = document.getElementById(id);
-        if (el) el.onchange = function () { actualizeazaAvertizareManual(); updateSubmitState(); actualizeazaTextDataManual(); };
+        if (!el) return;
+        el.onchange = el.oninput = function () { actualizeazaAvertizareManual(); updateSubmitState(); actualizeazaTextDataManual(); };
       });
       actualizeazaAvertizareManual();
     }
 
-    // Rundă 65 — vezi nota de la `formateazaDataText`, sus în fișier.
+    // Rundă 66 — vezi nota de la `.rez-date-wrap`, sus în fișier (stiluri):
+    // căsuța nativă e invizibilă (rămâne funcțională dedesubt — calendar,
+    // validare), iar asta scrie textul REAL, needitabil, în căsuța "machetă"
+    // vizibilă de deasupra — ce se vede efectiv, nu doar un rând ajutător.
     function actualizeazaTextDataManual() {
       ['rez-manual-data-start', 'rez-manual-data-sfarsit'].forEach(function (id) {
         var inp = document.getElementById(id);
-        var txt = document.getElementById(id + '-text');
-        if (!inp || !txt) return;
+        var vis = document.getElementById(id + '-vis');
+        if (!inp || !vis) return;
         var f = formateazaDataText(inp.value);
-        txt.textContent = f ? '🗓️ ' + f : '';
+        vis.classList.toggle('rez-date-vis-gol', !f);
+        vis.innerHTML = '<span>' + (f ? escH(f) : 'Alege data') + '</span><span class="rez-date-vis-ic">📅</span>';
       });
     }
 
