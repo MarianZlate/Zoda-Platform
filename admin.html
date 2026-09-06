@@ -187,24 +187,44 @@ th,td{padding:8px 6px;}
   .balti-table th,
   .users-table th{padding:10px 14px;}
 }
-/* Mobil (< 769px): rândurile tabelului "Bălți" devin carduri flex (nume+status/admin în stânga,
-   acțiuni în dreapta, pe max 2 rânduri de butoane), ca să dispară scroll-ul orizontal. Doar balti-table. */
+/* Mobil (< 769px): rândurile tabelelor "Bălți" și "Utilizatori" devin carduri flex (identitate +
+   informații secundare în stânga, acțiuni în dreapta, pe max 2-3 rânduri de butoane), ca să dispară
+   scroll-ul orizontal. Scopate strict la .balti-table / .users-list-table — celelalte tabele cu clasa
+   .users-table (statistici per baltă) nu sunt atinse. */
 @media(max-width:768px){
-  .balti-table{min-width:0;border-collapse:separate;}
-  .balti-table thead{display:none;}
+  .balti-table,
+  .users-list-table{min-width:0;border-collapse:separate;}
+  .balti-table thead,
+  .users-list-table thead{display:none;}
   .balti-table,
   .balti-table tbody,
-  .balti-table tr{display:block;width:100%;}
-  .balti-table tr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #0f172a;}
-  .balti-table tr:last-child{border-bottom:none;}
-  .balti-table td{display:block;border-bottom:none;padding:0;}
+  .balti-table tr,
+  .users-list-table,
+  .users-list-table tbody,
+  .users-list-table tr{display:block;width:100%;}
+  .balti-table tr,
+  .users-list-table tr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #0f172a;}
+  .balti-table tr:last-child,
+  .users-list-table tr:last-child{border-bottom:none;}
+  .balti-table td,
+  .users-list-table td{display:block;border-bottom:none;padding:0;}
   .balti-table .col-nume{flex:0 1 34%;min-width:0;padding:10px 0 10px 12px;}
   .balti-table .col-actiuni{flex:0 1 66%;min-width:0;padding:10px 12px 10px 0;}
   .status-mobile-inline{margin-top:4px;}
+  .users-list-table .col-rol,
+  .users-list-table .col-data{display:none;}
+  .users-list-table .col-email{flex:0 1 40%;min-width:0;padding:10px 0 10px 12px;word-break:break-word;}
+  .users-list-table .col-actiuni{flex:0 1 60%;min-width:0;padding:10px 12px 10px 0;}
+  .rol-mobile-inline,
+  .data-mobile-inline{margin-top:4px;}
+  .data-mobile-inline{font-size:11.5px;color:#4b5563;}
   /* minmax(0,1fr) — fără el, coloanele grid nu se pot micșora sub textul butonului
      și grila iese din ecran (căpuța "Vezi" tăiată). */
-  .balti-table .action-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
-  .balti-table .action-btns > *{width:100%;min-width:0;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;overflow-wrap:break-word;line-height:1.15;font-size:10.5px;padding:5px 3px;gap:2px;}
+  .balti-table .action-btns,
+  .users-list-table .action-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+  .balti-table .action-btns > *,
+  .users-list-table .action-btns > *{width:100%;min-width:0;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;overflow-wrap:break-word;line-height:1.15;font-size:10.5px;padding:5px 3px;gap:2px;}
+  .users-list-table .action-btns + .action-btns{margin-top:5px;}
 }
 @media(min-width:769px){
   .balti-table .col-id,
@@ -213,7 +233,9 @@ th,td{padding:8px 6px;}
   .balti-table .col-zodaid,
   .balti-table .col-status{display:table-cell;}
   .zodaid-mobile-inline,
-  .status-mobile-inline{display:none;}
+  .status-mobile-inline,
+  .rol-mobile-inline,
+  .data-mobile-inline{display:none;}
   .balti-table td,
   .users-table td{padding:12px 14px;}
   /* Coloanele cu conținut scurt restrânse, ca spațiul eliberat să meargă la Nume/Acțiuni */
@@ -741,7 +763,7 @@ th,td{padding:8px 6px;}
         style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;line-height:1;padding:4px;">✕</button>
     </div>
     <div class="table-wrap">
-      <table class="users-table">
+      <table class="users-table users-list-table">
         <thead>
           <tr>
             <th class="col-email">Email / Username</th>
@@ -4306,7 +4328,11 @@ function renderUsersTable() {
 
     return `
     <tr>
-      <td class="col-email">${nameHtml}</td>
+      <td class="col-email">
+        ${nameHtml}
+        <div class="rol-mobile-inline">${rolBadge}${ambasadorBadge}${deletedBadge}</div>
+        <div class="data-mobile-inline">📅 ${createdAt}</div>
+      </td>
       <td class="col-rol">${rolBadge}${ambasadorBadge}${deletedBadge}</td>
       <td class="col-data" style="color:#4b5563;">${createdAt}</td>
       <td class="col-actiuni">${actiuni}${chatMuteBtns}</td>
