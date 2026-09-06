@@ -198,11 +198,13 @@ th,td{padding:8px 6px;}
   .balti-table tr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #0f172a;}
   .balti-table tr:last-child{border-bottom:none;}
   .balti-table td{display:block;border-bottom:none;padding:0;}
-  .balti-table .col-nume{flex:1;min-width:0;padding:10px 0 10px 12px;}
-  .balti-table .col-actiuni{flex:0 0 auto;width:auto;max-width:60%;padding:10px 12px 10px 0;}
+  .balti-table .col-nume{flex:0 1 34%;min-width:0;padding:10px 0 10px 12px;}
+  .balti-table .col-actiuni{flex:0 1 66%;min-width:0;padding:10px 12px 10px 0;}
   .status-mobile-inline{margin-top:4px;}
-  .balti-table .action-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-  .balti-table .action-btns > *{width:100%;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;line-height:1.25;}
+  /* minmax(0,1fr) — fără el, coloanele grid nu se pot micșora sub textul butonului
+     și grila iese din ecran (căpuța "Vezi" tăiată). */
+  .balti-table .action-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+  .balti-table .action-btns > *{width:100%;min-width:0;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;overflow-wrap:break-word;line-height:1.15;font-size:10.5px;padding:5px 3px;gap:2px;}
 }
 @media(min-width:769px){
   .balti-table .col-id,
