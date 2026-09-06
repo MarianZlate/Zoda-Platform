@@ -888,6 +888,12 @@
          vizual în înălțime de la o zi la alta — exact ce a semnalat Marian. */
       .rez-cal-datanum{white-space:nowrap;}
       .rez-cal-luna{font-size:10.1px;color:var(--zc-text-muted,#475569);text-transform:uppercase;font-weight:700;}
+      /* Rundă 68 — cerere explicită a lui Marian: ziua săptămânii ("miercuri"),
+         lângă data + luna din antet. Rând separat (nu pe același rând cu data),
+         ca să nu rişte să nu încapă la zilele cu nume mai lung ("duminică") —
+         apare identic la FIECARE zi (nu doar unele), deci înălțimea antetului
+         rămâne uniformă, la fel ca la fix-ul din rundă 30 (nota de mai sus). */
+      .rez-cal-zisapt{font-size:10.1px;color:var(--zc-text-muted,#64748b);white-space:nowrap;}
       /* Sub-rândul cu cele 2 subcoloane, Zi/Noapte, sub numărul zilei. */
       .rez-cal-subrow{display:flex;margin-top:3px;border-top:1px solid rgba(15,23,42,.35);}
       .rez-cal-subcell{flex:1;font-size:9.3px;font-weight:800;color:var(--zc-text-dim,#4b5563);padding:2px 0;text-transform:uppercase;letter-spacing:.03em;}
@@ -2150,8 +2156,13 @@
         // cauți înapoi până la ultima etichetă de lună vizibilă. Numărul
         // zilei, cu zero în față (`01`, nu `1`), exact ca-n exemplul dat.
         var etichetaZi = '<span class="rez-cal-luna">' + escH(ziua.toLocaleDateString('ro-RO', { month: 'short' })) + '</span> ' + String(ziua.getDate()).padStart(2, '0');
+        // Rundă 68 — cerere explicită a lui Marian: ziua săptămânii, sub
+        // data + luna (ex. „miercuri”, cf. `weekday:'long'` — aceeași
+        // convenție deja folosită în balta.html, la eticheta din chat).
+        var etichetaZisapt = ziua.toLocaleDateString('ro-RO', { weekday: 'long' });
         headerCells += '<div class="rez-cal-daycell' + (esteWeekend ? ' weekend' : '') + (esteAzi ? ' azi' : '') + '" style="width:' + DAY_W + 'px;">' +
           '<div class="rez-cal-datanum">' + etichetaZi + '</div>' +
+          '<div class="rez-cal-zisapt">' + escH(etichetaZisapt) + '</div>' +
           '<div class="rez-cal-subrow"><div class="rez-cal-subcell">Zi</div><div class="rez-cal-subcell noapte">Noapte</div></div>' +
         '</div>';
       }
