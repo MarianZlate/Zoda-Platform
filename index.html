@@ -729,9 +729,12 @@ nav{display:flex;align-items:center;gap:6px;}
 .hiw-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:22px;font-weight:800;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
 .hiw-steps{display:grid;grid-template-columns:1fr;gap:14px;}
 .hiw-step{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:22px;position:relative;}
-.hiw-num{font-family:'Space Grotesk',system-ui,sans-serif;font-size:14px;font-weight:800;color:#38bdf8;letter-spacing:.04em;margin-bottom:12px;}
-.hiw-icon{width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,.15);color:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
-.hiw-step h3{font-family:'Space Grotesk',system-ui,sans-serif;font-size:17px;font-weight:800;color:var(--zc-text-primary);margin-bottom:6px;}
+/* iconița + titlul pe același rând, fără numerotarea 01/02/03 —
+   iconița e redusă ca să fie la nivelul textului de lângă ea, nu mai mare. */
+.hiw-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.hiw-icon{width:26px;height:26px;border-radius:8px;background:rgba(245,158,11,.15);color:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.hiw-icon svg{width:15px;height:15px;}
+.hiw-step h3{font-family:'Space Grotesk',system-ui,sans-serif;font-size:17px;font-weight:800;color:var(--zc-text-primary);margin-bottom:0;}
 .hiw-step p{font-size:13.5px;line-height:1.5;color:var(--zc-text-secondary);}
 @media(min-width:769px){
   .hiw-title{font-size:26px;margin-bottom:26px;}
@@ -1047,21 +1050,24 @@ nav{display:flex;align-items:center;gap:6px;}
   <h2 class="hiw-title">Cum funcționează</h2>
   <div class="hiw-steps">
     <div class="hiw-step">
-      <div class="hiw-num">01</div>
-      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
-      <h3>Cauți</h3>
+      <div class="hiw-head">
+        <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+        <h3>Cauți</h3>
+      </div>
       <p>Filtrezi după județ, facilități sau tip de stand și vezi poze reale ale bălții.</p>
     </div>
     <div class="hiw-step">
-      <div class="hiw-num">02</div>
-      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="1" y="5" width="15" height="14" rx="2"/><polygon points="23 7 16 12 23 17 23 7"/></svg></div>
-      <h3>Alegi</h3>
+      <div class="hiw-head">
+        <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="1" y="5" width="15" height="14" rx="2"/><polygon points="23 7 16 12 23 17 23 7"/></svg></div>
+        <h3>Alegi</h3>
+      </div>
       <p>Vezi poze reale și filmări de prezentare pentru fiecare stand în parte, ca să alegi exact ce ți se potrivește.</p>
     </div>
     <div class="hiw-step">
-      <div class="hiw-num">03</div>
-      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
-      <h3>Pescuiești</h3>
+      <div class="hiw-head">
+        <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+        <h3>Pescuiești</h3>
+      </div>
       <p>Ajungi la baltă, standul e pregătit — și îți încarci captura direct din aplicație.</p>
     </div>
   </div>
