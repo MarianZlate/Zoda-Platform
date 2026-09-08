@@ -8,6 +8,9 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
 <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800;900&display=swap" rel="stylesheet"/>
 <title>Zoda — Bălți de pescuit din România | Găsește balta potrivită</title>
 <meta name="description" content="Descoperă bălți de pescuit din toată România pe Zoda: locație, tarife, standuri, recorduri și clasamente. Pescuiește pregătit, nu la întâmplare."/>
 <link rel="canonical" href="https://zoda.ro/"/>
@@ -281,13 +284,13 @@ nav{display:flex;align-items:center;gap:6px;}
 .notif-time{font-size:11px;color:var(--zc-text-muted);margin-top:3px;}
 .notif-empty{padding:32px 16px;text-align:center;color:var(--zc-text-muted);font-size:15px;}
 #hero{max-width:1400px;margin:0 auto;text-align:center;padding:60px 14px 20px;}
-.hero-title{font-weight:900;line-height:1.15;color:#f8fafc;margin-bottom:14px;font-size:38px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
+.hero-title{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:900;line-height:1.15;color:#f8fafc;margin-bottom:14px;font-size:38px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
 .hero-sub{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 16px;max-width:460px;margin:0 auto 10px;font-size:12.9px;font-weight:700;color:#f8fafc;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 6px rgba(0,0,0,.6);}
 .hero-sep{opacity:.5;margin:0 -6px;}
 .hero-sub:last-of-type{margin-bottom:22px;}
 .hero-cta-sub{max-width:520px;margin:0 auto 18px;font-size:14.5px;line-height:1.5;color:#e7edf5;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 6px rgba(0,0,0,.6);}
 .hero-ctas{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:22px;}
-.hero-btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));color:#fff;font-weight:800;font-size:14.5px;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 10px 24px -8px rgba(14,116,144,.55);}
+.hero-btn-primary{display:inline-flex;align-items:center;gap:8px;background:#f59e0b;color:#231404;font-weight:800;font-size:14.5px;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 10px 24px -8px rgba(245,158,11,.55);}
 .hero-btn-ghost{display:inline-flex;align-items:center;background:rgba(255,255,255,.08);color:#f8fafc;font-weight:700;font-size:14.5px;padding:12px 20px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);cursor:pointer;backdrop-filter:blur(4px);}
 .hero-btn-ghost:hover{border-color:#38bdf8;color:#38bdf8;}
 #search-wrap{position:relative;max-width:580px;margin:0 auto 10px;padding:0 14px;}
@@ -313,22 +316,26 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-meta{font-size:12px;color:var(--zc-text-secondary);margin-top:2px;}
 .dd-open{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 #stats-bar{display:block;margin-bottom:10px;padding:0 14px;}
-.stats-inner{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
-.stat-chip{background:var(--zc-bg-panel);border:1.5px solid #38bdf8;border-radius:20px;color:var(--zc-text-secondary);text-align:center;padding:6px 14px;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);}
+.stats-inner{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;}
+.stat-chip{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;color:var(--zc-text-secondary);text-align:center;padding:16px 8px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);}
+.stat-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--zc-bg-tint);color:#38bdf8;flex-shrink:0;}
+.stat-num{font-family:'Space Grotesk',system-ui,sans-serif;font-size:24px;font-weight:800;color:var(--zc-text-primary);line-height:1.1;}
+.stat-chip-text .stat-num{font-size:13px;font-weight:800;}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--zc-text-secondary);line-height:1.3;}
 @media(max-width:390px){
   .stats-inner{gap:6px;}
-  .stat-chip{padding:5px 9px;font-size:11.5px;gap:3px;}
-  .stat-chip span[style*="font-size:17px"]{font-size:13px !important;}
+  .stat-chip{padding:12px 4px 10px;gap:4px;}
+  .stat-icon{width:32px;height:32px;border-radius:9px;}
+  .stat-num{font-size:19px;}
+  .stat-chip-text .stat-num{font-size:11.5px;}
+  .stat-lbl{font-size:9.5px;}
 }
-.stat-chip strong{color:var(--zc-text-primary);font-size:inherit;}
 .stat-chip-clickable{cursor:pointer;user-select:none;position:relative;transition:border-color .15s,box-shadow .15s;}
 .stat-chip-clickable:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(56,189,248,.12);}
-.stat-chip-clickable strong{color:#38bdf8;}
-#chat-cta-wrap{max-width:580px;margin:0 auto 10px;padding:0 14px;}
-#chat-cta-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-accent-dark);border-radius:14px;padding:11px 16px;color:var(--zc-text-primary);font-size:13.5px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:0 8px 20px -10px rgba(0,0,0,.5);}
-#chat-cta-btn:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(56,189,248,.12);}
-.chat-cta-icon{color:#38bdf8;flex-shrink:0;display:flex;}
-.chat-cta-txt strong{color:var(--zc-text-primary);}
+.stat-chat{border-color:rgba(245,158,11,.5);cursor:pointer;}
+.stat-chat .stat-icon{background:#2a1f0d;color:#f59e0b;}
+.stat-chat .stat-lbl{color:#f59e0b;font-weight:700;}
+.stat-chat:hover{border-color:#f59e0b;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(245,158,11,.15);}
 .pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
 #balti-aproape-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
 #public-balti-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
@@ -347,7 +354,7 @@ nav{display:flex;align-items:center;gap:6px;}
 /* CAPTURI RECENTE — înlocuiește harta Leaflet */
 #cr-wrap{margin:0 10px;min-width:0;}
 #cr-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;}
-#cr-title{font-size:19px;font-weight:900;color:var(--zc-text-primary);}
+#cr-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:19px;font-weight:900;color:var(--zc-text-primary);}
 #cr-vezi-tot{background:none;border:none;color:#38bdf8;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 6px;}
 #cr-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
 #cr-track{display:flex;gap:10px;}
@@ -358,7 +365,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-row1{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
 .cr-share-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;margin-top:8px;padding:7px 10px;background:var(--zc-bg-tint);border:1px solid var(--zc-border);color:var(--zc-text-secondary);font-size:12.5px;font-weight:700;border-radius:8px;cursor:pointer;white-space:nowrap;transition:border-color .18s,color .18s;}
 .cr-share-btn:hover{border-color:var(--zc-accent-dark);color:#38bdf8;}
-.cr-kg{font-size:17px;font-weight:900;color:#38bdf8;font-family:inherit;white-space:nowrap;}
+.cr-kg{font-size:17px;font-weight:900;color:#f59e0b;font-family:inherit;white-space:nowrap;}
 .cr-stand{font-size:11.5px;color:var(--zc-text-muted);font-weight:600;white-space:nowrap;}
 .cr-loc{font-size:12px;color:var(--zc-text-secondary);font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cr-pescar{display:flex;align-items:center;gap:7px;margin-top:7px;padding-top:7px;border-top:1px solid var(--zc-border);}
@@ -627,14 +634,15 @@ nav{display:flex;align-items:center;gap:6px;}
   #search-wrap{padding:0;}
   #search-input{font-size:17px;}
   #stats-bar{padding:0;}
-  .stat-chip{padding:5px 20px;font-size:16px;}
-  #chat-cta-wrap{max-width:100%;padding:0;margin:0 0 10px;}
-  #chat-cta-btn{font-size:15px;padding:13px 18px;}
-  #main{padding:0 24px 60px;max-width:900px;grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto auto;grid-template-areas:"search" "statsbar" "chatcta" "cautaPescari" "mapwrap" "saptamanal";gap:14px;}
+  .stat-chip{padding:20px 12px 18px;}
+  .stat-icon{width:46px;height:46px;border-radius:13px;}
+  .stat-num{font-size:30px;}
+  .stat-chip-text .stat-num{font-size:16px;}
+  .stat-lbl{font-size:13px;}
+  #main{padding:0 24px 60px;max-width:900px;grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"search" "statsbar" "cautaPescari" "mapwrap" "saptamanal";gap:14px;}
   #cauta-pescari-card{grid-area:cautaPescari;max-width:100%;margin:0 0 10px;}
   #saptamanal-wrap{grid-area:saptamanal;grid-template-columns:1fr 1fr;margin:0;}
   #stats-bar{grid-area:statsbar;}
-  #chat-cta-wrap{grid-area:chatcta;}
   #cr-wrap{grid-area:mapwrap;margin:0;}
   #search-wrap{grid-area:search;max-width:100%;margin:0 0 10px;}
   .hof-card,.balti-card{min-width:unset;}
@@ -672,20 +680,20 @@ nav{display:flex;align-items:center;gap:6px;}
 /* ── FOOTER ────────────────────────────────────────────────────────────── */
 #balti-recomandate{max-width:1100px;margin:32px auto 0;padding:0 20px;}
 .br-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
-.br-title{font-size:20px;font-weight:900;color:var(--zc-text-primary);}
+.br-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:20px;font-weight:800;color:var(--zc-text-primary);}
 .br-see-all{font-size:13px;font-weight:700;color:#38bdf8;text-decoration:none;white-space:nowrap;}
 .br-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-.br-card{display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
+.br-card{display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
 .br-card:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
-.br-art{height:90px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));display:flex;align-items:flex-start;justify-content:flex-end;padding:10px;}
-.br-badge{background:rgba(0,0,0,.35);backdrop-filter:blur(3px);color:#e0f7ff;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap;}
-.br-badge-gold{color:#231404;background:#eab308;border-color:#eab308;}
+.br-art{height:110px;position:relative;overflow:hidden;}
+.br-wave{position:absolute;bottom:0;left:0;width:100%;height:56%;opacity:.55;}
+.br-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;background:#f59e0b;color:#231404;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:20px;}
 .br-body{padding:14px 16px;}
-.br-name{font-size:16px;font-weight:800;color:var(--zc-text-primary);margin-bottom:4px;}
-.br-meta{font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:4px;}
+.br-name{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16.5px;font-weight:800;color:var(--zc-text-primary);margin-bottom:5px;}
+.br-meta{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:6px;}
 .br-tagline{font-size:13px;font-style:italic;font-weight:600;margin-bottom:4px;}
-.br-rec{font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:6px;}
-.br-cta{font-size:12.5px;font-weight:700;color:#38bdf8;}
+.br-rec{font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:8px;}
+.br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
 @media(min-width:769px){
   .br-title{font-size:24px;}
   .br-grid{grid-template-columns:repeat(4,1fr);gap:16px;}
@@ -697,12 +705,12 @@ nav{display:flex;align-items:center;gap:6px;}
   .br-hdr{flex-direction:column;align-items:flex-start;gap:2px;}
 }
 #cum-functioneaza{max-width:1100px;margin:32px auto 0;padding:0 20px;}
-.hiw-title{font-size:22px;font-weight:900;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
+.hiw-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:22px;font-weight:800;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
 .hiw-steps{display:grid;grid-template-columns:1fr;gap:14px;}
-.hiw-step{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;position:relative;}
-.hiw-num{font-size:12px;font-weight:800;color:#38bdf8;letter-spacing:.06em;margin-bottom:8px;}
-.hiw-icon{width:40px;height:40px;border-radius:10px;background:var(--zc-bg-tint);color:#38bdf8;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
-.hiw-step h3{font-size:17px;font-weight:800;color:var(--zc-text-primary);margin-bottom:6px;}
+.hiw-step{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:22px;position:relative;}
+.hiw-num{font-family:'Space Grotesk',system-ui,sans-serif;font-size:14px;font-weight:800;color:#38bdf8;letter-spacing:.04em;margin-bottom:12px;}
+.hiw-icon{width:44px;height:44px;border-radius:12px;background:#2a1f0d;color:#f59e0b;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.hiw-step h3{font-family:'Space Grotesk',system-ui,sans-serif;font-size:17px;font-weight:800;color:var(--zc-text-primary);margin-bottom:6px;}
 .hiw-step p{font-size:13.5px;line-height:1.5;color:var(--zc-text-secondary);}
 @media(min-width:769px){
   .hiw-title{font-size:26px;margin-bottom:26px;}
@@ -961,30 +969,31 @@ nav{display:flex;align-items:center;gap:6px;}
     <!-- STATS BAR -->
     <div id="stats-bar">
     <div class="stats-inner">
-        <div class="stat-chip stat-chip-clickable" id="stat-aproape-chip" onclick="toggleBaltiAproapeDropdown(event)">
-          <span style="font-size:15px;">📍</span> <span style="font-style:italic;">Bălți în jurul meu</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
-          <div id="balti-aproape-dropdown" class="pbd-panel">
-            <div class="pbd-hdr">📍 Raza 30 km · nu salvăm locația ta</div>
-            <div id="balti-aproape-list"><div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Apasă ca să vezi bălțile din apropiere.</div></div>
-          </div>
-        </div>
         <div class="stat-chip stat-chip-clickable" id="stat-publice-chip" onclick="togglePublicBaltiDropdown(event)">
-          <strong id="stat-publice">—</strong> <span style="font-style:italic;">Bălți Verificate Zoda</span> <span style="font-size:17px;font-weight:900;color:#38bdf8;">▾</span>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <strong id="stat-publice" class="stat-num">—</strong>
+          <span class="stat-lbl">Bălți Verificate Zoda</span>
           <div id="public-balti-dropdown" class="pbd-panel">
             <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
             <div id="public-balti-list"></div>
           </div>
         </div>
+        <div class="stat-chip stat-chip-clickable stat-chip-text" id="stat-aproape-chip" onclick="toggleBaltiAproapeDropdown(event)">
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></div>
+          <span class="stat-num">Bălți aproape</span>
+          <span class="stat-lbl">de locația ta</span>
+          <div id="balti-aproape-dropdown" class="pbd-panel">
+            <div class="pbd-hdr">📍 Raza 30 km · nu salvăm locația ta</div>
+            <div id="balti-aproape-list"><div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Apasă ca să vezi bălțile din apropiere.</div></div>
+          </div>
+        </div>
+        <div class="stat-chip stat-chip-text stat-chat" id="chat-cta-btn" onclick="openContactModal()">
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4V4z"/></svg></div>
+          <span class="stat-num">Ai o întrebare?</span>
+          <span class="stat-lbl">Chat live cu echipa Zoda →</span>
+        </div>
       </div>
     </div>
-
-  <!-- CHAT CTA — intrare directă spre modalul de contact real -->
-  <div id="chat-cta-wrap">
-    <button id="chat-cta-btn" onclick="openContactModal()">
-      <span class="chat-cta-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4V4z"/></svg></span>
-      <span class="chat-cta-txt"><strong>Ai o întrebare?</strong> Chat live cu echipa Zoda →</span>
-    </button>
-  </div>
 
   <!-- CĂUTĂ PESCARI DE URMĂRIT — sub stats-bar, înaintea Capturi recente -->
   <div id="cauta-pescari-card" style="display:none;position:relative;overflow:visible;">
@@ -3276,7 +3285,14 @@ function sorteazaBaltiPeNiveluri(lista) {
 // Reutilizează aceeași sortare pe niveluri ca dropdown-ul "Bălți Verificate
 // Zoda" — primele 4 bălți publice, niveluri superioare întâi. Nu există încă
 // o poză de copertă per baltă (pozele reale sunt per stand, în balta.html),
-// așa că folosim un fundal decorativ, nu o poză falsă.
+// așa că folosim un fundal decorativ (gradient + val SVG), nu o poză falsă.
+// 4 combinații gradient/val, reluate ciclic dacă sunt mai mult de 4 carduri.
+var BR_ART_STYLES = [
+  { grad: 'linear-gradient(160deg,#0c3a4d 0%,#0e7490 55%,#0a2530 100%)', wave: '#38bdf8' },
+  { grad: 'linear-gradient(160deg,#0d3d2c 0%,#0f766e 55%,#0a2b26 100%)', wave: '#2dd4bf' },
+  { grad: 'linear-gradient(160deg,#1a2f1a 0%,#4d7c0f 55%,#12200f 100%)', wave: '#a3e635' },
+  { grad: 'linear-gradient(160deg,#1d1030 0%,#5b21b6 55%,#160a26 100%)', wave: '#a78bfa' },
+];
 function renderBaltiRecomandate() {
   const wrap = document.getElementById('balti-recomandate');
   const grid = document.getElementById('br-grid');
@@ -3285,16 +3301,18 @@ function renderBaltiRecomandate() {
   const top = publice.slice(0, 4);
   if (!top.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  grid.innerHTML = top.map(b => {
-    const e3 = (b.nivel_vizibilitate || 1) === 3;
-    const badge = e3 ? '<span class="br-badge br-badge-gold">✨ Recomandat</span>' : '<span class="br-badge">✓ Verificat</span>';
-    const tagline = b.tagline ? `<div class="br-tagline" style="color:${e3 ? '#eab308' : '#60a5fa'};">✨ ${escH(b.tagline)}</div>` : '';
+  grid.innerHTML = top.map((b, i) => {
+    const art = BR_ART_STYLES[i % BR_ART_STYLES.length];
+    const tagline = b.tagline ? `<div class="br-tagline" style="color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};">✨ ${escH(b.tagline)}</div>` : '';
     const rec = (b.rec && b.rec !== '—') ? `<div class="br-rec">🏆 Recordul bălții: ${escH(String(b.rec))}</div>` : '';
     return `<a class="br-card" href="balta.html?id=${b.id}">`
-      + `<div class="br-art">${badge}</div>`
+      + `<div class="br-art" style="background:${art.grad};">`
+      +   `<svg class="br-wave" viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M0 30 Q25 12 50 30 T100 30 T150 30 T200 30 V60 H0 Z" fill="${art.wave}"/></svg>`
+      +   `<span class="br-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#231404" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Verificat</span>`
+      + `</div>`
       + `<div class="br-body">`
       +   `<div class="br-name">${escH(b.nume)}</div>`
-      +   `<div class="br-meta">📍 ${escH(b.judet)} · ${b.standuri || 0} standuri</div>`
+      +   `<div class="br-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg> ${escH(b.judet)} · ${b.standuri || 0} standuri</div>`
       +   tagline + rec
       +   `<div class="br-cta">Vezi balta →</div>`
       + `</div>`
@@ -3447,15 +3465,11 @@ document.addEventListener('click', function(e) {
 
 
 // Lățimea barei de căutare (baltă + pescari) urmărește lățimea reală a
-// celor 2 pastile "Bălți în jurul meu"/"Bălți Verificate Zoda" — nu un
-// max-width fix, fiindcă pastilele sunt content-sized (variază cu numărul
-// afișat). Doar pe mobil — pe desktop bara ocupă toată coloana (grid), nu
-// are sens să fie limitată la lățimea pastilelor.
-// Notă: NU măsurăm .stats-inner — e un flex container block-level, se
-// întinde automat la 100% din părinte (de-asta bara ieșea mai lată decât
-// pastilele efectiv vizibile). Măsurăm direct cele 2 pastile, de la marginea
-// stângă a celei mai din stânga până la marginea dreaptă a celei mai din
-// dreapta.
+// rândului de 3 carduri din stats-bar — nu un max-width fix. Doar pe mobil —
+// pe desktop bara ocupă toată coloana (grid), nu are sens să fie limitată.
+// De când .stats-inner e un CSS grid pe 3 coloane egale (nu flex centrat),
+// lățimea lui randată e deja exact lățimea vizibilă a rândului de carduri —
+// îl măsurăm direct, nu mai trebuie calculat din marginile cardurilor.
 function syncSearchWidths() {
   var searchWrap  = document.getElementById('search-wrap');
   var pescariWrap = document.getElementById('cauta-pescari-card');
@@ -3464,18 +3478,14 @@ function syncSearchWidths() {
     if (pescariWrap) pescariWrap.style.maxWidth = '';
     return;
   }
-  var chipAproape = document.getElementById('stat-aproape-chip');
-  var chipPublice = document.getElementById('stat-publice-chip');
-  if (!chipAproape || !chipPublice) return;
-  var rA = chipAproape.getBoundingClientRect();
-  var rP = chipPublice.getBoundingClientRect();
-  if (!rA.width || !rP.width) return; // nu s-au randat încă real
-  var w = Math.max(rA.right, rP.right) - Math.min(rA.left, rP.left);
-  if (w < 40) return;
+  var statsInner = document.querySelector('.stats-inner');
+  if (!statsInner) return;
+  var r = statsInner.getBoundingClientRect();
+  if (!r.width || r.width < 40) return; // nu s-a randat încă real
   // search-wrap/cauta-pescari-card au padding:0 14px — adăugăm cei 28px
   // înapoi, ca bara vizibilă din interior (nu wrapper-ul cu padding) să
-  // aibă exact lățimea celor 2 pastile, nu wrapper-ul + inset suplimentar.
-  var wrapperW = w + 28;
+  // aibă exact lățimea rândului de carduri, nu wrapper-ul + inset suplimentar.
+  var wrapperW = r.width + 28;
   if (searchWrap)  searchWrap.style.maxWidth  = wrapperW + 'px';
   if (pescariWrap) pescariWrap.style.maxWidth = wrapperW + 'px';
 }
