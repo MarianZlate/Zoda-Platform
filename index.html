@@ -294,7 +294,13 @@ nav{display:flex;align-items:center;gap:6px;}
 #hero{max-width:1400px;margin:0 auto;text-align:center;padding:18px 14px 10px;}
 .hero-title{font-family:'Space Grotesk',system-ui,sans-serif;font-weight:900;line-height:1.15;color:#f8fafc;margin-bottom:8px;font-size:29px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
 .hero-cta-sub{max-width:520px;margin:0 auto 12px;font-size:14px;font-weight:700;line-height:1.4;color:#fff;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 8px rgba(0,0,0,.65);}
-#search-wrap{position:relative;max-width:580px;margin:0 auto;padding:0 14px;}
+/* margin:0 (nu "0 auto"): pe un element din #main (grid, coloană 1fr) fără
+   width explicit, "margin:auto" pe axa inline îl face să se dimensioneze
+   după conținutul lui (fit-content) în loc să se întindă pe toată coloana —
+   pe telefoane sub ~386px lățime, conținutul barei de căutare (iconițe +
+   input + butonul "bălți aproape") era mai lat decât ecranul și ieșea pe
+   dreapta, tăiat de marginea ecranului. */
+#search-wrap{position:relative;max-width:580px;margin:0;padding:0 14px;}
 #search-box{display:flex;align-items:center;gap:10px;background:var(--zc-bg-panel);border:2px solid var(--zc-border);border-radius:16px;padding:13px 18px;transition:border-color .2s,box-shadow .2s;box-shadow:0 12px 32px -10px rgba(0,0,0,.5);}
 #search-box:focus-within{border-color:#38bdf8;box-shadow:0 12px 32px -10px rgba(0,0,0,.5),0 0 0 4px rgba(56,189,248,.14);}
 #search-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:16px;}
@@ -305,7 +311,7 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-close-btn{background:var(--zc-bg);border:1px solid var(--zc-border);color:var(--zc-text-secondary);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .dd-close-btn:hover{border-color:#38bdf8;color:#38bdf8;}
 /* Caută pescari — aceeași formă/stil ca #search-box (căutare bălți), doar cu alt id */
-#cauta-pescari-card{max-width:580px;margin:0 auto;padding:0 14px;}
+#cauta-pescari-card{max-width:580px;margin:0;padding:0 14px;}
 #cauta-pescari-box{display:flex;align-items:center;gap:8px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-border);border-radius:14px;padding:7px 16px;transition:border-color .2s,box-shadow .2s;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 #cauta-pescari-box:focus-within{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 4px rgba(56,189,248,.14);}
 #cauta-pescari-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--zc-text-primary);font-size:14px;}
@@ -649,8 +655,15 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
 .br-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:20px;font-weight:800;color:var(--zc-text-primary);}
 .br-see-all{font-size:13px;font-weight:700;color:#38bdf8;text-decoration:none;white-space:nowrap;}
-.br-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-.br-track{display:flex;gap:10px;}
+/* "Bleed" spre dreapta: cardul care se vede parțial (următorul din listă)
+   trebuie să pară tăiat chiar de marginea ecranului, nu așezat frumos cu un
+   spațiu gol după el — altfel nu se mai înțelege că mai e ceva de scrollat.
+   margin-right negativ anulează padding-ul din dreapta al secțiunii doar
+   pentru zona de scroll (stânga rămâne aliniată cu titlul), iar padding-right
+   pe track redă acel spațiu ca "respirație" DUPĂ ultimul card, la capătul
+   scrollului — nu înainte de el. */
+.br-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-right:-20px;}
+.br-track{display:flex;gap:10px;padding-right:20px;}
 .br-card{flex:0 0 82%;scroll-snap-align:start;min-width:0;display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
 .br-card:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 /* Bloc de informații pe fundal albastru Zoda — nu mai e artă decorativă,
