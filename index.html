@@ -642,8 +642,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
 .br-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:20px;font-weight:800;color:var(--zc-text-primary);}
 .br-see-all{font-size:13px;font-weight:700;color:#38bdf8;text-decoration:none;white-space:nowrap;}
-.br-grid{display:grid;grid-template-columns:1fr;gap:14px;}
-.br-card{display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
+.br-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.br-track{display:flex;gap:14px;}
+.br-card{flex:0 0 78%;scroll-snap-align:start;min-width:0;display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
 .br-card:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
 .br-art{height:110px;position:relative;overflow:hidden;}
 .br-wave{position:absolute;bottom:0;left:0;width:100%;height:56%;opacity:.55;}
@@ -656,10 +657,11 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
 @media(min-width:769px){
   .br-title{font-size:24px;}
-  .br-grid{grid-template-columns:repeat(4,1fr);gap:16px;}
+  .br-track{gap:16px;}
+  .br-card{flex:0 0 calc(25% - 12px);}
 }
 @media(min-width:480px) and (max-width:768px){
-  .br-grid{grid-template-columns:1fr 1fr;}
+  .br-card{flex:0 0 46%;}
 }
 @media(max-width:479px){
   .br-hdr{flex-direction:column;align-items:flex-start;gap:2px;}
@@ -962,7 +964,9 @@ nav{display:flex;align-items:center;gap:6px;}
       </div>
     </span>
   </div>
-  <div id="br-grid" class="br-grid"></div>
+  <div class="br-carousel">
+    <div id="br-grid" class="br-track"></div>
+  </div>
 </section>
 
 <!-- CAPTURI RECENTE — înlocuiește harta; ultimele 20 capturi aprobate de pe
