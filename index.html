@@ -262,9 +262,20 @@ html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family
    interacțiune. */
 .br-carousel,#cr-carousel{scrollbar-width:none;-ms-overflow-style:none;}
 .br-carousel::-webkit-scrollbar,#cr-carousel::-webkit-scrollbar{display:none;}
-.scroll-ind{height:6px;border-radius:3px;background:var(--zc-border);margin-top:6px;position:relative;overflow:hidden;}
+/* Negru, nu albastrul de accent — pe fundalul cu poza de baltă (cer/apă/
+   frunziș, toate în tonuri de-a albastru-verzui) thumb-ul albastru se
+   pierde complet. Negru contrastează cu orice fundal, poză sau nu.
+   Track-ul e negru semi-transparent (nu var(--zc-border), care pe poza
+   de fundal era aproape invizibil) — se vede ca un "jgheab" indiferent
+   ce e dedesubt. Bara e acum și funcțională (nu doar decorativă): se
+   poate trage cu mouse-ul (thumb) sau apăsa pe jgheab ca să sară la acel
+   punct — scroll-ul nativ tras din bară a dispărut odată cu scrollbar-ul
+   ascuns mai sus, așa că funcționalitatea trebuie recreată aici, în JS
+   (vezi wireScrollIndicator). */
+.scroll-ind{height:8px;border-radius:4px;background:rgba(0,0,0,.35);margin-top:6px;position:relative;overflow:hidden;cursor:pointer;}
 .scroll-ind[hidden]{display:none;}
-.scroll-ind-thumb{position:absolute;top:0;left:0;height:100%;background:#38bdf8;border-radius:3px;}
+.scroll-ind-thumb{position:absolute;top:0;left:0;height:100%;background:#000;border-radius:4px;cursor:grab;}
+.scroll-ind-thumb:active,.scroll-ind.dragging .scroll-ind-thumb{cursor:grabbing;}
 
 /* ============================================================
    COMPONENTE COMUNE
@@ -6870,27 +6881,75 @@ setTimeout(showIosToast, 3000);
 // recalculăm și la ResizeObserver (nu doar la load), ca bara să apară
 // corect imediat ce ies cardurile, nu doar la primul randare (când
 // caruselul e încă gol/"Se încarcă...").
+//
+// IMPORTANT: ascunzând scrollbar-ul nativ (CSS de mai sus) am pierdut și
+// singurul mod în care cineva cu mouse simplu (fără roată orizontală/
+// trackpad) putea trage caruselul — nativ, scrollbar-ul era și un handle
+// funcțional de drag. Bara nouă trebuie deci să recreeze asta singură:
+// drag pe thumb + click pe jgheab ca să sară la punctul respectiv, cu
+// matematica standard de scrollbar (thumb-ul acoperă cw/sw din track,
+// se mișcă pe (track - thumb) px cât timp scroll-ul acoperă (sw - cw) px).
 (function(){
   function wireScrollIndicator(carouselSel, indSel, thumbSel){
     var car = document.querySelector(carouselSel);
     var ind = document.querySelector(indSel);
     var thumb = document.querySelector(thumbSel);
     if(!car || !ind || !thumb) return;
+    var thumbPctNum = 8;
     function update(){
       var sw = car.scrollWidth, cw = car.clientWidth;
       if(sw <= cw + 1){ ind.hidden = true; return; }
       ind.hidden = false;
-      var thumbPct = Math.max((cw / sw) * 100, 8);
-      var maxLeftPct = 100 - thumbPct;
+      thumbPctNum = Math.max((cw / sw) * 100, 8);
+      var maxLeftPct = 100 - thumbPctNum;
       var scrollable = sw - cw;
       var scrollRatio = scrollable > 0 ? (car.scrollLeft / scrollable) : 0;
-      thumb.style.width = thumbPct + '%';
+      thumb.style.width = thumbPctNum + '%';
       thumb.style.left = (maxLeftPct * scrollRatio) + '%';
     }
     car.addEventListener('scroll', update, {passive:true});
     window.addEventListener('resize', update);
     if(typeof ResizeObserver !== 'undefined') new ResizeObserver(update).observe(car);
     update();
+
+    // --- drag pe thumb + click pe jgheab ---
+    var dragging = false, dragStartX = 0, dragStartScroll = 0, dragRange = 0;
+    function xOf(e){ return (e.touches ? e.touches[0] : e).clientX; }
+    function beginDrag(clientX){
+      var indRect = ind.getBoundingClientRect();
+      var thumbWidthPx = indRect.width * (thumbPctNum / 100);
+      dragRange = Math.max(indRect.width - thumbWidthPx, 1);
+      dragging = true;
+      dragStartX = clientX;
+      dragStartScroll = car.scrollLeft;
+      ind.classList.add('dragging');
+    }
+    thumb.addEventListener('mousedown', function(e){ e.preventDefault(); e.stopPropagation(); beginDrag(xOf(e)); });
+    thumb.addEventListener('touchstart', function(e){ e.stopPropagation(); beginDrag(xOf(e)); }, {passive:true});
+    ind.addEventListener('mousedown', function(e){
+      if(e.target === thumb) return;
+      // click direct pe jgheab: sare acolo (centrat pe thumb) și pornește drag-ul de acolo
+      var indRect = ind.getBoundingClientRect();
+      var thumbWidthPx = indRect.width * (thumbPctNum / 100);
+      var range = Math.max(indRect.width - thumbWidthPx, 1);
+      var targetLeftPx = Math.min(Math.max(xOf(e) - indRect.left - thumbWidthPx / 2, 0), range);
+      var scrollable = car.scrollWidth - car.clientWidth;
+      car.scrollLeft = (targetLeftPx / range) * scrollable;
+      beginDrag(xOf(e));
+    });
+    function onMove(e){
+      if(!dragging) return;
+      var scrollable = car.scrollWidth - car.clientWidth;
+      if(scrollable <= 0) return;
+      var dx = xOf(e) - dragStartX;
+      car.scrollLeft = dragStartScroll + (dx / dragRange) * scrollable;
+      if(e.cancelable) e.preventDefault();
+    }
+    function endDrag(){ dragging = false; ind.classList.remove('dragging'); }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
   }
   wireScrollIndicator('.br-carousel', '#br-scroll-ind', '#br-scroll-thumb');
   wireScrollIndicator('#cr-carousel', '#cr-scroll-ind', '#cr-scroll-thumb');
