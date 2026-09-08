@@ -154,6 +154,8 @@ setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); 
   --zc-hdr-bg:rgba(10,15,26,.97);
   --zc-cta-1:#0c3a4d;
   --zc-cta-2:#0e7490;
+  --zc-tagline-gold:#eab308;
+  --zc-tagline-blue:#60a5fa;
 }
 html[data-theme="light"]{
   /* Paletă LIGHT — pentru citire în lumină puternică (soare) */
@@ -170,6 +172,11 @@ html[data-theme="light"]{
   --zc-bg-deep:#f0f9ff;
   --zc-accent-dark:#0891b2;
   --zc-hdr-bg:rgba(244,247,251,.92);
+  /* Varianta light a galbenului/albastrului de tagline e mult mai închisă
+     decât în dark — pe fundal alb (--zc-bg-panel), #eab308/#60a5fa (bune pe
+     fundal închis) ies aproape ilizibile (contrast prea mic). */
+  --zc-tagline-gold:#92400e;
+  --zc-tagline-blue:#1d4ed8;
 }
 /* Tranziție graduală — activată DOAR de motorul de temă automată (nu la
    schimbarea manuală din Cont, care rămâne instantă) */
@@ -646,14 +653,23 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-track{display:flex;gap:10px;}
 .br-card{flex:0 0 82%;scroll-snap-align:start;min-width:0;display:block;background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;overflow:hidden;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
 .br-card:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45);}
-.br-art{height:110px;position:relative;overflow:hidden;}
-.br-wave{position:absolute;bottom:0;left:0;width:100%;height:56%;opacity:.55;}
-.br-badge{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:5px;background:#f59e0b;color:#231404;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:20px;}
-.br-body{padding:14px 16px;}
-.br-name{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16.5px;font-weight:800;color:var(--zc-text-primary);margin-bottom:5px;}
-.br-meta{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:6px;}
-.br-tagline{font-size:13px;font-style:italic;font-weight:600;margin-bottom:4px;}
-.br-rec{font-size:12.5px;color:var(--zc-text-secondary);margin-bottom:8px;}
+/* Bloc de informații pe fundal albastru Zoda — nu mai e artă decorativă,
+   ci datele importante ale bălții (nu avem poze de copertă per baltă,
+   doar per stand — pozele reale apar mai jos, în .br-photos). */
+.br-art{position:relative;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));padding:38px 16px 14px;}
+.br-badge{position:absolute;top:10px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.br-badge-verificat{left:10px;background:rgba(255,255,255,.16);backdrop-filter:blur(3px);color:#fff;border:1px solid rgba(255,255,255,.4);}
+.br-badge-premium{right:10px;background:#eab308;color:#231404;}
+.br-name{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16.5px;font-weight:800;color:#fff;margin-bottom:4px;}
+.br-meta{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);}
+/* Poze reale ale standurilor (tabelul poze, stand_id != null) — 2 alăturate.
+   NU folosim niciodată imagini placeholder ca și cum ar fi poze reale:
+   dacă nu sunt încă suficiente poze, afișăm un mesaj, nu o imagine falsă. */
+.br-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--zc-border);}
+.br-photos img{width:100%;height:84px;object-fit:cover;display:block;background:var(--zc-bg-tint);}
+.br-photo-ph{width:100%;height:84px;background:var(--zc-bg-tint);}
+.br-photo-empty{grid-column:1/-1;height:64px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--zc-text-muted);background:var(--zc-bg-tint);}
+.br-body{padding:10px 16px 14px;}
 .br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
 @media(min-width:600px){ .br-card{flex:0 0 calc(33.333% - 7px);} }
 @media(min-width:769px){
@@ -1891,7 +1907,7 @@ function renderDropdownRasfoire() {
         <div class="dd-name">${escH(b.nume)}</div>
         ${b.parent_balta_id ? `<div style="font-size:12.5px;font-weight:600;color:var(--zc-text-secondary);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}
         <div class="dd-meta">📍 ${escH(b.judet)}${b.adresa ? ' · ' + escH(b.adresa) : ''} · ${b.standuri} standuri</div>
-        ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
+        ${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'var(--zc-tagline-gold)':'var(--zc-tagline-blue)'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}
       </div>
       <button class="dd-open" onclick="event.stopPropagation();__goToBalta(${b.id})">Deschide →</button>
     </div>`).join('');
@@ -3201,16 +3217,11 @@ function sorteazaBaltiPeNiveluri(lista) {
 
 // ── BĂLȚI RECOMANDATE (homepage) ─────────────────────────────────────────
 // Reutilizează aceeași sortare pe niveluri ca dropdown-ul "Bălți Verificate
-// Zoda" — primele 4 bălți publice, niveluri superioare întâi. Nu există încă
-// o poză de copertă per baltă (pozele reale sunt per stand, în balta.html),
-// așa că folosim un fundal decorativ (gradient + val SVG), nu o poză falsă.
-// 4 combinații gradient/val, reluate ciclic dacă sunt mai mult de 4 carduri.
-var BR_ART_STYLES = [
-  { grad: 'linear-gradient(160deg,#0c3a4d 0%,#0e7490 55%,#0a2530 100%)', wave: '#38bdf8' },
-  { grad: 'linear-gradient(160deg,#0d3d2c 0%,#0f766e 55%,#0a2b26 100%)', wave: '#2dd4bf' },
-  { grad: 'linear-gradient(160deg,#1a2f1a 0%,#4d7c0f 55%,#12200f 100%)', wave: '#a3e635' },
-  { grad: 'linear-gradient(160deg,#1d1030 0%,#5b21b6 55%,#160a26 100%)', wave: '#a78bfa' },
-];
+// Zoda" — primele 4 bălți publice, niveluri superioare întâi. Zona de sus a
+// cardului (.br-art) e un bloc de informații pe fundal albastru Zoda (nu o
+// poză de copertă — nu există încă una per baltă), iar zona albă (.br-photos)
+// afișează 2 poze REALE, aleatorii, ale standurilor bălții (tabelul poze,
+// stand_id != null) — niciodată imagini placeholder în locul lor.
 function renderBaltiRecomandate() {
   const wrap = document.getElementById('balti-recomandate');
   const grid = document.getElementById('br-grid');
@@ -3219,23 +3230,52 @@ function renderBaltiRecomandate() {
   const top = publice.slice(0, 4);
   if (!top.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  grid.innerHTML = top.map((b, i) => {
-    const art = BR_ART_STYLES[i % BR_ART_STYLES.length];
-    const tagline = b.tagline ? `<div class="br-tagline" style="color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};">✨ ${escH(b.tagline)}</div>` : '';
-    const rec = (b.rec && b.rec !== '—') ? `<div class="br-rec">🏆 Recordul bălții: ${escH(String(b.rec))}</div>` : '';
+  grid.innerHTML = top.map(b => {
+    const premium = (b.nivel_vizibilitate || 1) === 3;
     return `<a class="br-card" href="balta.html?id=${b.id}">`
-      + `<div class="br-art" style="background:${art.grad};">`
-      +   `<svg class="br-wave" viewBox="0 0 200 60" preserveAspectRatio="none"><path d="M0 30 Q25 12 50 30 T100 30 T150 30 T200 30 V60 H0 Z" fill="${art.wave}"/></svg>`
-      +   `<span class="br-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#231404" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Verificat</span>`
+      + `<div class="br-art">`
+      +   `<span class="br-badge br-badge-verificat"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5"><path d="M20 6 9 17l-5-5"/></svg> Verificat</span>`
+      +   (premium ? `<span class="br-badge br-badge-premium">★ Premium</span>` : '')
+      +   `<div class="br-name">${escH(b.nume)}</div>`
+      +   `<div class="br-meta">${escH(b.judet)} · ${b.standuri || 0} standuri</div>`
+      + `</div>`
+      + `<div class="br-photos" id="br-photos-${b.id}">`
+      +   `<div class="br-photo-ph"></div><div class="br-photo-ph"></div>`
       + `</div>`
       + `<div class="br-body">`
-      +   `<div class="br-name">${escH(b.nume)}</div>`
-      +   `<div class="br-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg> ${escH(b.judet)} · ${b.standuri || 0} standuri</div>`
-      +   tagline + rec
       +   `<div class="br-cta">Vezi balta →</div>`
       + `</div>`
       + `</a>`;
   }).join('');
+  incarcaPozeBaltiRecomandate(top.map(b => b.id));
+}
+
+// Aduce poze reale de stand (nu de copertă — acelea au stand_id null) pentru
+// bălțile afișate în carusel și alege 2 aleatoriu per baltă. Rulează separat
+// de randarea cardurilor ca acestea să apară imediat, cu pozele completându-se
+// când sosesc din Supabase (fallback grațios dacă o baltă are 0 sau 1 poze).
+async function incarcaPozeBaltiRecomandate(ids) {
+  if (!ids || !ids.length) return;
+  try {
+    const { data, error } = await sb.from('poze').select('balta_id, url').in('balta_id', ids).not('stand_id', 'is', null);
+    if (error || !data) return;
+    const pePalta = {};
+    data.forEach(p => { (pePalta[p.balta_id] = pePalta[p.balta_id] || []).push(p.url); });
+    ids.forEach(id => {
+      const el = document.getElementById(`br-photos-${id}`);
+      if (!el) return;
+      const urls = (pePalta[id] || []).slice();
+      for (let i = urls.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [urls[i], urls[j]] = [urls[j], urls[i]]; }
+      const alese = urls.slice(0, 2);
+      if (alese.length === 2) {
+        el.innerHTML = alese.map(u => `<img src="${escH(u)}" alt="" loading="lazy">`).join('');
+      } else if (alese.length === 1) {
+        el.innerHTML = `<img src="${escH(alese[0])}" alt="" loading="lazy"><div class="br-photo-ph"></div>`;
+      } else {
+        el.innerHTML = `<div class="br-photo-empty">📷 Poze în curând</div>`;
+      }
+    });
+  } catch (e) {}
 }
 
 // ── BĂLȚI ÎN JURUL MEU ───────────────────────────────────────────────────────
@@ -3346,7 +3386,7 @@ function togglePublicBaltiDropdown(e) {
     const list = document.getElementById('public-balti-list');
     const publicBalti = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
     list.innerHTML = publicBalti.length
-      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'#eab308':'#60a5fa'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
+      ? publicBalti.map(b => `<a href="balta.html?id=${b.id}">${escH(b.nume)} <span style="color:var(--zc-text-muted);font-size:12px;">· ${escH(b.judet)}</span>${b.parent_balta_id ? `<div style="font-size:12px;font-weight:600;color:var(--zc-text-muted);">🌊 Bazin al: ${escH(b.parent_nume)}</div>` : ''}${b.tagline ? `<div style="font-size:14px;font-style:italic;color:${(b.nivel_vizibilitate||1)===3?'var(--zc-tagline-gold)':'var(--zc-tagline-blue)'};margin-top:3px;font-weight:600;">✨ ${escH(b.tagline)}</div>` : ''}</a>`).join('')
       : '<div style="padding:14px;color:var(--zc-text-muted);font-size:13px;">Momentan nicio baltă publică.</div>';
     window.addEventListener('resize', pozitioneazaPublicBaltiDropdown);
   } else {
