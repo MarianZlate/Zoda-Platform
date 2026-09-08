@@ -165,12 +165,13 @@ th,td{padding:8px 6px;}
 .balti-table tr:hover td,
 .users-table tr:hover td{background:#0f172a;}
 
-/* Mobil: coloane secundare ascunse */
+/* Mobil: coloane secundare ascunse (status trece ca text sub numele bălții) */
 .balti-table .col-id,
 .balti-table .col-judet,
 .balti-table .col-standuri,
 .balti-table .col-harta,
 .balti-table .col-zodaid,
+.balti-table .col-status,
 .users-table .col-data{display:none;}
 
 /* users-table: email, rol, actiuni mereu vizibile */
@@ -186,12 +187,55 @@ th,td{padding:8px 6px;}
   .balti-table th,
   .users-table th{padding:10px 14px;}
 }
+/* Mobil (< 769px): rândurile tabelelor "Bălți" și "Utilizatori" devin carduri flex (identitate +
+   informații secundare în stânga, acțiuni în dreapta, pe max 2-3 rânduri de butoane), ca să dispară
+   scroll-ul orizontal. Scopate strict la .balti-table / .users-list-table — celelalte tabele cu clasa
+   .users-table (statistici per baltă) nu sunt atinse. */
+@media(max-width:768px){
+  .balti-table,
+  .users-list-table{min-width:0;border-collapse:separate;}
+  .balti-table thead,
+  .users-list-table thead{display:none;}
+  .balti-table,
+  .balti-table tbody,
+  .balti-table tr,
+  .users-list-table,
+  .users-list-table tbody,
+  .users-list-table tr{display:block;width:100%;}
+  .balti-table tr,
+  .users-list-table tr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid #0f172a;}
+  .balti-table tr:last-child,
+  .users-list-table tr:last-child{border-bottom:none;}
+  .balti-table td,
+  .users-list-table td{display:block;border-bottom:none;padding:0;}
+  .balti-table .col-nume{flex:0 1 34%;min-width:0;padding:10px 0 10px 12px;}
+  .balti-table .col-actiuni{flex:0 1 66%;min-width:0;padding:10px 12px 10px 0;}
+  .status-mobile-inline{margin-top:4px;}
+  .users-list-table .col-rol,
+  .users-list-table .col-data{display:none;}
+  .users-list-table .col-email{flex:0 1 40%;min-width:0;padding:10px 0 10px 12px;word-break:break-word;}
+  .users-list-table .col-actiuni{flex:0 1 60%;min-width:0;padding:10px 12px 10px 0;}
+  .rol-mobile-inline,
+  .data-mobile-inline{margin-top:4px;}
+  .data-mobile-inline{font-size:11.5px;color:#4b5563;}
+  /* minmax(0,1fr) — fără el, coloanele grid nu se pot micșora sub textul butonului
+     și grila iese din ecran (căpuța "Vezi" tăiată). */
+  .balti-table .action-btns,
+  .users-list-table .action-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+  .balti-table .action-btns > *,
+  .users-list-table .action-btns > *{width:100%;min-width:0;box-sizing:border-box;text-align:center;justify-content:center;white-space:normal;overflow-wrap:break-word;line-height:1.15;font-size:10.5px;padding:5px 3px;gap:2px;}
+  .users-list-table .action-btns + .action-btns{margin-top:5px;}
+}
 @media(min-width:769px){
   .balti-table .col-id,
   .balti-table .col-standuri,
   .balti-table .col-harta,
-  .balti-table .col-zodaid{display:table-cell;}
-  .zodaid-mobile-inline{display:none;}
+  .balti-table .col-zodaid,
+  .balti-table .col-status{display:table-cell;}
+  .zodaid-mobile-inline,
+  .status-mobile-inline,
+  .rol-mobile-inline,
+  .data-mobile-inline{display:none;}
   .balti-table td,
   .users-table td{padding:12px 14px;}
   /* Coloanele cu conținut scurt restrânse, ca spațiul eliberat să meargă la Nume/Acțiuni */
@@ -396,6 +440,14 @@ th,td{padding:8px 6px;}
 </head>
 <body>
 
+<!-- LIGHTBOX FULLSCREEN — aceeași componentă (fs-modal) ca pe index.html/balta.html/pescar.html/cont.html/ambasador-galerie.html -->
+<div id="fs-modal" onclick="closeFS()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;">
+  <button onclick="closeFS()" style="position:fixed;top:16px;right:16px;width:36px;height:36px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:18px;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">✕</button>
+  <button id="fs-prev-btn" onclick="event.stopPropagation();navigheazaFS(-1)" style="display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">◀</button>
+  <button id="fs-next-btn" onclick="event.stopPropagation();navigheazaFS(1)" style="display:none;position:fixed;right:16px;top:50%;transform:translateY(-50%);width:44px;height:44px;background:#1e293b;border:1.5px solid #334155;color:#f1f5f9;font-size:20px;cursor:pointer;border-radius:50%;align-items:center;justify-content:center;line-height:1;font-weight:700;z-index:10;flex-shrink:0;">▶</button>
+  <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
+</div>
+
 <!-- HEADER -->
 <div id="hdr">
   <div id="hdr-in">
@@ -473,6 +525,7 @@ th,td{padding:8px 6px;}
     <button class="tab" onclick="switchTab('settings')">⚙️ Setări platformă</button>
     <button class="tab" onclick="switchTab('followup')">📋 Bălți Follow-up</button>
     <button class="tab" onclick="switchTab('moderare')" style="position:relative;">🛡️ Moderare<span id="moderare-pending-badge" class="tab-badge" style="display:none;"></span></button>
+    <button class="tab" onclick="switchTab('restaurare')">♻️ Restaurare rezervări</button>
   </div>
 
   <!-- BALTI PANEL -->
@@ -489,28 +542,17 @@ th,td{padding:8px 6px;}
       <button id="balti-search-clear" onclick="document.getElementById('balti-search').value='';renderBaltiTable();" title="Șterge căutarea"
         style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;line-height:1;padding:4px;">✕</button>
     </div>
-    <div class="se-sort-bar" style="align-items:center;">
-      <label style="font-size:12px;color:#4b5563;font-weight:700;letter-spacing:.04em;align-self:center;margin-right:2px;">SORTEAZĂ:</label>
-      <select id="balti-sort-field" onchange="renderBaltiTable()" style="background:#111827;border:1px solid #1e293b;color:#e2e8f0;font-size:13px;font-weight:600;padding:7px 10px;border-radius:8px;cursor:pointer;outline:none;">
-        <option value="nume">Alfabetic (nume)</option>
-        <option value="judet">Județ</option>
-        <option value="vizibilitate">Vizibilitate (Basic/Unlisted/Public)</option>
-        <option value="harta">Hartă (Da/Nu)</option>
-      </select>
-      <button class="se-sort-btn" onclick="setBaltiSortDir('asc')" id="balti-sort-asc" style="border-color:#38bdf8;color:#38bdf8;">🔼 Crescător</button>
-      <button class="se-sort-btn" onclick="setBaltiSortDir('desc')" id="balti-sort-desc">🔽 Descrescător</button>
-    </div>
     <div class="table-wrap">
       <table class="balti-table">
         <thead>
           <tr>
-            <th class="col-id">ID</th>
-            <th class="col-nume">Nume baltă</th>
-            <th class="col-judet">Județ</th>
-            <th class="col-standuri">Standuri</th>
-            <th class="col-harta">Hartă</th>
-            <th class="col-zodaid">Admin</th>
-            <th class="col-status">Status</th>
+            <th class="col-id" data-col="id" onclick="sorteazaBalti('id')" style="cursor:pointer;user-select:none;">ID<span id="balti-sort-id" class="balti-sort-ic"></span></th>
+            <th class="col-nume" data-col="nume" onclick="sorteazaBalti('nume')" style="cursor:pointer;user-select:none;">Nume baltă<span id="balti-sort-nume" class="balti-sort-ic"> ▲</span></th>
+            <th class="col-judet" data-col="judet" onclick="sorteazaBalti('judet')" style="cursor:pointer;user-select:none;">Județ<span id="balti-sort-judet" class="balti-sort-ic"></span></th>
+            <th class="col-standuri" data-col="standuri" onclick="sorteazaBalti('standuri')" style="cursor:pointer;user-select:none;">Standuri<span id="balti-sort-standuri" class="balti-sort-ic"></span></th>
+            <th class="col-harta" data-col="harta" onclick="sorteazaBalti('harta')" style="cursor:pointer;user-select:none;">Hartă<span id="balti-sort-harta" class="balti-sort-ic"></span></th>
+            <th class="col-zodaid" data-col="admin_zoda_id" onclick="sorteazaBalti('admin_zoda_id')" style="cursor:pointer;user-select:none;">Admin<span id="balti-sort-admin_zoda_id" class="balti-sort-ic"></span></th>
+            <th class="col-status" data-col="vizibilitate" onclick="sorteazaBalti('vizibilitate')" style="cursor:pointer;user-select:none;">Status<span id="balti-sort-vizibilitate" class="balti-sort-ic"></span></th>
             <th class="col-actiuni">Acțiuni</th>
           </tr>
         </thead>
@@ -556,6 +598,74 @@ th,td{padding:8px 6px;}
       <div class="balta-admin-card">
         <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">🏆 Top 10 bălți după vizite (în interval)</div>
         <div id="stats-top-balti">Se încarcă...</div>
+      </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">📅 Top bălți după rezervări (în interval)</div>
+        <div id="stats-top-balti-rezervari">Se încarcă...</div>
+      </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">📈 Statistici per baltă — toate bălțile</div>
+        <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Vizite și capturi sunt pe intervalul selectat mai sus; urmăritorii și standurile sunt numărul curent (nu depind de interval).</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <input type="text" id="stats-gen-balta-search" oninput="filtreazaStatsGeneralePerBalta()" placeholder="🔍 Caută baltă după nume..."
+            style="flex:1;min-width:180px;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+          <select id="stats-gen-viz-filter" onchange="filtreazaStatsGeneralePerBalta()"
+            style="background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;cursor:pointer;">
+            <option value="public">✅ Doar publice</option>
+            <option value="basic">🔍 Doar basic</option>
+            <option value="unlisted">🔒 Doar unlisted</option>
+            <option value="toate">Toate bălțile</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="users-table" id="stats-gen-per-balta-table">
+            <thead>
+              <tr>
+                <th class="stats-gen-th" data-col="balta_nume" onclick="sorteazaStatsGenerale('balta_nume')" style="cursor:pointer;user-select:none;">Baltă<span id="stats-gen-sort-balta_nume" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="judet" onclick="sorteazaStatsGenerale('judet')" style="cursor:pointer;user-select:none;">Județ<span id="stats-gen-sort-judet" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="vizite" onclick="sorteazaStatsGenerale('vizite')" style="cursor:pointer;user-select:none;">👁️ Vizite<span id="stats-gen-sort-vizite" class="stats-gen-sort-ic"> ▼</span></th>
+                <th class="stats-gen-th" data-col="urmaritori" onclick="sorteazaStatsGenerale('urmaritori')" style="cursor:pointer;user-select:none;">⭐ Urmăritori<span id="stats-gen-sort-urmaritori" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="capturi_trimise" onclick="sorteazaStatsGenerale('capturi_trimise')" style="cursor:pointer;user-select:none;">📸 Capturi trimise<span id="stats-gen-sort-capturi_trimise" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="capturi_aprobate" onclick="sorteazaStatsGenerale('capturi_aprobate')" style="cursor:pointer;user-select:none;">✅ Capturi aprobate<span id="stats-gen-sort-capturi_aprobate" class="stats-gen-sort-ic"></span></th>
+                <th class="stats-gen-th" data-col="standuri" onclick="sorteazaStatsGenerale('standuri')" style="cursor:pointer;user-select:none;">🎣 Standuri<span id="stats-gen-sort-standuri" class="stats-gen-sort-ic"></span></th>
+              </tr>
+            </thead>
+            <tbody id="stats-gen-per-balta-tbody">
+              <tr><td colspan="7" class="empty-state">Se încarcă...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:2px;">🎣 Rezervări online, per baltă (în interval)</div>
+        <div style="font-size:12.9px;color:#64748b;margin-bottom:10px;">Doar rezervări online (exclude cele adăugate manual de balta_admin) — câte au fost făcute, câte anulate și cine le-a anulat.</div>
+        <div style="position:relative;margin-bottom:10px;">
+          <input type="text" id="stats-rez-balta-search" oninput="filtreazaStatsRezPerBalta()" placeholder="🔍 Caută baltă după nume..."
+            style="width:100%;background:#0a0f1a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;color:#f1f5f9;font-size:14px;outline:none;"/>
+        </div>
+        <div class="table-wrap">
+          <table class="users-table" id="stats-rez-per-balta-table">
+            <thead>
+              <tr>
+                <th>Baltă</th>
+                <th>Online făcute</th>
+                <th>Confirmate</th>
+                <th>Anulate</th>
+                <th>↳ de client</th>
+                <th>↳ de baltă</th>
+                <th>Respinse</th>
+                <th>Neprezentări</th>
+              </tr>
+            </thead>
+            <tbody id="stats-rez-per-balta-tbody">
+              <tr><td colspan="8" class="empty-state">Se încarcă...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="balta-admin-card">
+        <div style="font-weight:800;font-size:15px;color:#e2e8f0;margin-bottom:10px;">🚫 Suspendări rezervări (cazier — vizibil doar aici)</div>
+        <div id="stats-suspendari">Se încarcă...</div>
       </div>
     </div>
   </div>
@@ -653,7 +763,7 @@ th,td{padding:8px 6px;}
         style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#4b5563;font-size:18px;cursor:pointer;line-height:1;padding:4px;">✕</button>
     </div>
     <div class="table-wrap">
-      <table class="users-table">
+      <table class="users-table users-list-table">
         <thead>
           <tr>
             <th class="col-email">Email / Username</th>
@@ -831,6 +941,39 @@ th,td{padding:8px 6px;}
     <div id="modg-panel-chat" style="display:none;"></div>
   </div>
 
+  <!-- PANEL RESTAURARE REZERVĂRI — doar zoda_admin (nu balta_admin — balta_admin
+       nu are și nu trebuie să aibă acces la fișierele de backup din R2, care
+       stau doar în Cloudflare, sub contul Zoda). Pereche a sistemului de
+       backup automat 2x/zi (fișiere JSON per baltă, scrise de un Worker
+       Cloudflare separat) — vezi `2026-09-03_backup_rezervari.sql` /
+       `2026-09-03_restaurare_rezervari.sql`. Autorizarea reală e verificată
+       ÎN RPC (`admin_restaureaza_rezervari`, cere `user_roles.rol='zoda_admin'`),
+       la fel ca toate RPC-urile admin-only de pe această pagină — tab-ul de
+       aici e doar interfața, nu „security by obscurity”. -->
+  <div id="panel-restaurare" style="display:none;">
+    <div class="section-title">♻️ Restaurare rezervări dintr-un backup</div>
+    <div style="font-size:13px;color:#94a3b8;margin-bottom:14px;max-width:640px;">
+      Alege balta și fișierul JSON de backup (descărcat din R2 — vezi
+      structura <code>backups/rezervari/&lt;id-baltă&gt;-&lt;nume&gt;/&lt;data&gt;.json</code>).
+      Sistemul adaugă ÎNAPOI doar rezervările care lipsesc acum — nu
+      suprascrie și nu atinge niciodată o rezervare care există deja.
+    </div>
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:10px;padding:16px;max-width:520px;">
+      <div class="fg">
+        <label>BALTA</label>
+        <select id="restaurare-balta-select" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+          <option value="">Se încarcă lista de bălți...</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>FIȘIER DE BACKUP (.json)</label>
+        <input type="file" accept="application/json,.json" id="restaurare-fisier-input" style="width:100%;color:#94a3b8;font-size:13px;">
+      </div>
+      <div id="restaurare-status" style="margin-top:8px;font-size:13px;color:#94a3b8;"></div>
+      <button id="restaurare-confirm-btn" type="button" style="display:none;margin-top:12px;background:#b45309;color:#fff;font-weight:700;font-size:14px;padding:9px 18px;border:none;border-radius:8px;cursor:pointer;">Confirmă restaurarea</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODAL ADAUGĂ/EDITEAZĂ RECLAMĂ -->
@@ -945,8 +1088,11 @@ th,td{padding:8px 6px;}
       <div class="fg">
         <label>LOGO (ideal PNG cu fundal transparent)</label>
         <div id="pt-img-preview" style="width:100%;height:100px;border-radius:10px;background:#0a0f1a;border:1.5px dashed #1e293b;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#4b5563;font-size:25px;margin-bottom:8px;">🖼️</div>
-        <label for="pt-img-input" style="display:inline-block;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">Alege logo</label>
-        <input type="file" id="pt-img-input" accept="image/*" style="display:none;" onchange="ptImgSelected(this)"/>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label for="pt-img-input" style="display:inline-block;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">Alege logo</label>
+          <button type="button" id="pt-recrop-btn" onclick="reopenPartenerCropper()" style="display:none;background:#1e293b;border:none;color:#94a3b8;font-size:13px;padding:8px 14px;border-radius:7px;cursor:pointer;">✂️ Reajustează încadrarea</button>
+        </div>
+        <input type="file" id="pt-img-input" accept="image/*" style="display:none;" onchange="onPartenerLogoFile(this)"/>
         <div id="pt-img-status" style="font-size:11px;color:#4b5563;margin-top:4px;"></div>
       </div>
 
@@ -963,6 +1109,28 @@ th,td{padding:8px 6px;}
       <div id="partener-err" style="display:none;background:#1c0a0a;border:1px solid #7f1d1d;color:#fca5a5;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px;"></div>
 
       <button onclick="savePartener()" id="partener-save-btn" style="background:#0c3a4d;border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;margin-top:6px;margin-bottom:20px;">💾 Salvează partenerul</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTENER LOGO CROP MODAL — poziționare/zoom, ca la avatar din cont.html -->
+<div id="modal-partener-crop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1800;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px;">
+  <div style="background:#111827;border:1px solid #1e293b;border-radius:20px;padding:22px;max-width:380px;width:100%;text-align:center;">
+    <div style="font-weight:900;font-size:18px;color:#f1f5f9;margin-bottom:4px;">Ajustează logo-ul</div>
+    <div style="font-size:13px;color:#64748b;margin-bottom:16px;">Trage pentru a poziționa, folosește sliderul pentru zoom. Zonele în șah rămân fundal transparent.</div>
+
+    <div id="pt-crop-stage" style="position:relative;width:320px;max-width:100%;height:124px;margin:0 auto 16px;border-radius:10px;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 0 0 3px #0c3a4d;background-color:#1f2937;background-image:linear-gradient(45deg,#374151 25%,transparent 25%),linear-gradient(-45deg,#374151 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#374151 75%),linear-gradient(-45deg,transparent 75%,#374151 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0px;">
+      <img id="pt-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="font-size:17px;color:#64748b;">🔍</span>
+      <input id="pt-crop-zoom" type="range" min="100" max="400" value="100" style="flex:1;accent-color:#38bdf8;" oninput="onPartenerCropZoom(this.value)"/>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="cancelPartenerCrop()" style="flex:1;padding:11px;border-radius:10px;border:1px solid #1e293b;background:transparent;color:#94a3b8;font-weight:700;cursor:pointer;">Anulează</button>
+      <button onclick="confirmPartenerCrop()" style="flex:1;padding:11px;border-radius:10px;border:none;background:#0c3a4d;color:#38bdf8;font-weight:700;cursor:pointer;">💾 Salvează</button>
     </div>
   </div>
 </div>
@@ -1060,6 +1228,12 @@ th,td{padding:8px 6px;}
             <button onclick="abDoSearch()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer;">🔍 Caută</button>
           </div>
           <div id="ab-search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:10px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;color:#4b5563;white-space:nowrap;">sau coordonate:</span>
+          <input id="ab-lat-input" type="text" inputmode="decimal" placeholder="lat (ex: 46.20388)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+          <input id="ab-lng-input" type="text" inputmode="decimal" placeholder="lng (ex: 27.12829)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+          <button onclick="abApplyManualCoords()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">✓ Aplică</button>
         </div>
         <div id="ab-map"></div>
         <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:13px;">
@@ -1236,7 +1410,7 @@ function closeConfirm() {
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['balti','users','mesaje','aprobari','capturi','ambasadori','reclame','statistici','settings','followup','moderare','restaurare'][i]===tab));
   const pB = document.getElementById('panel-balti');      if(pB) pB.style.display      = tab==='balti'      ? 'block' : 'none';
   const pST= document.getElementById('panel-statistici'); if(pST) pST.style.display    = tab==='statistici' ? 'block' : 'none';
   const pA = document.getElementById('panel-aprobari');   if(pA) pA.style.display      = tab==='aprobari'   ? 'block' : 'none';
@@ -1248,6 +1422,7 @@ function switchTab(tab) {
   const pM = document.getElementById('panel-mesaje');     if(pM) pM.style.display      = tab==='mesaje'     ? 'block' : 'none';
   const pFU= document.getElementById('panel-followup');   if(pFU) pFU.style.display    = tab==='followup'   ? 'block' : 'none';
   const pMD= document.getElementById('panel-moderare');   if(pMD) pMD.style.display    = tab==='moderare'   ? 'block' : 'none';
+  const pRS= document.getElementById('panel-restaurare'); if(pRS) pRS.style.display    = tab==='restaurare' ? 'block' : 'none';
   if(tab==='statistici') { setStatsInterval(30); }
   if(tab==='aprobari') loadAprobari();
   if(tab==='users')    loadUsers();
@@ -1258,6 +1433,118 @@ function switchTab(tab) {
   if(tab==='mesaje')   loadMesaje();
   if(tab==='followup') loadFollowup();
   if(tab==='moderare') switchModerareGlobalaTab('raportari');
+  if(tab==='restaurare') loadRestaurarePanel();
+}
+
+// ── RESTAURARE REZERVĂRI (zoda_admin) ──────────────────────────────────────
+// Pereche a backup-ului automat 2x/zi (Worker Cloudflare separat, scrie
+// câte un JSON per baltă în R2). Mutat aici, NU în `rezervari-admin.html`
+// (panoul balta_admin), la cererea explicită a lui Marian: „nu o sa urce
+// niciun balta admin vreodata vreun fisier pentru restaurare pentru ca nu
+// au acces [la R2]. Restaurarea o pastram doar la nivel de zoda_admin.”
+// Autorizarea reală vine din RPC (`admin_restaureaza_rezervari` cere
+// `user_roles.rol='zoda_admin'`) — acest tab e vizibil doar aici pentru că
+// toată pagina `admin.html` e deja gated la zoda_admin, la fel ca restul
+// tab-urilor (Moderare, Setări platformă etc.).
+var _restaurareBackupCurent = null;
+
+async function loadRestaurarePanel() {
+  _restaurareBackupCurent = null;
+  var sel = document.getElementById('restaurare-balta-select');
+  var status = document.getElementById('restaurare-status');
+  var btnConfirm = document.getElementById('restaurare-confirm-btn');
+  var fileInput = document.getElementById('restaurare-fisier-input');
+  status.innerHTML = '';
+  btnConfirm.style.display = 'none';
+  fileInput.value = '';
+
+  try {
+    const { data, error } = await sb.from('balti').select('id, nume').order('nume');
+    if (error) throw error;
+    sel.innerHTML = (data || []).map(b => `<option value="${b.id}">${escH(b.nume)} (#${b.id})</option>`).join('')
+      || '<option value="">Nicio baltă găsită</option>';
+  } catch (e) {
+    sel.innerHTML = '<option value="">Eroare la încărcarea bălților</option>';
+  }
+
+  fileInput.onchange = async function (e) {
+    var fisier = e.target.files && e.target.files[0];
+    btnConfirm.style.display = 'none';
+    _restaurareBackupCurent = null;
+    if (!fisier) { status.innerHTML = ''; return; }
+
+    status.innerHTML = '<span>Se citește fișierul...</span>';
+    var backup;
+    try {
+      var text = await fisier.text();
+      backup = JSON.parse(text);
+    } catch (err) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Fișierul nu e un JSON valid.</span>';
+      return;
+    }
+    if (!backup || !Array.isArray(backup.rezervari)) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Nu recunosc structura acestui fișier — alege un fișier de backup generat de sistemul de backup automat.</span>';
+      return;
+    }
+
+    var baltaAleasaId = parseInt(sel.value, 10);
+    if (!baltaAleasaId) {
+      status.innerHTML = '<span style="color:#f59e0b;">⚠️ Alege mai întâi balta.</span>';
+      return;
+    }
+
+    var avertismentBalta = '';
+    if (backup.balta_id != null && backup.balta_id !== baltaAleasaId) {
+      avertismentBalta = `<div style="color:#f59e0b;margin-bottom:8px;">⚠️ Acest fișier pare să fie backup-ul altei bălți (${escH(backup.balta_nume || ('#' + backup.balta_id))}), nu al celei selectate. Orice rezervare care nu aparține de fapt bălții alese va fi exclusă automat, nu va fi adăugată.</div>`;
+    }
+
+    status.innerHTML = avertismentBalta + '<span>Se verifică ce lipsește (previzualizare — nu se scrie nimic încă)...</span>';
+    try {
+      const { data, error } = await sb.rpc('admin_restaureaza_rezervari', {
+        p_balta_id: baltaAleasaId, p_rezervari: backup.rezervari, p_doar_previzualizare: true
+      });
+      if (error) throw error;
+      var r = (data || [])[0] || { total_in_fisier: 0, apartin_altei_balti: 0, deja_existente: 0, restaurate: 0 };
+      var deAdaugat = r.total_in_fisier - r.apartin_altei_balti - r.deja_existente;
+
+      var rezumat = avertismentBalta +
+        `<div>Fișier: <b>${r.total_in_fisier}</b> rezervări${backup.generat_la ? ' (generat ' + new Date(backup.generat_la).toLocaleString('ro-RO') + ')' : ''}.</div>` +
+        `<div>Deja există în baza de date: <b>${r.deja_existente}</b> (rămân neatinse).</div>` +
+        (r.apartin_altei_balti > 0 ? `<div>Nu aparțin bălții alese: <b>${r.apartin_altei_balti}</b> (excluse).</div>` : '');
+
+      if (deAdaugat > 0) {
+        status.innerHTML = rezumat + `<div style="margin-top:6px;font-weight:700;color:#f59e0b;">→ ${deAdaugat} rezervări lipsă, gata de restaurat.</div>`;
+        _restaurareBackupCurent = { balta_id: baltaAleasaId, rezervari: backup.rezervari };
+        btnConfirm.textContent = `Confirmă restaurarea (${deAdaugat})`;
+        btnConfirm.style.display = 'inline-block';
+      } else {
+        status.innerHTML = rezumat + '<div style="margin-top:6px;color:#4ade80;">✓ Nimic de restaurat — toate rezervările din fișier există deja.</div>';
+      }
+    } catch (err) {
+      status.innerHTML = `<span style="color:#f59e0b;">⚠️ ${escH(err.message || 'Eroare la verificare.')}</span>`;
+    }
+  };
+
+  btnConfirm.onclick = async function () {
+    if (!_restaurareBackupCurent) return;
+    var btnEl = this;
+    btnEl.disabled = true; btnEl.textContent = 'Se restaurează...';
+    try {
+      const { data, error } = await sb.rpc('admin_restaureaza_rezervari', {
+        p_balta_id: _restaurareBackupCurent.balta_id, p_rezervari: _restaurareBackupCurent.rezervari, p_doar_previzualizare: false
+      });
+      if (error) throw error;
+      var r = (data || [])[0] || { restaurate: 0 };
+      status.innerHTML = `<div style="color:#4ade80;font-weight:700;">✓ ${r.restaurate} rezervări restaurate cu succes.</div>`;
+      showToast(`✓ ${r.restaurate} rezervări restaurate.`);
+      btnEl.style.display = 'none';
+      _restaurareBackupCurent = null;
+      fileInput.value = '';
+    } catch (err) {
+      showToast(err.message || 'Eroare la restaurare.', true);
+      btnEl.disabled = false; btnEl.textContent = 'Confirmă restaurarea';
+    }
+  };
 }
 
 // ── MODERARE GLOBALĂ (zoda_admin) — raportări/blocări/banuri, cross-baltă ──
@@ -1973,7 +2260,7 @@ async function genereazaRaportBalta(id) {
       ['Stare curenta', roAscii(b.vizibilitate)],
       ['Total vizite (all-time)', String(b.vizite || (viziteRows||[]).length)],
       ['Standuri', String(standuriTotal)],
-      ['Standuri cu record stabilit', String(standuriCuRecord)],
+      ['Standuri cu ultima captura afisata', String(standuriCuRecord)],
       ['Poze generale', String(pozeGenerale||0)],
       ['Capturi trimise (total)', String(capturiTotal||0)],
       ['Capturi aprobate (total)', String(capturiAprobate||0)],
@@ -2049,14 +2336,114 @@ function setStatsInterval(days) {
   loadStatistici();
 }
 
+// Input-urile <input type="date"> dau doar 'YYYY-MM-DD', fără fus orar.
+// Trimis ca atare, Postgres interpretează string-ul ca UTC, nu ca miezul
+// nopții românesc — la marginile intervalului lipseau/apăreau în plus 2-3h
+// de date (decalajul UTC+2/+3 al României). Construim explicit miezul nopții
+// LOCAL (fusul browserului, în practică al României) și-l convertim corect
+// în UTC prin toISOString(); `plusZile` mută data cu N zile înainte de asta
+// (folosit pentru limita de sus, ca "începutul zilei URMĂTOARE", exclusivă —
+// nu mai depinde deloc de fus la marginea zilei, spre deosebire de vechiul
+// 'T23:59:59').
+function inceputZiuaLocala(dataStr, plusZile) {
+  const [y, m, d] = dataStr.split('-').map(Number);
+  return new Date(y, m - 1, d + (plusZile || 0), 0, 0, 0, 0).toISOString();
+}
+
+// Rezultatul brut al admin_statistici_rezervari_per_balta, păstrat aici ca să
+// putem filtra local (căutare după nume) fără să reinterogăm serverul la
+// fiecare literă tastată.
+let _statsRezPerBaltaData = [];
+function filtreazaStatsRezPerBalta() {
+  const q = (document.getElementById('stats-rez-balta-search')?.value || '').toLowerCase().trim();
+  const rows = q ? _statsRezPerBaltaData.filter(r => (r.balta_nume||'').toLowerCase().includes(q)) : _statsRezPerBaltaData;
+  const tbody = document.getElementById('stats-rez-per-balta-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${_statsRezPerBaltaData.length ? 'Nicio baltă nu se potrivește căutării.' : 'Nicio rezervare online în acest interval.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${escH(r.balta_nume || ('Baltă #'+r.balta_id))}</td>
+      <td style="font-weight:800;color:#38bdf8;">${r.total_online}</td>
+      <td>${r.confirmate}</td>
+      <td>${r.anulate}</td>
+      <td>${r.anulate_de_client}</td>
+      <td>${r.anulate_de_balta}</td>
+      <td>${r.respinse}</td>
+      <td>${r.neprezentari}</td>
+    </tr>`).join('');
+}
+
+// Rezultatul brut al admin_statistici_generale_per_balta (vizite/urmăritori/
+// capturi/standuri, TOATE bălțile), păstrat local pentru filtrare + sortare
+// instant, fără reinterogare. Implicit: doar bălțile publice (cerere
+// explicită — restul (basic/unlisted) doar la cerere, din dropdown), sortat
+// după vizite descrescător (aceeași ordine cu care vine deja din RPC).
+let _statsGeneralePerBaltaData = [];
+let _statsGenSortCol = 'vizite';
+let _statsGenSortDir = 'desc';
+const STATS_GEN_COLOANE_TEXT = new Set(['balta_nume', 'judet']); // restul sunt numerice
+
+function sorteazaStatsGenerale(col) {
+  if (_statsGenSortCol === col) {
+    _statsGenSortDir = _statsGenSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    _statsGenSortCol = col;
+    // Text -> crescător (A-Z) implicit; numeric -> descrescător (cele mai
+    // mari primele) implicit, ambele cele mai utile la primul click.
+    _statsGenSortDir = STATS_GEN_COLOANE_TEXT.has(col) ? 'asc' : 'desc';
+  }
+  document.querySelectorAll('.stats-gen-sort-ic').forEach(el => el.textContent = '');
+  const ic = document.getElementById('stats-gen-sort-' + col);
+  if (ic) ic.textContent = _statsGenSortDir === 'desc' ? ' ▼' : ' ▲';
+  filtreazaStatsGeneralePerBalta();
+}
+
+function filtreazaStatsGeneralePerBalta() {
+  const q = (document.getElementById('stats-gen-balta-search')?.value || '').toLowerCase().trim();
+  const vizFiltru = document.getElementById('stats-gen-viz-filter')?.value || 'public';
+  let rows = _statsGeneralePerBaltaData;
+  if (vizFiltru !== 'toate') rows = rows.filter(r => r.vizibilitate === vizFiltru);
+  if (q) rows = rows.filter(r => (r.balta_nume||'').toLowerCase().includes(q));
+
+  const col = _statsGenSortCol, dir = _statsGenSortDir;
+  const esteText = STATS_GEN_COLOANE_TEXT.has(col);
+  rows = rows.slice().sort((a, b) => {
+    let cmp;
+    if (esteText) cmp = String(a[col]||'').localeCompare(String(b[col]||''), 'ro');
+    else cmp = (a[col]||0) - (b[col]||0);
+    return dir === 'desc' ? -cmp : cmp;
+  });
+
+  const tbody = document.getElementById('stats-gen-per-balta-tbody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${_statsGeneralePerBaltaData.length ? 'Nicio baltă nu se potrivește filtrelor.' : 'Nicio baltă găsită.'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${escH(r.balta_nume || ('Baltă #'+r.balta_id))}</td>
+      <td style="color:#64748b;">${escH(r.judet||'—')}</td>
+      <td style="font-weight:800;color:#38bdf8;">${r.vizite}</td>
+      <td>${r.urmaritori}</td>
+      <td>${r.capturi_trimise}</td>
+      <td>${r.capturi_aprobate}</td>
+      <td>${r.standuri}</td>
+    </tr>`).join('');
+}
+
 async function loadStatistici() {
   const grid = document.getElementById('stats-grid');
   const topEl = document.getElementById('stats-top-balti');
   grid.innerHTML = '<div class="empty-state">Se încarcă...</div>';
 
-  const deLa = document.getElementById('stats-de-la').value || '2020-01-01';
-  const panaLa = document.getElementById('stats-pana-la').value || dataLocalaAzi();
-  const panaLaExclusiv = panaLa + 'T23:59:59';
+  const deLaStr = document.getElementById('stats-de-la').value || '2020-01-01';
+  const panaLaStr = document.getElementById('stats-pana-la').value || dataLocalaAzi();
+  const deLa = inceputZiuaLocala(deLaStr);
+  const panaLaExclusiv = inceputZiuaLocala(panaLaStr, 1); // începutul zilei următoare, exclusiv
 
   const [
     { count: useriNoi },
@@ -2064,24 +2451,34 @@ async function loadStatistici() {
     { count: capturiAprobate },
     { count: capturiRespinse },
     { data: cereriData },
-    { data: vizite },
+    { count: totalVizite },
     { count: totalPublic },
     { count: totalBasic },
     { count: totalUnlisted },
+    { data: statsRezervari },
   ] = await Promise.all([
-    sb.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','approved').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','rejected').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('notificari').select('meta').eq('tip','cerere_publicare_balta').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
-    sb.from('vizite_log').select('balta_id').gte('created_at', deLa).lte('created_at', panaLaExclusiv),
+    sb.from('user_profiles').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','approved').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('capturi').select('id', { count: 'exact', head: true }).eq('status','rejected').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    sb.from('notificari').select('meta').eq('tip','cerere_publicare_balta').gte('created_at', deLa).lt('created_at', panaLaExclusiv),
+    // 'count: exact, head: true' cere lui Postgres un COUNT(*) separat, exact —
+    // spre deosebire de un SELECT normal (limitat implicit la 1000 de rânduri
+    // de Supabase, indiferent câte există real — de-aici cifra suspect de
+    // rotundă "1000" pe care o vedea Marian). Un count exact nu transferă
+    // niciun rând, deci nu e afectat de limita aia.
+    sb.from('vizite_log').select('balta_id', { count: 'exact', head: true }).gte('created_at', deLa).lt('created_at', panaLaExclusiv),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','public'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','basic'),
     sb.from('balti').select('id', { count: 'exact', head: true }).eq('vizibilitate','unlisted'),
+    // Rezervările au RLS fără policy pt. client — acces doar prin RPC-uri
+    // admin-only (verifică zoda_admin în interior). Vezi rezervari.js pentru
+    // fluxul pescar/balta_admin; astea sunt doar agregate, la nivel de platformă.
+    sb.rpc('admin_statistici_rezervari', { p_de_la: deLa, p_pana_la: panaLaExclusiv }),
   ]);
+  const rezStats = (statsRezervari && statsRezervari[0]) || { total_cereri:0, confirmate:0, respinse:0, anulate:0, neprezentari:0 };
 
   const cereriUnice = new Set((cereriData||[]).map(c => c.meta?.balta_id)).size;
-  const totalVizite = (vizite||[]).length;
   const rataAprobare = capturiTrimise > 0 ? Math.round((capturiAprobate/capturiTrimise)*100) : 0;
 
   const cards = [
@@ -2095,6 +2492,10 @@ async function loadStatistici() {
     { label: '✅ Bălți publice (acum)', val: totalPublic||0 },
     { label: '🔍 Bălți basic (acum)', val: totalBasic||0 },
     { label: '🔒 Bălți unlisted (acum)', val: totalUnlisted||0 },
+    { label: '📅 Cereri rezervare', val: rezStats.total_cereri||0 },
+    { label: '✅ Rezervări confirmate', val: rezStats.confirmate||0 },
+    { label: '✕ Rezervări respinse', val: rezStats.respinse||0 },
+    { label: '🚫 Neprezentări', val: rezStats.neprezentari||0 },
   ];
   grid.innerHTML = cards.map(c => `
     <div class="balta-admin-card" style="text-align:center;padding:16px 10px;">
@@ -2102,25 +2503,92 @@ async function loadStatistici() {
       <div style="font-size:12.9px;color:#94a3b8;margin-top:4px;">${c.label}</div>
     </div>`).join('');
 
-  // Top 10 bălți dupa vizite in interval
-  const countByBalta = {};
-  (vizite||[]).forEach(v => { countByBalta[v.balta_id] = (countByBalta[v.balta_id]||0) + 1; });
-  const topIds = Object.entries(countByBalta).sort((a,b) => b[1]-a[1]).slice(0,10);
-  if (!topIds.length) {
+  // Top 10 bălți după vizite în interval — agregat direct în SQL (GROUP BY),
+  // nu mai citim rândurile brute din vizite_log în client (vezi nota de la
+  // fetch-ul de mai sus: peste 1000 de vizite reale, un top calculat pe un
+  // eșantion trunchiat și fără ordine garantată dădea clasamente absurde —
+  // ex. mai multe vizite afișate pe 7 zile decât pe 30 de zile pentru
+  // aceeași baltă. Un GROUP BY în Postgres nu are limita asta.
+  const { data: topVizite, error: topViziteErr } = await sb.rpc('admin_top_balti_vizite', { p_de_la: deLa, p_pana_la: panaLaExclusiv, p_limita: 10 });
+  if (topViziteErr) {
+    topEl.innerHTML = `<div style="color:#f87171;font-size:13px;">⚠️ ${escH(topViziteErr.message)}</div>`;
+  } else if (!topVizite || !topVizite.length) {
     topEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Nicio vizită înregistrată în acest interval.</div>';
-    return;
+  } else {
+    const { data: baltiNume } = await sb.from('balti').select('id,nume,judet').in('id', topVizite.map(t => t.balta_id));
+    const numeMap = {};
+    (baltiNume||[]).forEach(b => { numeMap[b.id] = b; });
+    topEl.innerHTML = topVizite.map((t, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMap[t.balta_id]?.nume || 'Baltă #'+t.balta_id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMap[t.balta_id]?.judet||'')}</span></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-weight:800;color:#38bdf8;font-size:15px;">${t.nr_vizite}</div>
+          <button onclick="genereazaRaportBalta(${t.balta_id})" title="Descarcă raport PDF" style="background:transparent;border:1px solid #1e293b;color:#94a3b8;font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;">📄</button>
+        </div>
+      </div>`).join('');
   }
-  const { data: baltiNume } = await sb.from('balti').select('id,nume,judet').in('id', topIds.map(t => +t[0]));
-  const numeMap = {};
-  (baltiNume||[]).forEach(b => { numeMap[b.id] = b; });
-  topEl.innerHTML = topIds.map(([id, count], i) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
-      <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMap[id]?.nume || 'Baltă #'+id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMap[id]?.judet||'')}</span></div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-weight:800;color:#38bdf8;font-size:15px;">${count}</div>
-        <button onclick="genereazaRaportBalta(${id})" title="Descarcă raport PDF" style="background:transparent;border:1px solid #1e293b;color:#94a3b8;font-size:12px;padding:5px 8px;border-radius:6px;cursor:pointer;">📄</button>
-      </div>
-    </div>`).join('');
+
+  // Statistici generale, pentru FIECARE baltă (vizite/urmăritori/capturi/
+  // standuri) — agregate direct în SQL, aceeași rațiune ca la top-ul de mai
+  // sus.
+  const { data: statsGenerale, error: statsGeneraleErr } = await sb.rpc('admin_statistici_generale_per_balta', { p_de_la: deLa, p_pana_la: panaLaExclusiv });
+  const tbodyGen = document.getElementById('stats-gen-per-balta-tbody');
+  if (statsGeneraleErr) {
+    _statsGeneralePerBaltaData = [];
+    tbodyGen.innerHTML = `<tr><td colspan="7" class="empty-state">⚠️ ${escH(statsGeneraleErr.message)}</td></tr>`;
+  } else {
+    _statsGeneralePerBaltaData = statsGenerale || [];
+    filtreazaStatsGeneralePerBalta();
+  }
+
+  // Top bălți după rezervări în interval — RPC admin-only (rezervari are RLS
+  // fără policy pt. client, vezi migrarea de rezervări).
+  const topRezEl = document.getElementById('stats-top-balti-rezervari');
+  const { data: topRez } = await sb.rpc('admin_top_balti_rezervari', { p_de_la: deLa, p_pana_la: panaLaExclusiv, p_limita: 10 });
+  if (!topRez || !topRez.length) {
+    topRezEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Nicio rezervare creată în acest interval.</div>';
+  } else {
+    const { data: baltiNumeRez } = await sb.from('balti').select('id,nume,judet').in('id', topRez.map(t => t.balta_id));
+    const numeMapRez = {};
+    (baltiNumeRez||[]).forEach(b => { numeMapRez[b.id] = b; });
+    topRezEl.innerHTML = topRez.map((t, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${i+1}. ${escH(numeMapRez[t.balta_id]?.nume || 'Baltă #'+t.balta_id)} <span style="color:#4b5563;font-size:12.9px;">· ${escH(numeMapRez[t.balta_id]?.judet||'')}</span></div>
+        <div style="font-weight:800;color:#38bdf8;font-size:15px;">${t.nr_rezervari}</div>
+      </div>`).join('');
+  }
+
+  // Rezervări online, detaliat pe FIECARE baltă cu activitate în interval
+  // (nu doar top 10) — strict online (sursa <> 'manual_admin', filtrat deja
+  // în RPC), cu breakdown pe status + cine a anulat (client/balta_admin).
+  const { data: statsPerBalta, error: statsPerBaltaErr } = await sb.rpc('admin_statistici_rezervari_per_balta', { p_de_la: deLa, p_pana_la: panaLaExclusiv });
+  const tbodyPB = document.getElementById('stats-rez-per-balta-tbody');
+  if (statsPerBaltaErr) {
+    _statsRezPerBaltaData = [];
+    tbodyPB.innerHTML = `<tr><td colspan="8" class="empty-state">⚠️ ${escH(statsPerBaltaErr.message)}</td></tr>`;
+  } else {
+    _statsRezPerBaltaData = statsPerBalta || [];
+    filtreazaStatsRezPerBalta();
+  }
+
+  // Cazier suspendări — vizibil doar aici (admin.html = zoda_admin only,
+  // verificat deja în bootAdmin()). Niciodată în cont.html / balta_admin.
+  const suspEl = document.getElementById('stats-suspendari');
+  const { data: suspendari, error: suspErr } = await sb.rpc('admin_listeaza_suspendari');
+  if (suspErr) {
+    suspEl.innerHTML = `<div style="color:#f87171;font-size:13px;">⚠️ ${escH(suspErr.message)}</div>`;
+  } else if (!suspendari || !suspendari.length) {
+    suspEl.innerHTML = '<div style="color:#4b5563;font-size:14px;">Niciun pescar suspendat până acum.</div>';
+  } else {
+    suspEl.innerHTML = suspendari.map((s, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;${i>0?'border-top:1px solid #1e293b;':''}">
+        <div style="font-size:15px;color:#e2e8f0;">${escH(s.username||'—')} <span style="color:#4b5563;font-size:12.9px;">· ${escH(s.zoda_id||'')}</span></div>
+        <div style="text-align:right;">
+          <div style="font-size:12.9px;color:#94a3b8;">${new Date(s.data_start).toLocaleDateString('ro-RO')} → ${new Date(s.data_sfarsit).toLocaleDateString('ro-RO')}</div>
+          <div style="font-size:11px;font-weight:700;color:${s.activa?'#f87171':'#4b5563'};">${s.activa ? '● activă' : '○ expirată'}</div>
+        </div>
+      </div>`).join('');
+  }
 }
 
 async function loadAprobari() {
@@ -2226,7 +2694,7 @@ async function loadCapturi() {
 
   const filter = document.getElementById('capturi-filter')?.value || 'pending';
   let query = sb.from('capturi')
-    .select('*, standuri(nume), balti(nume, judet)')
+    .select('*, standuri!stand_id(nume), balti(nume, judet)')
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -2276,7 +2744,7 @@ async function loadCapturi() {
     <div class="captura-card" id="cc-${c.id}">
       <div class="captura-card-hdr">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">${escHtml(c.pescar_nume||'—')} — ${c.kg} kg</div>
+          <div style="font-size:15px;font-weight:800;color:#f1f5f9;">${escHtml(c.pescar_nume||'—')} — ${c.kg}${c.foto_dovada_url ? '' : ' (aprox.)'} kg</div>
           <div style="font-size:12px;color:#4b5563;margin-top:2px;">
             📍 ${escHtml(c.balti?.nume||'—')} · Stand: ${escHtml(c.standuri?.nume||'—')} · ${c.data_captura||'—'}
           </div>
@@ -2291,12 +2759,12 @@ async function loadCapturi() {
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
           <span style="font-size:12px;font-weight:700;color:${statusColor};">${statusLabel}</span>
-          <div style="font-size:25px;font-weight:900;color:#38bdf8;">${c.kg} kg</div>
+          <div style="font-size:25px;font-weight:900;color:#38bdf8;">${c.kg}${c.foto_dovada_url ? '' : ' (aprox.)'} kg</div>
         </div>
       </div>
       <div class="captura-card-media">
-        ${c.foto_url ? `<img src="${c.foto_url}" class="captura-foto-thumb" alt="captură" onclick="window.open('${c.foto_url}','_blank')" title="Click pentru a mări"/>` : '<div class="captura-foto-empty">📷</div>'}
-        ${c.foto_dovada_url ? `<div style="position:relative;"><img src="${c.foto_dovada_url}" class="captura-foto-thumb" alt="dovadă captură" onclick="window.open('${c.foto_dovada_url}','_blank')" title="Click pentru a mări — dovadă captură (cântar)"/><div style="position:absolute;bottom:2px;left:2px;right:2px;background:rgba(0,0,0,.7);color:#38bdf8;font-size:9.5px;font-weight:700;text-align:center;border-radius:4px;padding:1px 0;">⚖️ Dovadă</div></div>` : ''}
+        ${c.foto_url ? `<img src="${c.foto_url}" class="captura-foto-thumb" alt="captură" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 0)}" title="Click pentru a mări"/>` : '<div class="captura-foto-empty">📷</div>'}
+        ${c.foto_dovada_url ? `<div style="position:relative;"><img src="${c.foto_dovada_url}" class="captura-foto-thumb" alt="dovadă captură" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 1)}" title="Click pentru a mări — dovadă captură (cântar)"/><div style="position:absolute;bottom:2px;left:2px;right:2px;background:rgba(0,0,0,.7);color:#38bdf8;font-size:9.5px;font-weight:700;text-align:center;border-radius:4px;padding:1px 0;">⚖️ Dovadă</div></div>` : ''}
         ${c.video_url && !c.video_deleted ? `<div class="captura-video-btn" onclick="openVideoAdmin('${escHtml(c.video_url)}', ${c.id})">▶ Vezi videoclip dovadă</div>` : (c.video_url && c.video_deleted ? '<div style="font-size:12px;color:#334155;padding:8px;">Video șters</div>' : '')}
       </div>
       ${c.rejected_reason ? `<div style="background:#7f1d1d;border:1px solid #ef4444;border-radius:8px;padding:8px 12px;font-size:12px;color:#fca5a5;margin-top:8px;">Motiv respingere: ${escHtml(c.rejected_reason)}</div>` : ''}
@@ -2453,15 +2921,12 @@ async function adminAproba(capturaId) {
   if (error) { showToast('❌ Eroare: ' + error.message, true); if (btn) { btn.disabled = false; btn.textContent = '✅ Aprobă'; } return; }
 
   const r = data;
-  if (r.sters) {
-    showToast('ℹ️ Captura nu se încadrează la niciun record — a fost eliminată.');
-  } else {
-    let msg = '✅ Captură aprobată!';
-    if (r.record_nou)    msg += ' 🏆 Record nou!';
-    if (r.top10_alltime) msg += ` 🥇 Top ${r.rank_alltime} All Time!`;
-    if (r.top10_lunar)   msg += ` 📅 Top ${r.rank_lunar} Lunar!`;
-    showToast(msg);
+  if (r?.eroare) {
+    showToast('❌ ' + r.eroare, true);
+    if (btn) { btn.disabled = false; btn.textContent = '✅ Aprobă'; }
+    return;
   }
+  showToast(r?.stea_noua ? '✅ Captură aprobată! ⭐ Stea nouă pentru pescar pe acest stand.' : '✅ Captură aprobată!');
   await loadCapturi();
 }
 
@@ -2594,7 +3059,7 @@ async function loadAmbasadori() {
             <div style="font-size:12px;color:#64748b;margin-top:2px;">👤 Ambasador: ${numeAmbasador(s.ambasador_zoda_id)} · ${new Date(s.created_at).toLocaleString('ro-RO')}</div>
           </div>
         </div>
-        ${s.foto_url ? `<img src="${escHtml(s.foto_url)}" style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;display:block;"/>` : ''}
+        ${s.foto_url ? `<img src="${escHtml(s.foto_url)}" style="width:100%;max-width:320px;border-radius:8px;margin-bottom:10px;display:block;cursor:zoom-in;" onclick="openFS('${escHtml(s.foto_url).replace(/'/g, "\\'")}')"/>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:#94a3b8;margin-bottom:12px;">
           ${s.nume != null ? `<div><span style="color:#4b5563;">Nume:</span> ${escHtml(s.nume)}</div>` : ''}
           ${s.distanta != null ? `<div><span style="color:#4b5563;">Distanță:</span> ${s.distanta} m</div>` : ''}
@@ -2747,7 +3212,7 @@ async function ambAssignConfirm(baltaId, baltaNume) {
 // ── VIEW-ONLY ISTORIC ──────────────────────────────────────────────────────
 async function openViewCaptura(capturaId) {
   const { data: c, error } = await sb.from('capturi')
-    .select('*, standuri(nume), balti(nume, judet)')
+    .select('*, standuri!stand_id(nume), balti(nume, judet)')
     .eq('id', capturaId)
     .single();
   if (error || !c) { showToast('❌ Nu s-a putut încărca captura.', true); return; }
@@ -2781,11 +3246,11 @@ async function openViewCaptura(capturaId) {
         <div style="font-size:17px;font-weight:800;color:#f1f5f9;">👁️ Detalii captură (view-only)</div>
         <button onclick="document.getElementById('view-captura-overlay').remove()" style="background:transparent;border:none;color:#64748b;font-size:22px;cursor:pointer;line-height:1;">✕</button>
       </div>
-      ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;border-radius:10px;margin-bottom:12px;cursor:zoom-in;" onclick="window.open('${c.foto_url}','_blank')"/>` : ''}
+      ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;border-radius:10px;margin-bottom:12px;cursor:zoom-in;" onclick="${buildFotoClickCaptura(c.foto_url, c.foto_dovada_url, 0)}"/>` : ''}
       ${c.video_url && !c.video_deleted ? `<div class="captura-video-btn" onclick="openVideoAdmin('${escHtml(c.video_url)}', ${c.id})" style="margin-bottom:12px;">▶ Vezi videoclip dovadă</div>` : (c.video_url && c.video_deleted ? '<div style="font-size:12px;color:#334155;margin-bottom:12px;">Video șters</div>' : '')}
       <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#94a3b8;">
         <div><strong style="color:#f1f5f9;">Pescar:</strong> ${escHtml(c.pescar_nume||'—')} ${c.pescar_id ? '('+escHtml(c.pescar_id)+')' : ''}</div>
-        <div><strong style="color:#f1f5f9;">Greutate:</strong> ${c.kg} kg</div>
+        <div><strong style="color:#f1f5f9;">Greutate:</strong> ${c.kg} kg${c.foto_dovada_url ? '' : ' (aproximativă — fără poză dovadă)'}</div>
         <div><strong style="color:#f1f5f9;">Baltă:</strong> ${escHtml(c.balti?.nume||'—')}</div>
         <div><strong style="color:#f1f5f9;">Stand:</strong> ${escHtml(c.standuri?.nume||'—')}</div>
         <div><strong style="color:#f1f5f9;">Data capturii:</strong> ${c.data_captura||'—'}</div>
@@ -3211,6 +3676,7 @@ function ptResetForm() {
   document.getElementById('pt-sort').value = '0';
   document.getElementById('pt-img-preview').innerHTML = '🖼️';
   document.getElementById('pt-img-status').textContent = '';
+  document.getElementById('pt-recrop-btn').style.display = 'none';
   document.getElementById('partener-err').style.display = 'none';
 }
 
@@ -3232,6 +3698,7 @@ function openEditPartener(id) {
   document.getElementById('pt-link').value = p.link || '';
   document.getElementById('pt-sort').value = p.sort_order || 0;
   document.getElementById('pt-img-preview').innerHTML = p.logo_url ? `<img src="${p.logo_url}" style="width:100%;height:100%;object-fit:contain;"/>` : '🖼️';
+  document.getElementById('pt-recrop-btn').style.display = p.logo_url ? 'inline-block' : 'none';
   document.getElementById('partener-modal').style.display = 'flex';
 }
 
@@ -3241,6 +3708,7 @@ function closePartenerModal() {
 
 // Resize care păstrează transparența PNG (spre deosebire de resizeImage(), care
 // convertește mereu la JPEG — bun pentru poze de captură, rău pentru logo-uri).
+// Rămâne ca plasă de siguranță pentru cazul (rar) în care cropper-ul nu apucă să ruleze.
 function resizePartnerLogo(file, maxSize) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -3267,22 +3735,146 @@ function resizePartnerLogo(file, maxSize) {
   });
 }
 
-async function ptImgSelected(input) {
+// ── LOGO PARTENER — crop/poziționare/zoom, exact ca la avatar din cont.html ──
+let _ptCrop = { imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+const PT_STAGE_W = 320, PT_STAGE_H = 124; // px, trebuie sa corespunda cu #pt-crop-stage din HTML (raport 88:34 — chenarul lat din footer, Varianta A)
+
+function onPartenerLogoFile(input) {
   const file = input.files[0];
-  if(!file) return;
-  ptImgFile = file;
+  if (!file) return;
+  openPartenerCropper(file);
+  input.value = ''; // permite re-selectarea aceluiași fișier ulterior
+}
+
+async function reopenPartenerCropper() {
+  if (ptImgFile) { openPartenerCropper(ptImgFile); return; }
+  if (!ptImgUrl) return;
   const statusEl = document.getElementById('pt-img-status');
-  const preview = document.getElementById('pt-img-preview');
   try {
-    statusEl.textContent = '⏳ Se procesează...';
-    const resized = await resizePartnerLogo(file, 500);
-    preview.innerHTML = `<img src="${URL.createObjectURL(resized)}" style="width:100%;height:100%;object-fit:contain;"/>`;
-    ptImgFile = resized;
-    statusEl.textContent = '✓ Gata — se va încărca la salvare';
+    statusEl.textContent = '⏳ Se încarcă logo-ul curent...';
+    const resp = await fetch(ptImgUrl);
+    const blob = await resp.blob();
+    const file = new File([blob], 'logo.png', { type: blob.type || 'image/png' });
+    statusEl.textContent = '';
+    openPartenerCropper(file);
   } catch(e) {
-    statusEl.textContent = '❌ Eroare la procesarea imaginii';
-    ptImgFile = null;
+    statusEl.textContent = '❌ Nu am putut încărca logo-ul existent pentru reajustare.';
   }
+}
+
+function openPartenerCropper(file) {
+  const modal = document.getElementById('modal-partener-crop');
+  const img = document.getElementById('pt-crop-img');
+  const stage = document.getElementById('pt-crop-stage');
+  const zoomSlider = document.getElementById('pt-crop-zoom');
+
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    _ptCrop.imgEl = img;
+    _ptCrop.naturalW = img.naturalWidth;
+    _ptCrop.naturalH = img.naturalHeight;
+    // baseScale = logo-ul încape complet în chenar (gen object-fit:contain) — nu decupăm nimic implicit
+    _ptCrop.baseScale = Math.min(PT_STAGE_W / img.naturalWidth, PT_STAGE_H / img.naturalHeight);
+    _ptCrop.zoom = 1;
+    _ptCrop.offX = 0;
+    _ptCrop.offY = 0;
+    zoomSlider.value = 100;
+    applyPartenerCropTransform();
+  };
+  img.src = url;
+
+  modal.style.display = 'flex';
+
+  stage.onpointerdown = (e) => {
+    _ptCrop.dragging = true;
+    _ptCrop.startX = e.clientX;
+    _ptCrop.startY = e.clientY;
+    _ptCrop.startOffX = _ptCrop.offX;
+    _ptCrop.startOffY = _ptCrop.offY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor = 'grabbing';
+  };
+  stage.onpointermove = (e) => {
+    if (!_ptCrop.dragging) return;
+    _ptCrop.offX = _ptCrop.startOffX + (e.clientX - _ptCrop.startX);
+    _ptCrop.offY = _ptCrop.startOffY + (e.clientY - _ptCrop.startY);
+    clampPartenerOffset();
+    applyPartenerCropTransform();
+  };
+  const stopDrag = () => { _ptCrop.dragging = false; stage.style.cursor = 'grab'; };
+  stage.onpointerup = stopDrag;
+  stage.onpointercancel = stopDrag;
+  stage.onwheel = (e) => {
+    e.preventDefault();
+    const cur = parseFloat(zoomSlider.value);
+    const next = Math.min(400, Math.max(100, cur - e.deltaY * 0.15));
+    zoomSlider.value = next;
+    onPartenerCropZoom(next);
+  };
+}
+
+function onPartenerCropZoom(val) {
+  _ptCrop.zoom = val / 100;
+  clampPartenerOffset();
+  applyPartenerCropTransform();
+}
+
+function clampPartenerOffset() {
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const dispW = _ptCrop.naturalW * scale;
+  const dispH = _ptCrop.naturalH * scale;
+  const maxOffX = Math.max(0, (dispW - PT_STAGE_W) / 2);
+  const maxOffY = Math.max(0, (dispH - PT_STAGE_H) / 2);
+  _ptCrop.offX = Math.min(maxOffX, Math.max(-maxOffX, _ptCrop.offX));
+  _ptCrop.offY = Math.min(maxOffY, Math.max(-maxOffY, _ptCrop.offY));
+}
+
+function applyPartenerCropTransform() {
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const dispW = _ptCrop.naturalW * scale;
+  const dispH = _ptCrop.naturalH * scale;
+  const left = (PT_STAGE_W - dispW) / 2 + _ptCrop.offX;
+  const top  = (PT_STAGE_H - dispH) / 2 + _ptCrop.offY;
+  _ptCrop.imgEl.style.width = dispW + 'px';
+  _ptCrop.imgEl.style.height = dispH + 'px';
+  _ptCrop.imgEl.style.transform = `translate(${left}px, ${top}px)`;
+}
+
+function cancelPartenerCrop() {
+  document.getElementById('modal-partener-crop').style.display = 'none';
+  const img = document.getElementById('pt-crop-img');
+  if (img.src) { URL.revokeObjectURL(img.src); img.src = ''; }
+}
+
+function confirmPartenerCrop() {
+  const OUT_W = PT_STAGE_W * 2, OUT_H = PT_STAGE_H * 2; // rezoluție finală, dublu față de chenarul de editare
+  const scale = _ptCrop.baseScale * _ptCrop.zoom;
+  const factor = OUT_W / PT_STAGE_W;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = OUT_W;
+  canvas.height = OUT_H;
+  const ctx = canvas.getContext('2d');
+  // NU umplem fundalul canvas-ului — rămâne transparent unde logo-ul nu acoperă (PNG păstrează asta)
+  ctx.save();
+  ctx.translate(
+    (OUT_W / 2) + (_ptCrop.offX * factor),
+    (OUT_H / 2) + (_ptCrop.offY * factor)
+  );
+  ctx.scale(scale * factor, scale * factor);
+  ctx.drawImage(_ptCrop.imgEl, -_ptCrop.naturalW / 2, -_ptCrop.naturalH / 2);
+  ctx.restore();
+
+  canvas.toBlob((blob) => {
+    const statusEl = document.getElementById('pt-img-status');
+    if (!blob) { statusEl.textContent = '❌ Eroare la procesarea imaginii'; return; }
+    const croppedFile = new File([blob], 'partener-logo.png', { type: 'image/png' });
+    cancelPartenerCrop();
+    ptImgFile = croppedFile;
+    document.getElementById('pt-img-preview').innerHTML = `<img src="${URL.createObjectURL(croppedFile)}" style="width:100%;height:100%;object-fit:contain;"/>`;
+    statusEl.textContent = '✓ Gata — se va încărca la salvare';
+    document.getElementById('pt-recrop-btn').style.display = 'inline-block';
+  }, 'image/png');
 }
 
 async function savePartener() {
@@ -3455,7 +4047,9 @@ function invalidateCache(baltaId) {
 let _baltiCache = [];
 let _baltiStanduriCount = {};
 let _baltiHasHarta = new Set();
+let _baltiSortCol = 'nume';
 let _baltiSortDir = 'asc';
+const BALTI_COLOANE_TEXT = new Set(['nume', 'judet', 'admin_zoda_id', 'vizibilitate']); // restul (id, standuri, harta) sunt numerice
 
 async function loadBalti() {
   const tbody = document.getElementById('balti-tbody');
@@ -3485,12 +4079,20 @@ async function loadBalti() {
   renderBaltiTable();
 }
 
-function setBaltiSortDir(dir) {
-  _baltiSortDir = dir;
-  document.getElementById('balti-sort-asc').style.borderColor = dir === 'asc' ? '#38bdf8' : '#1e293b';
-  document.getElementById('balti-sort-asc').style.color = dir === 'asc' ? '#38bdf8' : '#94a3b8';
-  document.getElementById('balti-sort-desc').style.borderColor = dir === 'desc' ? '#38bdf8' : '#1e293b';
-  document.getElementById('balti-sort-desc').style.color = dir === 'desc' ? '#38bdf8' : '#94a3b8';
+// Sortare prin click pe header, identic cu tabelul "Statistici per baltă"
+// (sorteazaStatsGenerale): primul click pe o coloană nouă alege direcția
+// implicită cea mai utilă (text -> A-Z, numeric -> cele mai mari primele),
+// al doilea click pe aceeași coloană inversează direcția.
+function sorteazaBalti(col) {
+  if (_baltiSortCol === col) {
+    _baltiSortDir = _baltiSortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    _baltiSortCol = col;
+    _baltiSortDir = BALTI_COLOANE_TEXT.has(col) ? 'asc' : 'desc';
+  }
+  document.querySelectorAll('.balti-sort-ic').forEach(el => el.textContent = '');
+  const ic = document.getElementById('balti-sort-' + col);
+  if (ic) ic.textContent = _baltiSortDir === 'desc' ? ' ▼' : ' ▲';
   renderBaltiTable();
 }
 
@@ -3498,7 +4100,7 @@ function renderBaltiTable() {
   const tbody = document.getElementById('balti-tbody');
   if (!_baltiCache.length) return;
 
-  const field = document.getElementById('balti-sort-field')?.value || 'nume';
+  const col = _baltiSortCol;
   const dir = _baltiSortDir === 'desc' ? -1 : 1;
   const standuriCount = _baltiStanduriCount;
   const hasHarta = _baltiHasHarta;
@@ -3518,14 +4120,17 @@ function renderBaltiTable() {
 
   const sorted = [...filtered].sort((a, b) => {
     let va, vb;
-    if (field === 'nume') { va = a.nume || ''; vb = b.nume || ''; }
-    else if (field === 'judet') { va = a.judet || 'zzz'; vb = b.judet || 'zzz'; }
-    else if (field === 'vizibilitate') { va = a.vizibilitate || ''; vb = b.vizibilitate || ''; }
-    else if (field === 'harta') { va = hasHarta.has(a.id) ? 1 : 0; vb = hasHarta.has(b.id) ? 1 : 0; }
+    if (col === 'id') { va = a.id; vb = b.id; }
+    else if (col === 'nume') { va = a.nume || ''; vb = b.nume || ''; }
+    else if (col === 'judet') { va = a.judet || 'zzz'; vb = b.judet || 'zzz'; }
+    else if (col === 'standuri') { va = standuriCount[a.id] || 0; vb = standuriCount[b.id] || 0; }
+    else if (col === 'harta') { va = hasHarta.has(a.id) ? 1 : 0; vb = hasHarta.has(b.id) ? 1 : 0; }
+    else if (col === 'admin_zoda_id') { va = a.admin_zoda_id || 'zzz'; vb = b.admin_zoda_id || 'zzz'; }
+    else if (col === 'vizibilitate') { va = a.vizibilitate || ''; vb = b.vizibilitate || ''; }
     else { va = a.nume || ''; vb = b.nume || ''; }
 
     if (typeof va === 'number') return (va - vb) * dir;
-    return va.localeCompare(vb, 'ro', { sensitivity: 'base' }) * dir;
+    return String(va).localeCompare(String(vb), 'ro', { sensitivity: 'base' }) * dir;
   });
 
   if (!sorted.length) {
@@ -3533,24 +4138,25 @@ function renderBaltiTable() {
     return;
   }
 
-  tbody.innerHTML = sorted.map(b => `
+  tbody.innerHTML = sorted.map(b => {
+    const vizBadgeHtml = b.vizibilitate === 'public'
+      ? '<span class="vis-badge vis-public">🌍 Publică</span>'
+      : b.vizibilitate === 'basic'
+        ? '<span class="vis-badge" style="background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.35);">🔍 Basic</span>'
+        : '<span class="vis-badge vis-unlisted">🔒 Unlisted</span>';
+    return `
     <tr>
       <td class="col-id" style="color:#4b5563;font-size:12px;">#${b.id}</td>
       <td class="col-nume">
         <strong style="color:#f1f5f9;">${escH(b.nume)}</strong>
-        <div class="zodaid-mobile-inline" style="font-family:monospace;font-size:11.8px;margin-top:2px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? '👤 ' + escH(b.admin_zoda_id) : '👤 fără admin'}</div>
+        <div class="status-mobile-inline">${vizBadgeHtml}</div>
+        <div class="zodaid-mobile-inline" style="font-family:monospace;font-size:11.8px;margin-top:4px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? '👤 ' + escH(b.admin_zoda_id) : '👤 fără admin'}</div>
       </td>
       <td class="col-judet" style="color:#64748b;">📍 ${b.judet || '—'}</td>
       <td class="col-standuri" style="color:#64748b;">${standuriCount[b.id] || 0}</td>
       <td class="col-harta" style="${hasHarta.has(b.id) ? 'color:#38bdf8;font-weight:700;' : 'color:#ef4444;'}">${hasHarta.has(b.id) ? 'Da' : 'Nu'}</td>
       <td class="col-zodaid" style="font-family:monospace;font-size:12px;${b.admin_zoda_id ? 'color:#94a3b8;' : 'color:#4b5563;'}">${b.admin_zoda_id ? escH(b.admin_zoda_id) : '—'}</td>
-      <td class="col-status">
-        ${b.vizibilitate === 'public'
-          ? '<span class="vis-badge vis-public">🌍 Publică</span>'
-          : b.vizibilitate === 'basic'
-            ? '<span class="vis-badge" style="background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.35);">🔍 Basic</span>'
-            : '<span class="vis-badge vis-unlisted">🔒 Unlisted</span>'}
-      </td>
+      <td class="col-status">${vizBadgeHtml}</td>
       <td class="col-actiuni">
         <div class="action-btns">
           ${b.vizibilitate === 'public'
@@ -3565,16 +4171,26 @@ function renderBaltiTable() {
           <button class="btn-del" onclick="confirmDeleteBalta(${b.id},'${b.nume.replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function setBaltaVis(id, vis) {
   const { error } = await sb.from('balti').update({ vizibilitate: vis }).eq('id', id);
   if(error) { showToast('Eroare la actualizare', true); return; }
+  clearPublicBaltiCache();
   const msg = vis === 'public' ? '✓ Baltă publicată!' : vis === 'basic' ? '🔍 Baltă setată ca listare de bază' : '🔒 Baltă setată Unlisted';
   showToast(msg);
   loadBalti();
   loadStats();
+}
+
+// index.html/balta.html țin lista de bălți publice în localStorage (TTL 30 min,
+// cheia 'zoda_cache_balti_publice'), pe același domeniu — o ștergem la orice
+// schimbare de vizibilitate din admin ca să nu rămână bălți/bazine "fantomă"
+// vizibile public câteva zeci de minute după ce au fost setate Unlisted.
+function clearPublicBaltiCache() {
+  try { localStorage.removeItem('zoda_cache_balti_publice'); } catch(e) {}
 }
 
 function confirmDeleteBalta(id, nume) {
@@ -3601,7 +4217,7 @@ async function loadUsers() {
   const tbody = document.getElementById('users-tbody');
   tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Se încarcă...</td></tr>';
 
-  const { data: profiles, error: profErr } = await sb.from('user_profiles').select('id, email, created_at, username, zoda_id, este_ambasador').order('created_at', { ascending: false });
+  const { data: profiles, error: profErr } = await sb.from('user_profiles').select('id, email, created_at, username, zoda_id, este_ambasador, deleted_at').order('created_at', { ascending: false });
   const { data: roles, error: roleErr } = await sb.from('user_roles').select('id, rol');
 
   if(profErr || !profiles?.length) {
@@ -3666,6 +4282,16 @@ function renderUsersTable() {
     // Ambasador e independent de rolul principal — poate fi și zoda_admin ȘI ambasador simultan
     const ambasadorBadge = u.este_ambasador ? '<span class="role-badge" style="background:rgba(124,58,237,.15);color:#c4b5fd;border:1px solid rgba(124,58,237,.35);margin-left:4px;">🎥 Ambasador</span>' : '';
 
+    // Cont în ștergere (soft delete, 30 zile de grație — vezi showDeletedScreen/recoverAccount
+    // din cont.html) — apare în continuare aici pentru că interogarea de mai sus nu filtrează
+    // după deleted_at; badge-ul face diferența vizibilă față de un cont activ.
+    let deletedBadge = '';
+    if (u.deleted_at) {
+      const deleteAfter = new Date(new Date(u.deleted_at).getTime() + 30 * 24 * 60 * 60 * 1000);
+      const zileRamase = Math.max(0, Math.ceil((deleteAfter - new Date()) / (1000 * 60 * 60 * 24)));
+      deletedBadge = `<span class="role-badge" style="background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35);margin-left:4px;" title="Cont șters de utilizator la ${new Date(u.deleted_at).toLocaleDateString('ro-RO')} — se poate recupera singur dacă se reloghează, altfel se șterge definitiv automat">🗑️ Șters (${zileRamase}z rămase)</span>`;
+    }
+
     const numeSigur = escH(u.username||u.email||'').replace(/'/g,"\\'");
     const btnAmbasador = u.este_ambasador
       ? `<button class="btn-revoke-balta-admin" onclick="revocaAmbasador('${u.id}','${numeSigur}')">Revocă ambasador</button>`
@@ -3702,8 +4328,12 @@ function renderUsersTable() {
 
     return `
     <tr>
-      <td class="col-email">${nameHtml}</td>
-      <td class="col-rol">${rolBadge}${ambasadorBadge}</td>
+      <td class="col-email">
+        ${nameHtml}
+        <div class="rol-mobile-inline">${rolBadge}${ambasadorBadge}${deletedBadge}</div>
+        <div class="data-mobile-inline">📅 ${createdAt}</div>
+      </td>
+      <td class="col-rol">${rolBadge}${ambasadorBadge}${deletedBadge}</td>
       <td class="col-data" style="color:#4b5563;">${createdAt}</td>
       <td class="col-actiuni">${actiuni}${chatMuteBtns}</td>
     </tr>`;
@@ -4018,6 +4648,19 @@ function buildEditBody(b, ext) {
     </div>
     <div class="fg"><label>💰 TARIFE</label><textarea id="e-tarife" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.tarife||'')}</textarea></div>
     <div class="fg"><label>📋 REGULAMENT</label><textarea id="e-regulament" rows="4" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;font-family:inherit;resize:vertical;">${escHtml(ext.regulament||'')}</textarea></div>
+    <div class="fg">
+      <label>📅 REZERVĂRI ONLINE</label>
+      <select id="e-rezervare-mod" onchange="document.getElementById('e-rezervare-url-wrap').style.display = this.value==='extern' ? 'block' : 'none';" style="width:100%;background:#0a0f1a;border:1.5px solid #1e293b;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:15px;outline:none;">
+        <option value="fara_rezervare" ${(b.rezervare_mod||'fara_rezervare')==='fara_rezervare'?'selected':''}>Fără rezervare online</option>
+        <option value="zoda" ${b.rezervare_mod==='zoda'?'selected':''}>Prin Zoda (sistemul intern)</option>
+        <option value="extern" ${b.rezervare_mod==='extern'?'selected':''}>Site extern (link către site-ul propriu al bălții)</option>
+      </select>
+      <div style="font-size:11px;color:#4b5563;margin-top:4px;">Doar zoda_admin decide asta — balta_admin nu poate schimba singur modul, trebuie să vă contacteze.</div>
+    </div>
+    <div class="fg" id="e-rezervare-url-wrap" style="display:${b.rezervare_mod==='extern'?'block':'none'};">
+      <label>LINK SITE EXTERN DE REZERVĂRI</label>
+      <input type="url" id="e-rezervare-url-extern" value="${escHtml(b.rezervare_url_extern||'')}" placeholder="https://..."/>
+    </div>
     <div class="fg"><label>ADMINISTRATOR BALTĂ (ZODA-ID)</label><input type="text" id="e-admin-zoda-id" value="${escHtml(b.admin_zoda_id||'')}" placeholder="ex: ZODA-1042" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Setând acest câmp, utilizatorul cu ZODA-ID-ul respectiv primește rolul de administrator al acestei bălți și poate trimite cereri de capturi.</div></div>
     <div class="fg"><label>🎥 AMBASADOR (ZODA-ID)</label><input type="text" id="e-ambasador-zoda-id" value="${escHtml(b.ambasador_zoda_id||'')}" placeholder="ex: ZODA-1077" style="font-family:monospace;" /><div style="font-size:11px;color:#4b5563;margin-top:4px;">Persoana care documentează fizic balta (foto, video, detalii standuri). Apare creditată public pe pagina băltii. Nu are drepturi de administrare — orice modificare trimisă de el așteaptă aprobarea ta în tab-ul „Ambasadori".</div></div>
     <div class="fg">
@@ -4049,6 +4692,12 @@ function buildEditBody(b, ext) {
           <button onclick="ebDoSearch()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:15px;padding:9px 16px;border-radius:9px;cursor:pointer;">🔍 Caută</button>
         </div>
         <div id="eb-search-results" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#111827;border:1px solid #1e293b;border-radius:10px;overflow:hidden;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+        <span style="font-size:12px;color:#4b5563;white-space:nowrap;">sau coordonate:</span>
+        <input id="eb-lat-input" type="text" inputmode="decimal" placeholder="lat (ex: 46.20388)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <input id="eb-lng-input" type="text" inputmode="decimal" placeholder="lng (ex: 27.12829)" style="flex:1;min-width:0;background:#111827;border:1.5px solid #1e293b;border-radius:8px;padding:7px 10px;color:#f1f5f9;font-size:13px;"/>
+        <button onclick="ebApplyManualCoords()" style="background:#0c3a4d;border:none;color:#38bdf8;font-weight:700;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">✓ Aplică</button>
       </div>
       <div id="eb-map"></div>
       <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:#0a0f1a;border:1px solid #1e293b;display:flex;align-items:center;gap:8px;font-size:13px;">
@@ -4207,12 +4856,64 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// ── LIGHTBOX FULLSCREEN — aceeași componentă (fs-modal) ca pe index.html/
+// balta.html/pescar.html/cont.html/ambasador-galerie.html. Înainte, pozele
+// din admin (capturi, dovadă captură, galerie stand) deschideau un tab nou
+// de browser (window.open) — acum se deschid toate în același lightbox.
+var _fsGallery = [];
+var _fsGalleryIdx = 0;
+function openFS(src, gallery, idx) {
+  if (!src && !(gallery && gallery.length)) return;
+  _fsGallery = (gallery && gallery.length > 1) ? gallery : [];
+  _fsGalleryIdx = idx || 0;
+  document.getElementById('fs-img').src = _fsGallery.length ? _fsGallery[_fsGalleryIdx] : src;
+  document.getElementById('fs-prev-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-next-btn').style.display = _fsGallery.length ? 'flex' : 'none';
+  document.getElementById('fs-modal').style.display = 'flex';
+}
+function navigheazaFS(directie) {
+  if (!_fsGallery.length) return;
+  _fsGalleryIdx = (_fsGalleryIdx + directie + _fsGallery.length) % _fsGallery.length;
+  document.getElementById('fs-img').src = _fsGallery[_fsGalleryIdx];
+}
+function closeFS() {
+  document.getElementById('fs-modal').style.display = 'none';
+  document.getElementById('fs-img').src = '';
+  _fsGallery = [];
+}
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeFS(); });
+
+// Onclick pentru o pereche foto+dovadă a unei capturi (același model ca
+// buildFotoClickCaptura din balta.html/index.html/pescar.html) — startIdx
+// alege care din cele două se deschide prima (0 = foto principală, 1 = dovadă).
+function buildFotoClickCaptura(fotoUrl, fotoDovadaUrl, startIdx) {
+  if (!fotoUrl) return '';
+  var gal = [fotoUrl];
+  if (fotoDovadaUrl) gal.push(fotoDovadaUrl);
+  var galJson = JSON.stringify(gal).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  var idx = startIdx || 0;
+  var urlDeschisa = gal[idx] || fotoUrl;
+  return "event.stopPropagation();openFS('" + escHtml(urlDeschisa).replace(/'/g, "\\'") + "'," + galJson + "," + idx + ")";
+}
+
+// Onclick pentru o galerie oarecare (ex. galeria de poze a unui stand) —
+// urls = toate pozele grupului, idx = poziția pozei apăsate în grup.
+function buildFotoClickGalerie(urls, idx) {
+  var list = (urls || []).filter(Boolean);
+  if (!list.length) return '';
+  var galJson = JSON.stringify(list).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return "event.stopPropagation();openFS('" + escHtml(list[idx]).replace(/'/g, "\\'") + "'," + galJson + "," + idx + ")";
+}
+
 function buildStandEditCard(s) {
+  // Galeria completă a standului (doar pozele deja salvate) — pentru ca
+  // săgețile din lightbox să navigheze prin toate, nu doar prin cea apăsată.
+  const galUrls = (s.galerie || []).map(g => g.url).filter(Boolean);
   const gals = (s.galerie || []).map((g, gi) => {
     const urlAttr = (g.url || '').replace(/"/g, '&quot;');
     // data-existing="true" = poza deja in BD, data-url = URL-ul ei
     return `<div class="gal-thumb-edit" data-url="${urlAttr}" data-existing="true">
-      <img src="${escHtml(g.url)}" loading="lazy"/>
+      <img src="${escHtml(g.url)}" loading="lazy" style="cursor:zoom-in;" onclick="${buildFotoClickGalerie(galUrls, gi)}"/>
       <button class="gal-thumb-del" onclick="delEditGalerie(${s.id},${gi})" title="Șterge">✕</button>
     </div>`;
   }).join('');
@@ -4220,7 +4921,7 @@ function buildStandEditCard(s) {
   const recFoto   = s.rec_foto || '';
   const recPreview = recFoto ? `
     <div class="rec-foto-preview" id="se-rec-preview-${s.id}">
-      <img src="${escHtml(recFoto)}" loading="lazy"/>
+      <img src="${escHtml(recFoto)}" loading="lazy" style="cursor:zoom-in;" onclick="event.stopPropagation();openFS('${escHtml(recFoto).replace(/'/g, "\\'")}')"/>
       <button class="gal-thumb-del" style="top:6px;right:6px;width:22px;height:22px;font-size:17px;" onclick="removeRecFoto(${s.id})" title="Șterge poza record">✕</button>
     </div>` : `<div class="rec-foto-preview rec-foto-empty" id="se-rec-preview-${s.id}"><span style="font-size:31px;">📷</span><span style="font-size:11px;color:#334155;">Fără fotografie</span></div>`;
 
@@ -4765,6 +5466,8 @@ async function saveEditBalta() {
     whatsapp:       document.getElementById('e-wa')?.value.trim()             || '',
     tarife:         document.getElementById('e-tarife')?.value.trim()         || '',
     regulament:     document.getElementById('e-regulament')?.value.trim()     || '',
+    rezervare_mod:  document.getElementById('e-rezervare-mod')?.value          || 'fara_rezervare',
+    rezervare_url_extern: document.getElementById('e-rezervare-url-extern')?.value.trim() || null,
     drum_yt:        document.getElementById('e-drum-yt')?.value.trim()        || '',
     admin_zoda_id:  document.getElementById('e-admin-zoda-id')?.value.trim() || null,
     ambasador_zoda_id: document.getElementById('e-ambasador-zoda-id')?.value.trim() || null,
@@ -4824,6 +5527,7 @@ async function saveEditBalta() {
     saveBtn.disabled = false; saveBtn.textContent = '💾 Salvează modificările';
     return;
   }
+  clearPublicBaltiCache();
 
   // Upload hartă nouă
   const editHartaUrl  = window._editHartaUrl;   // pre-uploadat la selectare
@@ -5392,7 +6096,9 @@ function discardDraft(){try{localStorage.removeItem(DRAFT_KEY);}catch(e){}docume
 function initAbMap(){
   if(abMap){abMap.invalidateSize();return;}
   abMap=L.map('ab-map',{center:[45.5,24.8],zoom:7});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(abMap);
+  const abOsmLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(abMap);
+  const abSatLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',maxZoom:19});
+  addSatToggle(abMap,abOsmLayer,abSatLayer);
   abMap.on('click',e=>{
     abCoords=e.latlng;
     document.getElementById('ab-coord-display').textContent='✓ Marcat: '+abCoords.lat.toFixed(5)+'°N, '+abCoords.lng.toFixed(5)+'°E';
@@ -5412,6 +6118,38 @@ function initAbMap(){
   }
 }
 function pinIcon(){return L.divIcon({className:'',html:`<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,.8));display:block;"><path d="M15 0C6.72 0 0 6.72 0 15c0 9.75 15 25 15 25S30 24.75 30 15C30 6.72 23.28 0 15 0z" fill="#f59e0b"/><circle cx="15" cy="14" r="9" fill="rgba(0,0,0,0.15)"/><text x="15" y="19" text-anchor="middle" font-family="system-ui" font-size="14" fill="white">📍</text></svg>`,iconSize:[30,40],iconAnchor:[15,40]});}
+// Buton de comutare hartă standard (OSM) ↔ satelit (Esri World Imagery) — multe bălți
+// mici/private nu sunt desenate deloc pe OSM (nu sunt introduse în baza lor de date),
+// deci fără vedere satelitară nu se pot repera vizual pentru plasarea exactă a pinului.
+function addSatToggle(map,osmLayer,satLayer){
+  let isSat=false;
+  const ctrl=L.control({position:'topright'});
+  ctrl.onAdd=function(){
+    const div=L.DomUtil.create('div');
+    div.innerHTML='<button type="button" style="background:#111827;border:1.5px solid #1e293b;color:#38bdf8;font-weight:700;font-size:12px;padding:6px 10px;border-radius:8px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);">🛰️ Satelit</button>';
+    L.DomEvent.disableClickPropagation(div);
+    const btn=div.firstChild;
+    btn.onclick=function(){
+      if(isSat){map.removeLayer(satLayer);map.addLayer(osmLayer);isSat=false;btn.textContent='🛰️ Satelit';}
+      else{map.removeLayer(osmLayer);map.addLayer(satLayer);isSat=true;btn.textContent='🗺️ Standard';}
+    };
+    return div;
+  };
+  ctrl.addTo(map);
+}
+function abApplyManualCoords(){
+  const latEl=document.getElementById('ab-lat-input'),lngEl=document.getElementById('ab-lng-input');
+  const lat=parseFloat((latEl.value||'').replace(',','.')),lng=parseFloat((lngEl.value||'').replace(',','.'));
+  if(!isFinite(lat)||!isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Coordonate invalide. Introdu latitudine (-90..90) și longitudine (-180..180) în cele două câmpuri.');return;}
+  abCoords={lat,lng};
+  document.getElementById('ab-coord-display').textContent='✓ Marcat: '+lat.toFixed(5)+'°N, '+lng.toFixed(5)+'°E';
+  document.getElementById('ab-coord-display').style.color='#38bdf8';
+  document.getElementById('ab-coord-clear').style.display='inline';
+  if(abMarker)abMap.removeLayer(abMarker);
+  abMarker=L.marker([lat,lng],{icon:pinIcon()}).addTo(abMap);
+  abMap.flyTo([lat,lng],17,{duration:1});
+  latEl.value='';lngEl.value='';
+}
 
 let abSearchTimeout=null;
 function abSearchInput(val){document.getElementById('ab-search-clear').style.display=val?'block':'none';clearTimeout(abSearchTimeout);if(!val.trim()){document.getElementById('ab-search-results').style.display='none';return;}abSearchTimeout=setTimeout(()=>abDoSearch(true),400);}
@@ -5446,7 +6184,9 @@ document.addEventListener('click',e=>{const w=document.getElementById('pane-2');
 function initEbMap(lat, lng){
   if(!ebMap){
     ebMap = L.map('eb-map', { center: [lat||45.5, lng||24.8], zoom: (lat&&lng) ? 14 : 7 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(ebMap);
+    const ebOsmLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(ebMap);
+    const ebSatLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics',maxZoom:19});
+    addSatToggle(ebMap,ebOsmLayer,ebSatLayer);
     ebMap.on('click', e=>{
       ebCoords = e.latlng;
       document.getElementById('eb-coord-display').textContent='✓ Marcat: '+ebCoords.lat.toFixed(5)+'°N, '+ebCoords.lng.toFixed(5)+'°E';
@@ -5473,6 +6213,19 @@ function initEbMap(lat, lng){
     document.getElementById('eb-coord-display').style.color='#4b5563';
     document.getElementById('eb-coord-clear').style.display='none';
   }
+}
+function ebApplyManualCoords(){
+  const latEl=document.getElementById('eb-lat-input'),lngEl=document.getElementById('eb-lng-input');
+  const lat=parseFloat((latEl.value||'').replace(',','.')),lng=parseFloat((lngEl.value||'').replace(',','.'));
+  if(!isFinite(lat)||!isFinite(lng)||lat<-90||lat>90||lng<-180||lng>180){alert('Coordonate invalide. Introdu latitudine (-90..90) și longitudine (-180..180) în cele două câmpuri.');return;}
+  ebCoords={lat,lng};
+  document.getElementById('eb-coord-display').textContent='✓ Marcat: '+lat.toFixed(5)+'°N, '+lng.toFixed(5)+'°E';
+  document.getElementById('eb-coord-display').style.color='#38bdf8';
+  document.getElementById('eb-coord-clear').style.display='inline';
+  if(ebMarker)ebMap.removeLayer(ebMarker);
+  ebMarker=L.marker([lat,lng],{icon:pinIcon()}).addTo(ebMap);
+  ebMap.flyTo([lat,lng],17,{duration:1});
+  latEl.value='';lngEl.value='';
 }
 function ebResetToOriginal(){
   const b = editBaltaData;
