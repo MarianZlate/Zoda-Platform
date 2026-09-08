@@ -246,16 +246,20 @@ html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family
 ::-webkit-scrollbar-track{background:var(--zc-bg);}
 ::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
 /* Bara de scroll de sub carusele (Bălți recomandate / Capturi recente)
-   trebuie să rămână mereu vizibilă pe desktop, nu doar la hover — regula
-   de mai sus nu setează height, deci scrollbar-ul orizontal cădea pe
-   comportamentul implicit al browserului (ascuns/overlay pe multe
-   configurații). Aici fixăm explicit o bară subțire, mereu prezentă,
-   pentru cele două carusele — atât Chrome/Edge (::-webkit-scrollbar),
-   cât și Firefox (scrollbar-width/scrollbar-color). */
-.br-carousel,#cr-carousel{scrollbar-width:thin;scrollbar-color:var(--zc-border) transparent;}
-.br-carousel::-webkit-scrollbar,#cr-carousel::-webkit-scrollbar{height:6px;}
-.br-carousel::-webkit-scrollbar-track,#cr-carousel::-webkit-scrollbar-track{background:transparent;}
-.br-carousel::-webkit-scrollbar-thumb,#cr-carousel::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
+   trebuie să rămână mereu vizibilă pe desktop, nu doar la hover. Un thumb
+   subțire + transparent (varianta de dinainte) tot arăta ca un overlay
+   care se "aprinde" abia la mouseover — acum thumb-ul e opac, cu culoarea
+   de accent a site-ului (aceeași cu linkurile albastre), iar track-ul are
+   propriul contrast — deci arată mereu "plin", ca și cum ai fi cu mouse-ul
+   pe el, indiferent de interacțiune. :hover/:active sunt setate identic cu
+   starea normală, ca să nu existe NICIO diferență vizuală la trecerea
+   cursorului. */
+.br-carousel,#cr-carousel{scrollbar-width:auto;scrollbar-color:#38bdf8 var(--zc-border);}
+.br-carousel::-webkit-scrollbar,#cr-carousel::-webkit-scrollbar{height:8px;}
+.br-carousel::-webkit-scrollbar-track,#cr-carousel::-webkit-scrollbar-track{background:var(--zc-border);border-radius:4px;}
+.br-carousel::-webkit-scrollbar-thumb,#cr-carousel::-webkit-scrollbar-thumb,
+.br-carousel::-webkit-scrollbar-thumb:hover,#cr-carousel::-webkit-scrollbar-thumb:hover,
+.br-carousel::-webkit-scrollbar-thumb:active,#cr-carousel::-webkit-scrollbar-thumb:active{background:#38bdf8;border-radius:4px;}
 
 /* ============================================================
    COMPONENTE COMUNE
