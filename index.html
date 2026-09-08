@@ -655,9 +655,19 @@ nav{display:flex;align-items:center;gap:6px;}
 
 /* ── FOOTER ────────────────────────────────────────────────────────────── */
 #balti-recomandate{max-width:1100px;margin:20px auto 0;padding:0 20px;}
-.br-hdr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;}
-.br-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:20px;font-weight:800;color:var(--zc-text-primary);}
-.br-see-all{font-size:13px;font-weight:700;color:#38bdf8;text-decoration:none;white-space:nowrap;}
+/* Pe mobil, fără titlul "Bălți recomandate" deasupra, spațiul de dinainte
+   (padding-bottom-ul #main + margin-top-ul secțiunii) rămas de la vechiul
+   layout e prea mare între "Caută și urmărește pescari" și carusel. */
+@media(max-width:768px){
+  #main{padding-bottom:10px;}
+  #balti-recomandate{margin-top:8px;}
+}
+.br-hdr{display:flex;align-items:baseline;margin-bottom:14px;}
+/* Fără titlul "Bălți recomandate" (mare, bold) deasupra lui, linkul ăsta
+   rămâne singur peste fundalul cu poza de fundal (#hero-photo, 850-1100px
+   înălțime) — are nevoie de propriul contur ca să rămână lizibil peste
+   frunziș, la fel ca .hero-title/.hero-cta-sub mai sus pe pagină. */
+.br-see-all{font-size:13px;font-weight:700;color:#38bdf8;text-decoration:none;white-space:nowrap;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
 /* "Bleed" spre dreapta: cardul care se vede parțial (următorul din listă)
    trebuie să pară tăiat chiar de marginea ecranului, nu așezat frumos cu un
    spațiu gol după el — altfel nu se mai înțelege că mai e ceva de scrollat.
@@ -702,12 +712,6 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-body{padding:10px 16px 14px;}
 .br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
 @media(min-width:600px){ .br-card{flex:0 0 calc(33.333% - 7px);} }
-@media(min-width:769px){
-  .br-title{font-size:24px;}
-}
-@media(max-width:479px){
-  .br-hdr{flex-direction:column;align-items:flex-start;gap:2px;}
-}
 #cum-functioneaza{max-width:1100px;margin:32px auto 0;padding:0 20px;}
 .hiw-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:22px;font-weight:800;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
 .hiw-steps{display:grid;grid-template-columns:1fr;gap:14px;}
@@ -998,7 +1002,6 @@ nav{display:flex;align-items:center;gap:6px;}
 <!-- BĂLȚI RECOMANDATE — populat din BALTI (date reale), ascuns dacă nu există bălți publice -->
 <section id="balti-recomandate" style="display:none;">
   <div class="br-hdr">
-    <h2 class="br-title">Bălți recomandate</h2>
     <span class="br-see-all" id="stat-publice-chip" onclick="togglePublicBaltiDropdown(event)" style="cursor:pointer;position:relative;display:inline-block;">Toate bălțile Zoda →
       <div id="public-balti-dropdown" class="pbd-panel">
         <div class="pbd-hdr">✅ Bălți complete, standuri, poze și video</div>
