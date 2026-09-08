@@ -343,8 +343,11 @@ nav{display:flex;align-items:center;gap:6px;}
 #cr-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px;}
 #cr-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:19px;font-weight:900;color:var(--zc-text-primary);}
 #cr-vezi-tot{background:none;border:none;color:#38bdf8;font-size:13.5px;font-weight:600;cursor:pointer;padding:4px 6px;}
-#cr-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-#cr-track{display:flex;gap:10px;}
+/* Bleed spre dreapta — la fel ca .br-carousel (Bălți recomandate): cardul
+   parțial vizibil trebuie să pară tăiat de marginea ecranului, nu așezat cu
+   un spațiu gol după el, ca să se înțeleagă clar că mai e de scrollat. */
+#cr-carousel{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-right:-20px;}
+#cr-track{display:flex;gap:10px;padding-right:20px;}
 .cr-card{flex:0 0 82%;scroll-snap-align:start;border-radius:18px;overflow:hidden;background:var(--zc-bg-panel);border:1px solid var(--zc-border);box-shadow:0 14px 34px -14px rgba(0,0,0,.55);display:flex;flex-direction:column;min-width:0;}
 .cr-photo{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--zc-bg);position:relative;}
 .cr-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom, transparent 55%, rgba(8,14,20,.92) 100%);}
@@ -669,22 +672,32 @@ nav{display:flex;align-items:center;gap:6px;}
 /* Bloc de informații pe fundal albastru Zoda — nu mai e artă decorativă,
    ci datele importante ale bălții (nu avem poze de copertă per baltă,
    doar per stand — pozele reale apar mai jos, în .br-photos). */
-.br-art{position:relative;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));padding:38px 16px 14px;}
+/* Înălțime FIXĂ (nu min-height) + overflow:hidden — indiferent câte rânduri
+   de text are un card (nume lung, tagline pe 1-2 rânduri sau deloc), blocul
+   albastru trebuie să fie identic pe toate cardurile, ca zona de poze să
+   înceapă mereu la același nivel în carusel. Numele/meta nu se pot lăți pe
+   mai multe rânduri (ellipsis), iar tagline-ul e deja limitat la 2 rânduri. */
+.br-art{position:relative;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));padding:38px 16px 14px;height:128px;overflow:hidden;}
 .br-badge{position:absolute;top:10px;display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;white-space:nowrap;}
 .br-badge-verificat{left:10px;background:rgba(255,255,255,.16);backdrop-filter:blur(3px);color:#fff;border:1px solid rgba(255,255,255,.4);}
-.br-name{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16.5px;font-weight:800;color:#fff;margin-bottom:4px;}
-.br-meta{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);}
+.br-name{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16.5px;font-weight:800;color:#fff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.br-meta{font-size:12.5px;font-weight:600;color:rgba(255,255,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* La bălțile premium (nivel 3) nu scriem "Premium" pe card — arătăm mesajul
    lor propriu (tagline, setat din admin, doar nivel 2/3) direct pe fundalul
    albastru. Fără tagline setat, nu apare nimic în locul lui. */
 .br-premium-tag{font-size:12px;font-style:italic;font-weight:600;color:#fcd34d;margin-top:6px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-/* Poze reale ale standurilor (tabelul poze, stand_id != null) — 2 alăturate.
-   NU folosim niciodată imagini placeholder ca și cum ar fi poze reale:
-   dacă nu sunt încă suficiente poze, afișăm un mesaj, nu o imagine falsă. */
-.br-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--zc-border);}
-.br-photos img{width:100%;height:84px;object-fit:cover;display:block;background:var(--zc-bg-tint);}
+/* Poze reale ale standurilor (tabelul poze, stand_id != null) — 2 alăturate,
+   înălțime fixă (aceeași pe orice card). NU folosim niciodată imagini
+   placeholder ca și cum ar fi poze reale: dacă nu sunt încă destule poze,
+   afișăm un mesaj, nu o imagine falsă. La trecerea cu mouse-ul peste o poză,
+   apare numele standului (dacă bala are unul setat pentru poza respectivă). */
+.br-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--zc-border);height:84px;}
+.br-photo{position:relative;overflow:hidden;height:84px;}
+.br-photo img{width:100%;height:84px;object-fit:cover;display:block;background:var(--zc-bg-tint);}
+.br-photo-label{position:absolute;left:0;right:0;bottom:0;padding:4px 7px 3px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.br-photo:hover .br-photo-label{opacity:1;}
 .br-photo-ph{width:100%;height:84px;background:var(--zc-bg-tint);}
-.br-photo-empty{grid-column:1/-1;height:64px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--zc-text-muted);background:var(--zc-bg-tint);}
+.br-photo-empty{grid-column:1/-1;height:84px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--zc-text-muted);background:var(--zc-bg-tint);}
 .br-body{padding:10px 16px 14px;}
 .br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
 @media(min-width:600px){ .br-card{flex:0 0 calc(33.333% - 7px);} }
@@ -3288,20 +3301,21 @@ function renderBaltiRecomandate() {
 async function incarcaPozeBaltiRecomandate(ids) {
   if (!ids || !ids.length) return;
   try {
-    const { data, error } = await sb.from('poze').select('balta_id, url').in('balta_id', ids).not('stand_id', 'is', null);
+    const { data, error } = await sb.from('poze').select('balta_id, url, standuri(nume)').in('balta_id', ids).not('stand_id', 'is', null);
     if (error || !data) return;
     const pePalta = {};
-    data.forEach(p => { (pePalta[p.balta_id] = pePalta[p.balta_id] || []).push(p.url); });
+    data.forEach(p => { (pePalta[p.balta_id] = pePalta[p.balta_id] || []).push({ url: p.url, standNume: p.standuri?.nume || '' }); });
     ids.forEach(id => {
       const el = document.getElementById(`br-photos-${id}`);
       if (!el) return;
-      const urls = (pePalta[id] || []).slice();
-      for (let i = urls.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [urls[i], urls[j]] = [urls[j], urls[i]]; }
-      const alese = urls.slice(0, 2);
+      const poze = (pePalta[id] || []).slice();
+      for (let i = poze.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [poze[i], poze[j]] = [poze[j], poze[i]]; }
+      const alese = poze.slice(0, 2);
+      const pozaHtml = p => `<div class="br-photo"><img src="${escH(p.url)}" alt="" loading="lazy">${p.standNume ? `<div class="br-photo-label">${escH(p.standNume)}</div>` : ''}</div>`;
       if (alese.length === 2) {
-        el.innerHTML = alese.map(u => `<img src="${escH(u)}" alt="" loading="lazy">`).join('');
+        el.innerHTML = alese.map(pozaHtml).join('');
       } else if (alese.length === 1) {
-        el.innerHTML = `<img src="${escH(alese[0])}" alt="" loading="lazy"><div class="br-photo-ph"></div>`;
+        el.innerHTML = pozaHtml(alese[0]) + `<div class="br-photo-ph"></div>`;
       } else {
         el.innerHTML = `<div class="br-photo-empty">📷 Poze în curând</div>`;
       }
