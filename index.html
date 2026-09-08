@@ -694,8 +694,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-photos{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--zc-border);height:84px;}
 .br-photo{position:relative;overflow:hidden;height:84px;}
 .br-photo img{width:100%;height:84px;object-fit:cover;display:block;background:var(--zc-bg-tint);}
-.br-photo-label{position:absolute;left:0;right:0;bottom:0;padding:4px 7px 3px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.br-photo:hover .br-photo-label{opacity:1;}
+/* Vizibil mereu, nu doar la :hover — pe mobil (unde vede majoritatea
+   userilor) nu există hover, deci numele standului ar fi fost invizibil. */
+.br-photo-label{position:absolute;left:0;right:0;bottom:0;padding:4px 7px 3px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .br-photo-ph{width:100%;height:84px;background:var(--zc-bg-tint);}
 .br-photo-empty{grid-column:1/-1;height:84px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--zc-text-muted);background:var(--zc-bg-tint);}
 .br-body{padding:10px 16px 14px;}
