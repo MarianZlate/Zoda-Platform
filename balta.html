@@ -321,9 +321,16 @@ html[data-theme="light"] .logo-img-light{display:block;}
 #pill-drum{border:1.5px solid #38bdf8;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;background:var(--zc-bg-tint);color:#38bdf8;
   /* mobil */
   padding:3px 10px;}
-/* Lista de standuri de sub hartă — pe mobil, grilă fixă de 4 coloane */
+/* Lista de standuri de sub hartă — pe mobil, grilă fixă de 6 coloane.
+   #pills e copil flex în #pw (display:flex), așa că fără width:100% aici
+   grid-ul nu se întinde pe toată lățimea disponibilă, ci se dimensionează
+   după conținut (fit-content) — coloanele de 1fr ies diferite de la o
+   baltă la alta, în funcție de câte standuri sunt și cât de lungi sunt
+   etichetele lor. Cu width:100%, cele 6 coloane împart mereu exact aceeași
+   lățime totală (~lățimea #pw), deci butoanele ies identice ca mărime la
+   orice baltă. */
 @media(max-width:768px){
-  #pills{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+  #pills{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;width:100%;}
   #pills .pill{width:100%;min-height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-align:center;}
 }
 
