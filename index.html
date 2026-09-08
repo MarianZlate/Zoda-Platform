@@ -325,12 +325,14 @@ nav{display:flex;align-items:center;gap:6px;}
 .dd-name{font-weight:700;font-size:16px;color:var(--zc-text-primary);}
 .dd-meta{font-size:12px;color:var(--zc-text-secondary);margin-top:2px;}
 .dd-open{background:var(--zc-bg-tint);border:none;color:#38bdf8;font-size:13px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-/* font-weight:400 explicit — panelul ăsta e montat acum în locuri diferite
-   (unele ancore, ca .br-see-all, sunt bold), iar fără un reset propriu
-   moștenea din greșeală bold-ul ancorei peste tot în listă (nume, județ),
-   nu doar unde era intenționat (.pbd-hdr, tagline — care își setează
-   fiecare propriul font-weight, deci rămân neschimbate). */
-.pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;font-weight:400;}
+/* font-weight/text-shadow resetate explicit — panelul ăsta e montat acum în
+   locuri diferite, unele ancore (ex. .br-see-all: bold + text-shadow de
+   contur pentru lizibilitate peste poza de fundal). Fără un reset propriu,
+   panelul moștenea din greșeală ȘI bold-ul, ȘI conturul negru peste tot în
+   listă (nume, județ) — pe text mic, acel contur arăta ca un shadow murdar,
+   greu de citit, nu doar bold. .pbd-hdr și tagline-ul își setează fiecare
+   propriul font-weight, deci rămân neschimbate. */
+.pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;font-weight:400;text-shadow:none;}
 #balti-aproape-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
 #public-balti-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
 .pbd-panel .pbd-hdr{padding:12px 14px;border-bottom:1px solid var(--zc-border);font-size:12px;font-weight:700;color:var(--zc-text-muted);letter-spacing:.04em;}
