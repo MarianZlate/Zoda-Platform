@@ -285,6 +285,11 @@ nav{display:flex;align-items:center;gap:6px;}
 .hero-sub{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 16px;max-width:460px;margin:0 auto 10px;font-size:12.9px;font-weight:700;color:#f8fafc;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 6px rgba(0,0,0,.6);}
 .hero-sep{opacity:.5;margin:0 -6px;}
 .hero-sub:last-of-type{margin-bottom:22px;}
+.hero-cta-sub{max-width:520px;margin:0 auto 18px;font-size:14.5px;line-height:1.5;color:#e7edf5;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 2px 6px rgba(0,0,0,.6);}
+.hero-ctas{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:22px;}
+.hero-btn-primary{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--zc-cta-1),var(--zc-cta-2));color:#fff;font-weight:800;font-size:14.5px;padding:12px 20px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 10px 24px -8px rgba(14,116,144,.55);}
+.hero-btn-ghost{display:inline-flex;align-items:center;background:rgba(255,255,255,.08);color:#f8fafc;font-weight:700;font-size:14.5px;padding:12px 20px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);cursor:pointer;backdrop-filter:blur(4px);}
+.hero-btn-ghost:hover{border-color:#38bdf8;color:#38bdf8;}
 #search-wrap{position:relative;max-width:580px;margin:0 auto 10px;padding:0 14px;}
 #search-box{display:flex;align-items:center;gap:10px;background:var(--zc-bg-panel);border:2px solid var(--zc-border);border-radius:16px;padding:13px 18px;transition:border-color .2s,box-shadow .2s;box-shadow:0 12px 32px -10px rgba(0,0,0,.5);}
 #search-box:focus-within{border-color:#38bdf8;box-shadow:0 12px 32px -10px rgba(0,0,0,.5),0 0 0 4px rgba(56,189,248,.14);}
@@ -319,6 +324,11 @@ nav{display:flex;align-items:center;gap:6px;}
 .stat-chip-clickable{cursor:pointer;user-select:none;position:relative;transition:border-color .15s,box-shadow .15s;}
 .stat-chip-clickable:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(56,189,248,.12);}
 .stat-chip-clickable strong{color:#38bdf8;}
+#chat-cta-wrap{max-width:580px;margin:0 auto 10px;padding:0 14px;}
+#chat-cta-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-accent-dark);border-radius:14px;padding:11px 16px;color:var(--zc-text-primary);font-size:13.5px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:0 8px 20px -10px rgba(0,0,0,.5);}
+#chat-cta-btn:hover{border-color:#38bdf8;box-shadow:0 8px 20px -8px rgba(0,0,0,.45),0 0 0 3px rgba(56,189,248,.12);}
+.chat-cta-icon{color:#38bdf8;flex-shrink:0;display:flex;}
+.chat-cta-txt strong{color:var(--zc-text-primary);}
 .pbd-panel{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:var(--z-dropdown);min-width:260px;max-width:320px;max-height:320px;overflow-y:auto;text-align:left;}
 #balti-aproape-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
 #public-balti-dropdown{position:fixed;left:50%;right:auto;transform:translateX(-50%);max-width:calc(100vw - 24px);}
@@ -588,6 +598,8 @@ nav{display:flex;align-items:center;gap:6px;}
   #notif-panel{width:calc(100vw - 24px);right:12px;left:12px;}
   .hero-title{font-size:31px;}
   .hero-sub{font-size:10.6px;gap:6px 12px;}
+  .hero-cta-sub{font-size:13px;}
+  .hero-btn-primary,.hero-btn-ghost{font-size:13px;padding:10px 16px;}
 }
 @media(max-width:340px){
   #hdr-in{flex-wrap:wrap;row-gap:6px;}
@@ -609,14 +621,20 @@ nav{display:flex;align-items:center;gap:6px;}
   .hero-title{font-size:60px;}
   .hero-sub{font-size:16px;max-width:680px;gap:10px 22px;}
   .hero-sub:last-of-type{margin-bottom:36px;}
+  .hero-cta-sub{font-size:17px;max-width:620px;margin-bottom:26px;}
+  .hero-ctas{gap:14px;margin-bottom:34px;}
+  .hero-btn-primary,.hero-btn-ghost{font-size:16px;padding:14px 26px;}
   #search-wrap{padding:0;}
   #search-input{font-size:17px;}
   #stats-bar{padding:0;}
   .stat-chip{padding:5px 20px;font-size:16px;}
-  #main{padding:0 24px 60px;max-width:900px;grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto;grid-template-areas:"search" "statsbar" "cautaPescari" "mapwrap" "saptamanal";gap:14px;}
+  #chat-cta-wrap{max-width:100%;padding:0;margin:0 0 10px;}
+  #chat-cta-btn{font-size:15px;padding:13px 18px;}
+  #main{padding:0 24px 60px;max-width:900px;grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto auto;grid-template-areas:"search" "statsbar" "chatcta" "cautaPescari" "mapwrap" "saptamanal";gap:14px;}
   #cauta-pescari-card{grid-area:cautaPescari;max-width:100%;margin:0 0 10px;}
   #saptamanal-wrap{grid-area:saptamanal;grid-template-columns:1fr 1fr;margin:0;}
   #stats-bar{grid-area:statsbar;}
+  #chat-cta-wrap{grid-area:chatcta;}
   #cr-wrap{grid-area:mapwrap;margin:0;}
   #search-wrap{grid-area:search;max-width:100%;margin:0 0 10px;}
   .hof-card,.balti-card{min-width:unset;}
@@ -652,6 +670,18 @@ nav{display:flex;align-items:center;gap:6px;}
 }
 
 /* ── FOOTER ────────────────────────────────────────────────────────────── */
+#cum-functioneaza{max-width:1100px;margin:32px auto 0;padding:0 20px;}
+.hiw-title{font-size:22px;font-weight:900;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
+.hiw-steps{display:grid;grid-template-columns:1fr;gap:14px;}
+.hiw-step{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:14px;padding:20px;position:relative;}
+.hiw-num{font-size:12px;font-weight:800;color:#38bdf8;letter-spacing:.06em;margin-bottom:8px;}
+.hiw-icon{width:40px;height:40px;border-radius:10px;background:var(--zc-bg-tint);color:#38bdf8;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.hiw-step h3{font-size:17px;font-weight:800;color:var(--zc-text-primary);margin-bottom:6px;}
+.hiw-step p{font-size:13.5px;line-height:1.5;color:var(--zc-text-secondary);}
+@media(min-width:769px){
+  .hiw-title{font-size:26px;margin-bottom:26px;}
+  .hiw-steps{grid-template-columns:repeat(3,1fr);gap:18px;}
+}
 #site-footer{border-top:1px solid var(--zc-border);background:var(--zc-bg);margin-top:32px;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
 .footer-parteneri{display:flex;flex-direction:column;gap:10px;max-width:320px;}
@@ -737,6 +767,14 @@ nav{display:flex;align-items:center;gap:6px;}
 <!-- HERO + SEARCH -->
 <div id="hero">
   <h1 class="hero-title">Pescuiește pregătit,<br/><span style="color:#38bdf8">nu la întâmplare.</span></h1>
+  <p class="hero-cta-sub">Standuri verificate, poze reale și filmări de prezentare pentru fiecare loc.</p>
+  <div class="hero-ctas">
+    <button class="hero-btn-primary" onclick="document.getElementById('search-wrap').scrollIntoView({behavior:'smooth',block:'start'})">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Caută o baltă
+    </button>
+    <button class="hero-btn-ghost" onclick="document.getElementById('cum-functioneaza').scrollIntoView({behavior:'smooth',block:'start'})">Vezi cum funcționează</button>
+  </div>
   <p class="hero-sub">
     <span>Acces</span>
     <span class="hero-sep">•</span>
@@ -914,6 +952,14 @@ nav{display:flex;align-items:center;gap:6px;}
       </div>
     </div>
 
+  <!-- CHAT CTA — intrare directă spre modalul de contact real -->
+  <div id="chat-cta-wrap">
+    <button id="chat-cta-btn" onclick="openContactModal()">
+      <span class="chat-cta-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4V4z"/></svg></span>
+      <span class="chat-cta-txt"><strong>Ai o întrebare?</strong> Chat live cu echipa Zoda →</span>
+    </button>
+  </div>
+
   <!-- CĂUTĂ PESCARI DE URMĂRIT — sub stats-bar, înaintea Capturi recente -->
   <div id="cauta-pescari-card" style="display:none;position:relative;overflow:visible;">
     <div id="cauta-pescari-box">
@@ -973,6 +1019,30 @@ nav{display:flex;align-items:center;gap:6px;}
 </div>
 
 <!-- FOOTER -->
+<section id="cum-functioneaza">
+  <h2 class="hiw-title">Cum funcționează</h2>
+  <div class="hiw-steps">
+    <div class="hiw-step">
+      <div class="hiw-num">01</div>
+      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+      <h3>Cauți</h3>
+      <p>Filtrezi după județ, facilități sau tip de stand și vezi poze reale ale bălții.</p>
+    </div>
+    <div class="hiw-step">
+      <div class="hiw-num">02</div>
+      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="1" y="5" width="15" height="14" rx="2"/><polygon points="23 7 16 12 23 17 23 7"/></svg></div>
+      <h3>Alegi</h3>
+      <p>Vezi poze reale și filmări de prezentare pentru fiecare stand în parte, ca să alegi exact ce ți se potrivește.</p>
+    </div>
+    <div class="hiw-step">
+      <div class="hiw-num">03</div>
+      <div class="hiw-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 12s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z"/><circle cx="15" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div>
+      <h3>Pescuiești</h3>
+      <p>Ajungi la baltă, standul e pregătit — și îți încarci captura direct din aplicație.</p>
+    </div>
+  </div>
+</section>
+
 <footer id="site-footer">
   <div id="footer-inner">
     <div class="footer-parteneri">
