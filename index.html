@@ -3215,9 +3215,23 @@ function sorteazaBaltiPeNiveluri(lista) {
   return [...n3, ...n2, ...n1];
 }
 
+// Sortare doar pentru caruselul "Bălți recomandate" de pe homepage — aceleași
+// 3 benzi (nivel 3 Premium, nivel 2 Recomandat, nivel 1 Bază), dar TOATE
+// amestecate aleator, inclusiv nivelul 1 (care în sorteazaBaltiPeNiveluri de
+// mai sus rămâne alfabetic, pentru că acolo e un director de răsfoit). Aici
+// e un carusel de descoperire — vrem o ordine diferită la fiecare refresh.
+function sorteazaBaltiPentruCarusel(lista) {
+  const amestecaAleator = arr => arr.map(v => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map(v => v[1]);
+  const n3 = amestecaAleator(lista.filter(b => (b.nivel_vizibilitate || 1) === 3));
+  const n2 = amestecaAleator(lista.filter(b => (b.nivel_vizibilitate || 1) === 2));
+  const n1 = amestecaAleator(lista.filter(b => (b.nivel_vizibilitate || 1) === 1));
+  return [...n3, ...n2, ...n1];
+}
+
 // ── BĂLȚI RECOMANDATE (homepage) ─────────────────────────────────────────
-// Reutilizează aceeași sortare pe niveluri ca dropdown-ul "Bălți Verificate
-// Zoda" — primele 4 bălți publice, niveluri superioare întâi. Zona de sus a
+// Aceleași 3 benzi ca dropdown-ul "Bălți Verificate Zoda", dar reamestecate
+// complet aleator (sorteazaBaltiPentruCarusel) — primele 4 bălți publice,
+// niveluri superioare întâi, ordine diferită la fiecare refresh. Zona de sus a
 // cardului (.br-art) e un bloc de informații pe fundal albastru Zoda (nu o
 // poză de copertă — nu există încă una per baltă), iar zona albă (.br-photos)
 // afișează 2 poze REALE, aleatorii, ale standurilor bălții (tabelul poze,
@@ -3226,7 +3240,7 @@ function renderBaltiRecomandate() {
   const wrap = document.getElementById('balti-recomandate');
   const grid = document.getElementById('br-grid');
   if (!wrap || !grid) return;
-  const publice = sorteazaBaltiPeNiveluri(BALTI.filter(b => b.vizibilitate === 'public'));
+  const publice = sorteazaBaltiPentruCarusel(BALTI.filter(b => b.vizibilitate === 'public'));
   const top = publice.slice(0, 4);
   if (!top.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
