@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#070b13"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"/>
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png"/>
+<title>Zoda — Rezervări</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── TEMĂ AUTOMATĂ (LIGHT/DARK) ───────────────────────────────────────────────
+// Identic cu motorul din cont.html/balta.html — copiat verbatim, ca preferința
+// salvată de user în Cont (localStorage, 'zoda-tema') să se aplice la fel și
+// pe această pagină (rundă 12, punctul 4 din backlog, §29). Fără GPS, fără
+// date personale — coordonată fixă de referință (centrul României).
+var ZC_LAT = 45.9432, ZC_LNG = 24.9668;
+var ZC_TEMA_KEY = 'zoda-tema'; // localStorage: 'light' | 'dark' | 'auto' (implicit)
+
+function _zcSunTimesUTC(date, lat, lng) {
+  var rad = Math.PI / 180;
+  var start = Date.UTC(date.getUTCFullYear(), 0, 1);
+  var dayOfYear = Math.floor((Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - start) / 86400000) + 1;
+  var lngHour = lng / 15;
+  function calc(isRise) {
+    var t = dayOfYear + ((isRise ? 6 : 18) - lngHour) / 24;
+    var M = 0.9856 * t - 3.289;
+    var L = M + 1.916 * Math.sin(M * rad) + 0.020 * Math.sin(2 * M * rad) + 282.634;
+    L = (L + 360) % 360;
+    var RA = (1 / rad) * Math.atan(0.91764 * Math.tan(L * rad));
+    RA = (RA + 360) % 360;
+    var Lq = Math.floor(L / 90) * 90, RAq = Math.floor(RA / 90) * 90;
+    RA = (RA + (Lq - RAq)) / 15;
+    var sinDec = 0.39782 * Math.sin(L * rad);
+    var cosDec = Math.cos(Math.asin(sinDec));
+    var cosH = (Math.cos(90.833 * rad) - (sinDec * Math.sin(lat * rad))) / (cosDec * Math.cos(lat * rad));
+    if (cosH > 1 || cosH < -1) return null;
+    var H = (isRise ? 360 - (1 / rad) * Math.acos(cosH) : (1 / rad) * Math.acos(cosH)) / 15;
+    var T = H + RA - 0.06571 * t - 6.622;
+    return (T - lngHour + 24) % 24;
+  }
+  return { sunrise: calc(true), sunset: calc(false) };
+}
+function _zcEsteZi() {
+  var now = new Date();
+  var t = _zcSunTimesUTC(now, ZC_LAT, ZC_LNG);
+  if (t.sunrise == null || t.sunset == null) return true;
+  var h = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  return h >= t.sunrise && h < t.sunset;
+}
+function _zcTemaSalvata() {
+  try { return localStorage.getItem(ZC_TEMA_KEY) || 'auto'; } catch (e) { return 'auto'; }
+}
+function _zcTemaEfectiva() {
+  var pref = _zcTemaSalvata();
+  if (pref === 'light' || pref === 'dark') return pref;
+  return _zcEsteZi() ? 'light' : 'dark';
+}
+function _zcAplicaTema(gradual) {
+  var tema = _zcTemaEfectiva();
+  var root = document.documentElement;
+  var curent = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  if (curent === tema) return;
+  if (gradual) {
+    root.classList.add('theme-transitioning');
+    setTimeout(function () { root.classList.remove('theme-transitioning'); }, 4000);
+  }
+  if (tema === 'light') root.setAttribute('data-theme', 'light');
+  else root.removeAttribute('data-theme');
+}
+_zcAplicaTema(false);
+setInterval(function () { if (_zcTemaSalvata() === 'auto') _zcAplicaTema(true); }, 5 * 60 * 1000);
+</script>
+<style>
+:root{
+  /* Paletă DARK (implicită) — identică cu cont.html/balta.html, ca stilurile
+     injectate de rezervari.js (folosite și pe cele două pagini) să arate la
+     fel peste tot. */
+  --zc-bg:#0a0f1a;
+  --zc-bg-panel:#111827;
+  --zc-border:#1e293b;
+  --zc-text-dim:#4d5d78;
+  --zc-text-muted:#64748f;
+  --zc-text-secondary:#64748b;
+  --zc-text-secondary-2:#94a3b8;
+  --zc-text-strong:#e2e8f0;
+  --zc-text-primary:#f1f5f9;
+  --zc-bg-tint:#0c3a4d;
+  --zc-bg-deep:#071c26;
+  --zc-accent-dark:#0e7490;
+  --zc-hdr-bg:rgba(10,15,26,.97);
+  --zc-cta-1:#0c3a4d;
+  --zc-cta-2:#0e7490;
+}
+html[data-theme="light"]{
+  --zc-bg:#f4f7fb;
+  --zc-bg-panel:#ffffff;
+  --zc-border:#dde4ec;
+  --zc-text-dim:#6b7a90;
+  --zc-text-muted:#64748b;
+  --zc-text-secondary:#475569;
+  --zc-text-secondary-2:#64748b;
+  --zc-text-strong:#1e293b;
+  --zc-text-primary:#0f172a;
+  --zc-bg-tint:#e0f2fe;
+  --zc-bg-deep:#f0f9ff;
+  --zc-accent-dark:#0891b2;
+  --zc-hdr-bg:rgba(244,247,251,.92);
+}
+html.theme-transitioning,
+html.theme-transitioning *{
+  transition:background-color .8s ease,border-color .8s ease,color .8s ease,fill .8s ease,stroke .8s ease !important;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--zc-bg);color:var(--zc-text-primary);font-family:'Segoe UI',system-ui,sans-serif;font-size:16px;min-height:100vh;}
+
+/* HEADER — pe modelul admin.html, dar respectă acum tema */
+#hdr{background:var(--zc-hdr-bg);border-bottom:1px solid var(--zc-border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);}
+#hdr-in{max-width:1300px;margin:0 auto;padding:0 12px;height:48px;display:flex;align-items:center;gap:8px;}
+.logo{display:flex;align-items:center;text-decoration:none;}
+.logo-img{height:26px;width:auto;display:block;}
+.logo-img-light{display:none;}
+html[data-theme="light"] .logo-img-dark{display:none;}
+html[data-theme="light"] .logo-img-light{display:block;}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.back-btn{background:transparent;border:1px solid var(--zc-border);color:var(--zc-text-secondary-2);font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:3px;white-space:nowrap;}
+.back-btn:hover{border-color:var(--zc-accent-dark);color:var(--zc-text-primary);}
+
+@media(min-width:769px){
+  #hdr-in{padding:0 24px;height:62px;}
+}
+
+/* ACCESS DENIED / EMPTY */
+#access-denied{display:none;text-align:center;padding:80px 24px;}
+.denied-icon{font-size:67px;margin-bottom:16px;}
+.denied-title{font-size:27px;font-weight:900;color:#ef4444;margin-bottom:8px;}
+.denied-sub{color:var(--zc-text-secondary);font-size:16px;margin-bottom:24px;max-width:440px;margin-left:auto;margin-right:auto;}
+
+/* LOGIN FORM — identic cu admin.html */
+#login-screen{display:none;max-width:380px;margin:80px auto;padding:0 24px;}
+.login-card{background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:16px;padding:28px;}
+.login-title{font-size:20px;font-weight:800;color:var(--zc-text-primary);margin-bottom:4px;text-align:center;}
+.login-sub{font-size:13px;color:var(--zc-text-dim);text-align:center;margin-bottom:20px;}
+.fg{margin-bottom:14px;}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--zc-text-dim);letter-spacing:.06em;margin-bottom:5px;}
+.fg input{width:100%;background:var(--zc-bg);border:1.5px solid var(--zc-border);border-radius:8px;padding:10px 12px;color:var(--zc-text-primary);font-size:16px;outline:none;transition:border-color .2s;}
+.fg input:focus{border-color:var(--zc-accent-dark);}
+.login-btn{width:100%;background:var(--zc-cta-1);border:none;color:#38bdf8;font-size:16px;font-weight:700;padding:12px;border-radius:10px;cursor:pointer;}
+.login-btn:hover{background:var(--zc-accent-dark);}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;}
+.login-err{background:#3b0f0f;border:1px solid #ef4444;border-radius:8px;padding:9px 12px;font-size:13px;color:#fca5a5;margin-bottom:12px;display:none;}
+
+/* LOADING */
+#loading{display:none;text-align:center;padding:80px 24px;}
+.spin{display:inline-block;width:36px;height:36px;border:3px solid var(--zc-border);border-top-color:#38bdf8;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading div:last-child{color:var(--zc-text-dim);font-size:15px;}
+
+/* DASHBOARD */
+#dashboard{display:none;max-width:1100px;margin:0 auto;padding:20px 14px 60px;}
+.balta-page-title{font-size:20px;font-weight:900;color:var(--zc-text-primary);margin-bottom:16px;}
+.balta-selector{margin-bottom:16px;}
+.balta-selector label{display:block;font-size:11.5px;font-weight:700;color:var(--zc-text-secondary);letter-spacing:.04em;margin-bottom:6px;text-transform:uppercase;}
+.balta-selector select{width:100%;max-width:360px;background:var(--zc-bg-panel);border:1.5px solid var(--zc-border);border-radius:9px;padding:10px 12px;color:var(--zc-text-primary);font-size:15px;font-weight:700;outline:none;}
+@media(min-width:769px){
+  #dashboard{padding:28px 24px 60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div id="hdr-in">
+    <a class="logo" href="index.html" onclick="try{sessionStorage.removeItem('zoda_index_state');}catch(e){}">
+      <img src="zoda-logo.png" alt="Zoda" class="logo-img logo-img-dark"/>
+      <img src="zoda-logo-light.png" alt="Zoda" class="logo-img logo-img-light"/>
+    </a>
+    <div class="hdr-right">
+      <a class="back-btn" href="cont.html">← Contul meu</a>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading" style="display:block;">
+  <div class="spin"></div>
+  <div>Se verifică accesul...</div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div style="text-align:center;font-size:40px;margin-bottom:8px;">📅</div>
+    <div class="login-title">Panou de rezervări</div>
+    <div class="login-sub">Autentifică-te cu contul tău Zoda</div>
+    <div class="login-err" id="login-err"></div>
+    <div class="fg"><label>EMAIL</label><input type="email" id="rz-email" placeholder="email@exemplu.com" autocomplete="email"/></div>
+    <div class="fg"><label>PAROLĂ</label><input type="password" id="rz-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')rezLogin()"/></div>
+    <button class="login-btn" id="rz-login-btn" onclick="rezLogin()">Intră în cont</button>
+  </div>
+</div>
+
+<!-- ACCES INTERZIS / FĂRĂ BĂLȚI CALIFICATE -->
+<div id="access-denied">
+  <div class="denied-icon" id="denied-icon">🚫</div>
+  <div class="denied-title" id="denied-title">Acces interzis</div>
+  <div class="denied-sub" id="denied-sub">Această pagină este rezervată administratorilor de bălți.</div>
+  <a href="cont.html" style="display:inline-block;background:#0c3a4d;color:#38bdf8;font-weight:700;padding:10px 24px;border-radius:8px;text-decoration:none;">← Înapoi la contul meu</a>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div id="balta-selector-wrap"></div>
+  <div id="panou-rezervari-container"></div>
+</div>
+
+<script>
+const SUPA_URL = 'https://emnesflrzptqfttlzusw.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtbmVzZmxyenB0cWZ0dGx6dXN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NTc5NDUsImV4cCI6MjA5NzUzMzk0NX0.LoR6peujcdm1SLZ8SUSdtSH8wDa_ptCUEYT3qtAPZXk';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'zoda-auth' }
+});
+
+function escH(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+async function rezLogin() {
+  const email = document.getElementById('rz-email').value.trim();
+  const pass  = document.getElementById('rz-pass').value;
+  if (!email || !pass) { showLoginErr('Completează email și parola.'); return; }
+  const btn = document.getElementById('rz-login-btn');
+  btn.disabled = true; btn.textContent = 'Se conectează...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'Intră în cont';
+  if (error) { showLoginErr('Email sau parolă incorectă.'); return; }
+  bootPagina(data.user);
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('login-err');
+  el.textContent = '⚠️ ' + msg; el.style.display = 'block';
+}
+
+// ── SCREENS ──────────────────────────────────────────────────────────────────
+function showScreen(screen) {
+  document.getElementById('loading').style.display       = screen === 'loading'  ? 'block' : 'none';
+  document.getElementById('login-screen').style.display   = screen === 'login'    ? 'block' : 'none';
+  document.getElementById('access-denied').style.display = screen === 'denied'   ? 'block' : 'none';
+  document.getElementById('dashboard').style.display     = screen === 'dashboard' ? 'block' : 'none';
+}
+
+function showDenied(icon, title, sub) {
+  document.getElementById('denied-icon').textContent = icon;
+  document.getElementById('denied-title').textContent = title;
+  document.getElementById('denied-sub').textContent = sub;
+  showScreen('denied');
+}
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+// Bălțile calificate ale userului curent (administrate + cu panoul de
+// rezervări activ), populate o singură dată la boot.
+var BALTI_MELE = [];
+
+async function bootPagina(user) {
+  if (!user) { showScreen('login'); return; }
+  showScreen('loading');
+
+  const { data: profile } = await sb.from('user_profiles').select('zoda_id').eq('id', user.id).single();
+  const zodaId = profile?.zoda_id;
+  if (!zodaId) { showDenied('🚫', 'Acces interzis', 'Această pagină este rezervată administratorilor de bălți.'); return; }
+
+  const { data: balti } = await sb.from('balti')
+    .select('id, nume, rezervare_mod')
+    .eq('admin_zoda_id', zodaId)
+    .order('nume');
+
+  if (!balti?.length) {
+    showDenied('🚫', 'Acces interzis', 'Această pagină este rezervată administratorilor de bălți — nu administrezi nicio baltă momentan.');
+    return;
+  }
+
+  // Aceeași regulă ca în cont.html (loadBaltiAdmin): panoul de rezervări
+  // rămâne calificat cât timp modul e 'zoda', SAU — chiar dacă balta a trecut
+  // pe alt mod — cât timp mai are rezervări active neonorate de dus la capăt.
+  const qualificate = [];
+  await Promise.all(balti.map(async (b) => {
+    if (b.rezervare_mod === 'zoda') { qualificate.push(b); return; }
+    const { data: arePanou } = await sb.rpc('balta_admin_are_panou_rezervari', { p_balta_id: b.id });
+    if (arePanou) qualificate.push(b);
+  }));
+
+  if (!qualificate.length) {
+    showDenied('📅', 'Niciun panou de rezervări activ', 'Bălțile pe care le administrezi nu au momentan modul de rezervare prin Zoda activat. Contactează echipa Zoda dacă vrei să-l activezi.');
+    return;
+  }
+
+  qualificate.sort((a, b) => a.nume.localeCompare(b.nume, 'ro'));
+  BALTI_MELE = qualificate;
+
+  showScreen('dashboard');
+  renderSelectorBalta();
+
+  const params = new URLSearchParams(location.search);
+  const preselectat = parseInt(params.get('balta'), 10);
+  const initial = (BALTI_MELE.some((b) => b.id === preselectat)) ? preselectat : BALTI_MELE[0].id;
+  const sel = document.getElementById('balta-select');
+  if (sel) sel.value = String(initial);
+  deschidePanouPentru(initial);
+}
+
+function renderSelectorBalta() {
+  var wrap = document.getElementById('balta-selector-wrap');
+  if (BALTI_MELE.length === 1) {
+    wrap.innerHTML = '<div class="balta-page-title">📅 ' + escH(BALTI_MELE[0].nume) + '</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="balta-selector"><label>Balta</label><select id="balta-select">' +
+    BALTI_MELE.map(function (b) { return '<option value="' + b.id + '">' + escH(b.nume) + '</option>'; }).join('') +
+  '</select></div>';
+  document.getElementById('balta-select').onchange = function (e) {
+    deschidePanouPentru(parseInt(e.target.value, 10));
+  };
+}
+
+function deschidePanouPentru(baltaId) {
+  var balta = BALTI_MELE.filter(function (b) { return b.id === baltaId; })[0];
+  if (!balta) return;
+  var cont = document.getElementById('panou-rezervari-container');
+  RezervariUI.randeazaPanouAdmin(balta.id, balta.nume, cont);
+  // Reflectăm alegerea în URL (fără reload) — pagina rămâne bookmark-uibilă/
+  // partajabilă direct pe balta respectivă, la fel cum funcționau vechile
+  // deep-link-uri din notificări.
+  try { history.replaceState(null, '', 'rezervari-admin.html?balta=' + baltaId); } catch (e) {}
+}
+
+// Pornire la load — citim sesiunea existentă (contul e deja logat dacă vii
+// din index.html/cont.html; formularul de login e doar un fallback pentru
+// acces direct pe acest URL, la fel ca în admin.html).
+(async function initPagina() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) { await bootPagina(session.user); return; }
+  showScreen('login');
+})();
+</script>
+<script src="rezervari.js?v=20260904e" defer></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
+</body>
+</html>
