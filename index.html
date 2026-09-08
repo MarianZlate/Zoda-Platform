@@ -245,6 +245,17 @@ html,body{background-color:var(--zc-bg);color:var(--zc-text-primary);font-family
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:var(--zc-bg);}
 ::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
+/* Bara de scroll de sub carusele (Bălți recomandate / Capturi recente)
+   trebuie să rămână mereu vizibilă pe desktop, nu doar la hover — regula
+   de mai sus nu setează height, deci scrollbar-ul orizontal cădea pe
+   comportamentul implicit al browserului (ascuns/overlay pe multe
+   configurații). Aici fixăm explicit o bară subțire, mereu prezentă,
+   pentru cele două carusele — atât Chrome/Edge (::-webkit-scrollbar),
+   cât și Firefox (scrollbar-width/scrollbar-color). */
+.br-carousel,#cr-carousel{scrollbar-width:thin;scrollbar-color:var(--zc-border) transparent;}
+.br-carousel::-webkit-scrollbar,#cr-carousel::-webkit-scrollbar{height:6px;}
+.br-carousel::-webkit-scrollbar-track,#cr-carousel::-webkit-scrollbar-track{background:transparent;}
+.br-carousel::-webkit-scrollbar-thumb,#cr-carousel::-webkit-scrollbar-thumb{background:var(--zc-border);border-radius:3px;}
 
 /* ============================================================
    COMPONENTE COMUNE
@@ -375,7 +386,12 @@ nav{display:flex;align-items:center;gap:6px;}
 .cr-pescar-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:0;}
 .cr-pescar-name{font-size:12.5px;font-weight:600;color:#38bdf8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;line-height:1.35;}
 .cr-time{font-size:11px;color:var(--zc-text-dim);line-height:1.35;}
-@media(min-width:600px){ .cr-card{flex:0 0 calc(33.333% - 7px);} }
+/* 30% (nu 33.333%) — intenționat mai puțin de o treime, ca 3 carduri
+   întregi să nu umple exact lățimea containerului. Altfel, pe desktop,
+   cardurile se opresc perfect la marginea din dreapta și efectul de
+   "bleed" (cardul următor tăiat, ca semn că mai e de scrollat) nu se
+   mai vede deloc — abia acum apare și pe ecrane late, la fel ca pe mobil. */
+@media(min-width:600px){ .cr-card{flex:0 0 calc(30% - 7px);} }
 .cr-grid{display:grid;grid-template-columns:1fr;grid-auto-rows:max-content;gap:14px;padding:14px;}
 .cr-grid .cr-photo{aspect-ratio:1/1;}
 .cr-grid .cr-card{flex:none;}
@@ -724,7 +740,9 @@ nav{display:flex;align-items:center;gap:6px;}
 .br-photo-empty{grid-column:1/-1;height:84px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;color:var(--zc-text-muted);background:var(--zc-bg-tint);}
 .br-body{padding:10px 16px 14px;}
 .br-cta{font-size:13px;font-weight:700;color:#38bdf8;display:inline-flex;align-items:center;gap:5px;}
-@media(min-width:600px){ .br-card{flex:0 0 calc(33.333% - 7px);} }
+/* Vezi comentariul de la .cr-card — la fel, 30% în loc de 33.333%, ca
+   să rămână mereu un colț din al 4-lea card vizibil pe desktop. */
+@media(min-width:600px){ .br-card{flex:0 0 calc(30% - 7px);} }
 #cum-functioneaza{max-width:1100px;margin:32px auto 0;padding:0 20px;}
 .hiw-title{font-family:'Space Grotesk',system-ui,sans-serif;font-size:22px;font-weight:800;color:var(--zc-text-primary);text-align:center;margin-bottom:20px;}
 .hiw-steps{display:grid;grid-template-columns:1fr;gap:14px;}
@@ -739,6 +757,9 @@ nav{display:flex;align-items:center;gap:6px;}
 @media(min-width:769px){
   .hiw-title{font-size:26px;margin-bottom:26px;}
   .hiw-steps{grid-template-columns:repeat(4,1fr);gap:18px;}
+  /* loc pentru bara de scroll (6px) mereu vizibilă sub carusele, fără să
+     atingă umbra cardurilor de deasupra */
+  .br-carousel,#cr-carousel{padding-bottom:12px;}
 }
 #site-footer{border-top:1px solid var(--zc-border);background:var(--zc-bg);margin-top:32px;}
 #footer-inner{max-width:1100px;margin:0 auto;padding:32px 20px 20px;display:flex;flex-direction:column;gap:28px;}
@@ -3289,18 +3310,18 @@ function sorteazaBaltiPentruCarusel(lista) {
 
 // ── BĂLȚI RECOMANDATE (homepage) ─────────────────────────────────────────
 // Aceleași 3 benzi ca dropdown-ul "Bălți Verificate Zoda", dar reamestecate
-// complet aleator (sorteazaBaltiPentruCarusel) — primele 4 bălți publice,
-// niveluri superioare întâi, ordine diferită la fiecare refresh. Zona de sus a
-// cardului (.br-art) e un bloc de informații pe fundal albastru Zoda (nu o
-// poză de copertă — nu există încă una per baltă), iar zona albă (.br-photos)
-// afișează 2 poze REALE, aleatorii, ale standurilor bălții (tabelul poze,
-// stand_id != null) — niciodată imagini placeholder în locul lor.
+// complet aleator (sorteazaBaltiPentruCarusel) — până la 10 bălți publice
+// diferite, niveluri superioare întâi, ordine diferită la fiecare refresh.
+// Zona de sus a cardului (.br-art) e un bloc de informații pe fundal
+// albastru Zoda (nu o poză de copertă — nu există încă una per baltă), iar
+// zona albă (.br-photos) afișează 2 poze REALE, aleatorii, ale standurilor
+// bălții (tabelul poze, stand_id != null) — niciodată imagini placeholder.
 function renderBaltiRecomandate() {
   const wrap = document.getElementById('balti-recomandate');
   const grid = document.getElementById('br-grid');
   if (!wrap || !grid) return;
   const publice = sorteazaBaltiPentruCarusel(BALTI.filter(b => b.vizibilitate === 'public'));
-  const top = publice.slice(0, 4);
+  const top = publice.slice(0, 10);
   if (!top.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
   grid.innerHTML = top.map(b => {
