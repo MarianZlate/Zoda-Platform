@@ -5737,6 +5737,12 @@ async function loadNotifPanel() {
       // dedicat de rezervări (pagină separată, cf. rundă 7), tab "Cereri",
       // nu pe pagina bălții.
       url = `rezervari-admin.html?balta=${meta.balta_id}`;
+    } else if ((n.tip === 'rezervare_aprobata' || n.tip === 'rezervare_reminder_24h') && meta.rezervare_id) {
+      // Confirmare de rezervare / reminder 24h pentru PESCAR — duce direct
+      // la widgetul "Rezervările mele" din cont.html, cu rezervarea vizată
+      // evidențiată (același `?open=rezervari&rez_id=` deja folosit de
+      // link-ul din emailul de reminder, rundă 56) — nu pe pagina bălții.
+      url = `cont.html?open=rezervari&rez_id=${meta.rezervare_id}`;
     } else if ((n.tip === 'record_stand_nou' || n.tip === 'record_doborat') && meta.balta_id && meta.stand_id) {
       url = `balta.html?id=${meta.balta_id}&stand=${meta.stand_id}`;
     } else if (meta.balta_id && meta.comentariu_tip) {
