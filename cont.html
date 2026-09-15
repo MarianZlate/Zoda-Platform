@@ -1319,6 +1319,28 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
+<!-- Modal poziționare poza card distribuire — pescarul alege manual ce parte a pozei rămâne în cadru, ca la poza de profil -->
+<div id="modal-card-pozitionare" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:8600;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;width:100%;max-width:380px;text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:var(--text);margin-bottom:4px;">Încadrează poza</div>
+    <div style="font-size:13px;color:var(--text-faint);margin-bottom:14px;">Trage pentru a poziționa, folosește sliderul pentru zoom</div>
+
+    <div id="card-crop-stage" style="position:relative;width:270px;height:360px;margin:0 auto 16px;border-radius:12px;overflow:hidden;background:#000;cursor:grab;touch-action:none;box-shadow:0 0 0 3px var(--forest);">
+      <img id="card-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="font-size:17px;color:var(--text-faint);">🔍</span>
+      <input id="card-crop-zoom" type="range" min="100" max="300" value="100" style="flex:1;accent-color:var(--lime);" oninput="onCardCropZoom(this.value)"/>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="cancelCardPozitionare()" class="btn-secondary" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-faint);font-weight:700;cursor:pointer;">Anulează</button>
+      <button onclick="confirmCardPozitionare()" class="btn-primary" style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--forest),var(--forest-2));color:#e0f7ff;font-weight:700;cursor:pointer;">Continuă</button>
+    </div>
+  </div>
+</div>
+
 <div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:8500;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;width:100%;max-width:380px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -2566,19 +2588,13 @@ function closeFS() {
 function deschideCardDistribuireDirect(index) {
   const c = (window._shareCards || [])[index];
   if (!c || !c.foto_url) return;
-  document.getElementById('modal-card-distribuire').style.display = 'flex';
-  document.getElementById('card-status').textContent = 'Se generează cardul...';
-  _cardBlobCurent = null;
-  deseneazaCardCaptura(c);
+  deschideCardPozitionare(c);
 }
 
 function deschideCardDistribuire(captureId) {
   const c = (window._capturiMele || []).find(x => x.id === captureId);
   if (!c || !c.foto_url) return;
-  document.getElementById('modal-card-distribuire').style.display = 'flex';
-  document.getElementById('card-status').textContent = 'Se generează cardul...';
-  _cardBlobCurent = null;
-  deseneazaCardCaptura(c);
+  deschideCardPozitionare(c);
 }
 
 // Recordurile de stand deținute vin din tabela `standuri` (rec_kg/rec_foto/rec_data),
@@ -2588,13 +2604,121 @@ function deschideCardDistribuire(captureId) {
 function deschideCardDistribuireStand(index) {
   const c = (window._recordurileStandMele || [])[index];
   if (!c || !c.foto_url) return;
+  deschideCardPozitionare(c);
+}
+
+// ── POZIȚIONARE POZĂ CARD DISTRIBUIRE ────────────────────────────────────────
+// Aceeași mecanică drag+zoom ca la crop-ul pozei de profil (_avatarCrop mai sus),
+// adaptată la un chenar 3:4 (raportul cardului final, 1080×1440) în loc de cerc —
+// pescarul alege manual ce parte a pozei rămâne vizibilă, în loc de decupajul
+// automat centrat de dinainte.
+let _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+const CARD_CROP_W = 270, CARD_CROP_H = 360; // px, trebuie sa corespunda cu #card-crop-stage din HTML
+
+function deschideCardPozitionare(c) {
+  const modal = document.getElementById('modal-card-pozitionare');
+  const img = document.getElementById('card-crop-img');
+  const stage = document.getElementById('card-crop-stage');
+  const zoomSlider = document.getElementById('card-crop-zoom');
+
+  _cardCrop.captura = c;
+  img.onload = () => {
+    _cardCrop.imgEl = img;
+    _cardCrop.naturalW = img.naturalWidth;
+    _cardCrop.naturalH = img.naturalHeight;
+    // baseScale = imaginea acoperă complet chenarul 3:4 (gen CSS background-size:cover) —
+    // aceeași încadrare ca decupajul automat de dinainte, dar repoziționabilă (drag) și
+    // apropiabilă (zoom) înainte de a genera cardul final.
+    _cardCrop.baseScale = Math.max(CARD_CROP_W / img.naturalWidth, CARD_CROP_H / img.naturalHeight);
+    _cardCrop.zoom = 1;
+    _cardCrop.offX = 0;
+    _cardCrop.offY = 0;
+    zoomSlider.value = 100;
+    applyCardCropTransform();
+  };
+  img.src = c.foto_url + (c.foto_url.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+
+  modal.style.display = 'flex';
+
+  stage.onpointerdown = (e) => {
+    _cardCrop.dragging = true;
+    _cardCrop.startX = e.clientX;
+    _cardCrop.startY = e.clientY;
+    _cardCrop.startOffX = _cardCrop.offX;
+    _cardCrop.startOffY = _cardCrop.offY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor = 'grabbing';
+  };
+  stage.onpointermove = (e) => {
+    if (!_cardCrop.dragging) return;
+    _cardCrop.offX = _cardCrop.startOffX + (e.clientX - _cardCrop.startX);
+    _cardCrop.offY = _cardCrop.startOffY + (e.clientY - _cardCrop.startY);
+    clampCardCropOffset();
+    applyCardCropTransform();
+  };
+  const stopDrag = () => { _cardCrop.dragging = false; stage.style.cursor = 'grab'; };
+  stage.onpointerup = stopDrag;
+  stage.onpointercancel = stopDrag;
+  stage.onwheel = (e) => {
+    e.preventDefault();
+    const cur = parseFloat(zoomSlider.value);
+    const next = Math.min(300, Math.max(100, cur - e.deltaY * 0.15));
+    zoomSlider.value = next;
+    onCardCropZoom(next);
+  };
+}
+
+function onCardCropZoom(val) {
+  _cardCrop.zoom = val / 100;
+  clampCardCropOffset();
+  applyCardCropTransform();
+}
+
+function clampCardCropOffset() {
+  const scale = _cardCrop.baseScale * _cardCrop.zoom;
+  const dispW = _cardCrop.naturalW * scale;
+  const dispH = _cardCrop.naturalH * scale;
+  const maxOffX = Math.max(0, (dispW - CARD_CROP_W) / 2);
+  const maxOffY = Math.max(0, (dispH - CARD_CROP_H) / 2);
+  _cardCrop.offX = Math.min(maxOffX, Math.max(-maxOffX, _cardCrop.offX));
+  _cardCrop.offY = Math.min(maxOffY, Math.max(-maxOffY, _cardCrop.offY));
+}
+
+function applyCardCropTransform() {
+  const scale = _cardCrop.baseScale * _cardCrop.zoom;
+  const dispW = _cardCrop.naturalW * scale;
+  const dispH = _cardCrop.naturalH * scale;
+  const left = (CARD_CROP_W - dispW) / 2 + _cardCrop.offX;
+  const top  = (CARD_CROP_H - dispH) / 2 + _cardCrop.offY;
+  _cardCrop.imgEl.style.width = dispW + 'px';
+  _cardCrop.imgEl.style.height = dispH + 'px';
+  _cardCrop.imgEl.style.transform = `translate(${left}px, ${top}px)`;
+}
+
+function cancelCardPozitionare() {
+  document.getElementById('modal-card-pozitionare').style.display = 'none';
+}
+
+function confirmCardPozitionare() {
+  const c = _cardCrop.captura;
+  if (!c) return;
+  // Traducem starea de drag/zoom din chenarul de poziționare (270×360) în
+  // dreptunghiul sursă corespunzător pe poza originală (coordonate naturale) —
+  // exact regiunea vizibilă în chenar devine sursa desenată pe cardul final.
+  const scale = _cardCrop.baseScale * _cardCrop.zoom;
+  const sw = CARD_CROP_W / scale;
+  const sh = CARD_CROP_H / scale;
+  const sx = (_cardCrop.naturalW - sw) / 2 - (_cardCrop.offX / scale);
+  const sy = (_cardCrop.naturalH - sh) / 2 - (_cardCrop.offY / scale);
+
+  document.getElementById('modal-card-pozitionare').style.display = 'none';
   document.getElementById('modal-card-distribuire').style.display = 'flex';
   document.getElementById('card-status').textContent = 'Se generează cardul...';
   _cardBlobCurent = null;
-  deseneazaCardCaptura(c);
+  deseneazaCardCaptura(c, { sx, sy, sw, sh });
 }
 
-function deseneazaCardCaptura(c) {
+function deseneazaCardCaptura(c, crop) {
   const canvas = document.getElementById('card-canvas');
   const ctx = canvas.getContext('2d');
 
@@ -2626,12 +2750,21 @@ function deseneazaCardCaptura(c) {
     // cardului, cu un prag minim ca textul să rămână lizibil.
     const vScale = Math.max(0.55, H / 1080);
 
-    // Poza e vedeta — decupată central ca să acopere tot cardul (cover),
-    // fără deformare.
-    const scale = Math.max(W / fotoImg.width, H / fotoImg.height);
-    const sw = W / scale, sh = H / scale;
-    const sx = (fotoImg.width - sw) / 2;
-    const sy = (fotoImg.height - sh) / 2;
+    // Poza e vedeta — decupată ca să acopere tot cardul (cover), fără
+    // deformare. Regiunea sursă (sx/sy/sw/sh) vine din pasul de poziționare
+    // manuală (deschideCardPozitionare/confirmCardPozitionare) — pescarul
+    // alege ce parte a pozei rămâne vizibilă înainte de a genera cardul.
+    // Fallback la vechiul decupaj automat centrat dacă funcția e apelată
+    // fără crop explicit (compatibilitate).
+    let sx, sy, sw, sh;
+    if (crop && crop.sw && crop.sh) {
+      sx = crop.sx; sy = crop.sy; sw = crop.sw; sh = crop.sh;
+    } else {
+      const scale = Math.max(W / fotoImg.width, H / fotoImg.height);
+      sw = W / scale; sh = H / scale;
+      sx = (fotoImg.width - sw) / 2;
+      sy = (fotoImg.height - sh) / 2;
+    }
     ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
 
     const marginX = 40 * vScale;
