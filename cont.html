@@ -1323,7 +1323,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 <div id="modal-card-pozitionare" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:8600;align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;width:100%;max-width:380px;text-align:center;">
     <div style="font-weight:800;font-size:16px;color:var(--text);margin-bottom:4px;">Încadrează poza</div>
-    <div style="font-size:13px;color:var(--text-faint);margin-bottom:14px;">Trage pentru a poziționa, folosește sliderul pentru zoom</div>
+    <div style="font-size:13px;color:var(--text-faint);margin-bottom:14px;">Poza e afișată întreagă — apropie (zoom) și trage ca să alegi ce parte intră în card</div>
 
     <div id="card-crop-stage" style="position:relative;width:270px;height:360px;margin:0 auto 16px;border-radius:12px;overflow:hidden;background:#000;cursor:grab;touch-action:none;box-shadow:0 0 0 3px var(--forest);">
       <img id="card-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
@@ -1331,7 +1331,7 @@ function closeDetaliiFirmaModal() { document.getElementById('modal-detalii-firma
 
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
       <span style="font-size:17px;color:var(--text-faint);">🔍</span>
-      <input id="card-crop-zoom" type="range" min="100" max="300" value="100" style="flex:1;accent-color:var(--lime);" oninput="onCardCropZoom(this.value)"/>
+      <input id="card-crop-zoom" type="range" min="100" max="400" value="100" style="flex:1;accent-color:var(--lime);" oninput="onCardCropZoom(this.value)"/>
     </div>
 
     <div style="display:flex;gap:10px;">
@@ -2626,10 +2626,12 @@ function deschideCardPozitionare(c) {
     _cardCrop.imgEl = img;
     _cardCrop.naturalW = img.naturalWidth;
     _cardCrop.naturalH = img.naturalHeight;
-    // baseScale = imaginea acoperă complet chenarul 3:4 (gen CSS background-size:cover) —
-    // aceeași încadrare ca decupajul automat de dinainte, dar repoziționabilă (drag) și
-    // apropiabilă (zoom) înainte de a genera cardul final.
-    _cardCrop.baseScale = Math.max(CARD_CROP_W / img.naturalWidth, CARD_CROP_H / img.naturalHeight);
+    // baseScale = poza ÎNTREAGĂ, necropată, e vizibilă în chenar (gen CSS
+    // background-size:contain) — pescarul pornește de la formatul original al
+    // pozei și decide singur cât crop face, apropiind (zoom) din acel punct.
+    // (Înainte porneam direct de la "cover" — poza era deja parțial cropată
+    // înainte ca pescarul să apuce s-o vadă întreagă; asta era problema semnalată.)
+    _cardCrop.baseScale = Math.min(CARD_CROP_W / img.naturalWidth, CARD_CROP_H / img.naturalHeight);
     _cardCrop.zoom = 1;
     _cardCrop.offX = 0;
     _cardCrop.offY = 0;
@@ -2662,7 +2664,7 @@ function deschideCardPozitionare(c) {
   stage.onwheel = (e) => {
     e.preventDefault();
     const cur = parseFloat(zoomSlider.value);
-    const next = Math.min(300, Math.max(100, cur - e.deltaY * 0.15));
+    const next = Math.min(400, Math.max(100, cur - e.deltaY * 0.15));
     zoomSlider.value = next;
     onCardCropZoom(next);
   };
@@ -2705,7 +2707,14 @@ function confirmCardPozitionare() {
   // Traducem starea de drag/zoom din chenarul de poziționare (270×360) în
   // dreptunghiul sursă corespunzător pe poza originală (coordonate naturale) —
   // exact regiunea vizibilă în chenar devine sursa desenată pe cardul final.
-  const scale = _cardCrop.baseScale * _cardCrop.zoom;
+  // Plasă de siguranță: pescarul poate porni de la poza întreagă (necropată,
+  // eventual cu benzi goale în chenar dacă nu a dat deloc zoom) — dar cardul
+  // final NU are voie să aibă benzi goale, așa că nu lăsăm niciodată scara
+  // efectivă să scadă sub pragul de "acoperă tot cardul" (coverScale). Dacă
+  // pescarul confirmă fără să fi apropiat deloc, rezultatul e identic cu
+  // vechiul decupaj automat centrat.
+  const coverScale = Math.max(CARD_CROP_W / _cardCrop.naturalW, CARD_CROP_H / _cardCrop.naturalH);
+  const scale = Math.max(_cardCrop.baseScale * _cardCrop.zoom, coverScale);
   const sw = CARD_CROP_W / scale;
   const sh = CARD_CROP_H / scale;
   const sx = (_cardCrop.naturalW - sw) / 2 - (_cardCrop.offX / scale);
