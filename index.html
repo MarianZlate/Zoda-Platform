@@ -1216,6 +1216,28 @@ nav{display:flex;align-items:center;gap:6px;}
   <img id="fs-img" src="" style="display:block;max-width:95vw;max-height:95vh;object-fit:contain;border-radius:10px;box-shadow:0 0 60px rgba(0,0,0,.9);cursor:default;" onclick="event.stopPropagation()"/>
 </div>
 
+<!-- POZIȚIONARE POZĂ CARD DISTRIBUIRE — pescarul alege manual ce parte a pozei rămâne în cadru, ca la poza de profil (design identic cu cont.html, adaptat la variabilele --zc-* de aici) -->
+<div id="modal-card-pozitionare" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:var(--z-modal);align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:18px;width:100%;max-width:380px;text-align:center;">
+    <div style="font-weight:800;font-size:16px;color:var(--zc-text-primary);margin-bottom:4px;">Încadrează poza</div>
+    <div style="font-size:13px;color:var(--zc-text-dim);margin-bottom:14px;">Trage pentru a poziționa, folosește sliderul pentru zoom</div>
+
+    <div id="card-crop-stage" style="position:relative;width:270px;height:360px;margin:0 auto 16px;border-radius:12px;overflow:hidden;background:#000;cursor:grab;touch-action:none;box-shadow:0 0 0 3px var(--zc-accent-dark);">
+      <img id="card-crop-img" style="position:absolute;top:0;left:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;pointer-events:none;" draggable="false"/>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="font-size:17px;color:var(--zc-text-dim);">🔍</span>
+      <input id="card-crop-zoom" type="range" min="100" max="300" value="100" style="flex:1;accent-color:var(--zc-accent-dark);" oninput="onCardCropZoom(this.value)"/>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="cancelCardPozitionare()" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--zc-border);background:transparent;color:var(--zc-text-dim);font-weight:700;cursor:pointer;">Anulează</button>
+      <button onclick="confirmCardPozitionare()" style="flex:1;padding:11px;border-radius:10px;border:none;background:var(--zc-accent-dark);color:#fff;font-weight:700;cursor:pointer;">Continuă</button>
+    </div>
+  </div>
+</div>
+
 <!-- DISTRIBUIE CAPTURA MODAL -->
 <div id="modal-card-distribuire" style="display:none;position:fixed;inset:0;background:rgba(4,7,12,.85);backdrop-filter:blur(3px);z-index:var(--z-modal);align-items:center;justify-content:center;padding:16px;">
   <div style="background:var(--zc-bg-panel);border:1px solid var(--zc-border);border-radius:18px;padding:18px;width:100%;max-width:380px;">
@@ -2249,13 +2271,116 @@ var _cardBlobCurent = null;
 function deschideCardDistribuireDirect(id) {
   var c = (window._shareCards || {})[id];
   if (!c || !c.foto_url) return;
+  deschideCardPozitionare(c);
+}
+
+// ── POZIȚIONARE POZĂ CARD DISTRIBUIRE ────────────────────────────────────────
+// Aceeași mecanică drag+zoom ca cropperul pozei de profil din cont.html,
+// adaptată la un chenar 3:4 (raportul cardului final, 1080×1440) — pescarul
+// alege manual ce parte a pozei rămâne vizibilă, în loc de decupajul automat
+// centrat de dinainte. Design identic cu cont.html, replicat aici (var-uri
+// în loc de let/const, ca să se potrivească stilului restului fișierului).
+var _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+var CARD_CROP_W = 270, CARD_CROP_H = 360; // px, trebuie sa corespunda cu #card-crop-stage din HTML
+
+function deschideCardPozitionare(c) {
+  var modal = document.getElementById('modal-card-pozitionare');
+  var img = document.getElementById('card-crop-img');
+  var stage = document.getElementById('card-crop-stage');
+  var zoomSlider = document.getElementById('card-crop-zoom');
+
+  _cardCrop.captura = c;
+  img.onload = function() {
+    _cardCrop.imgEl = img;
+    _cardCrop.naturalW = img.naturalWidth;
+    _cardCrop.naturalH = img.naturalHeight;
+    _cardCrop.baseScale = Math.max(CARD_CROP_W / img.naturalWidth, CARD_CROP_H / img.naturalHeight);
+    _cardCrop.zoom = 1;
+    _cardCrop.offX = 0;
+    _cardCrop.offY = 0;
+    zoomSlider.value = 100;
+    applyCardCropTransform();
+  };
+  img.src = c.foto_url + (c.foto_url.indexOf('?') > -1 ? '&' : '?') + 'cb=' + Date.now();
+
+  modal.style.display = 'flex';
+
+  stage.onpointerdown = function(e) {
+    _cardCrop.dragging = true;
+    _cardCrop.startX = e.clientX;
+    _cardCrop.startY = e.clientY;
+    _cardCrop.startOffX = _cardCrop.offX;
+    _cardCrop.startOffY = _cardCrop.offY;
+    stage.setPointerCapture(e.pointerId);
+    stage.style.cursor = 'grabbing';
+  };
+  stage.onpointermove = function(e) {
+    if (!_cardCrop.dragging) return;
+    _cardCrop.offX = _cardCrop.startOffX + (e.clientX - _cardCrop.startX);
+    _cardCrop.offY = _cardCrop.startOffY + (e.clientY - _cardCrop.startY);
+    clampCardCropOffset();
+    applyCardCropTransform();
+  };
+  var stopDrag = function() { _cardCrop.dragging = false; stage.style.cursor = 'grab'; };
+  stage.onpointerup = stopDrag;
+  stage.onpointercancel = stopDrag;
+  stage.onwheel = function(e) {
+    e.preventDefault();
+    var cur = parseFloat(zoomSlider.value);
+    var next = Math.min(300, Math.max(100, cur - e.deltaY * 0.15));
+    zoomSlider.value = next;
+    onCardCropZoom(next);
+  };
+}
+
+function onCardCropZoom(val) {
+  _cardCrop.zoom = val / 100;
+  clampCardCropOffset();
+  applyCardCropTransform();
+}
+
+function clampCardCropOffset() {
+  var scale = _cardCrop.baseScale * _cardCrop.zoom;
+  var dispW = _cardCrop.naturalW * scale;
+  var dispH = _cardCrop.naturalH * scale;
+  var maxOffX = Math.max(0, (dispW - CARD_CROP_W) / 2);
+  var maxOffY = Math.max(0, (dispH - CARD_CROP_H) / 2);
+  _cardCrop.offX = Math.min(maxOffX, Math.max(-maxOffX, _cardCrop.offX));
+  _cardCrop.offY = Math.min(maxOffY, Math.max(-maxOffY, _cardCrop.offY));
+}
+
+function applyCardCropTransform() {
+  var scale = _cardCrop.baseScale * _cardCrop.zoom;
+  var dispW = _cardCrop.naturalW * scale;
+  var dispH = _cardCrop.naturalH * scale;
+  var left = (CARD_CROP_W - dispW) / 2 + _cardCrop.offX;
+  var top  = (CARD_CROP_H - dispH) / 2 + _cardCrop.offY;
+  _cardCrop.imgEl.style.width = dispW + 'px';
+  _cardCrop.imgEl.style.height = dispH + 'px';
+  _cardCrop.imgEl.style.transform = 'translate(' + left + 'px, ' + top + 'px)';
+}
+
+function cancelCardPozitionare() {
+  document.getElementById('modal-card-pozitionare').style.display = 'none';
+}
+
+function confirmCardPozitionare() {
+  var c = _cardCrop.captura;
+  if (!c) return;
+  var scale = _cardCrop.baseScale * _cardCrop.zoom;
+  var sw = CARD_CROP_W / scale;
+  var sh = CARD_CROP_H / scale;
+  var sx = (_cardCrop.naturalW - sw) / 2 - (_cardCrop.offX / scale);
+  var sy = (_cardCrop.naturalH - sh) / 2 - (_cardCrop.offY / scale);
+
+  document.getElementById('modal-card-pozitionare').style.display = 'none';
   document.getElementById('modal-card-distribuire').style.display = 'flex';
   document.getElementById('card-status').textContent = 'Se generează cardul...';
   _cardBlobCurent = null;
-  deseneazaCardCaptura(c);
+  deseneazaCardCaptura(c, { sx: sx, sy: sy, sw: sw, sh: sh });
 }
 
-function deseneazaCardCaptura(c) {
+function deseneazaCardCaptura(c, crop) {
   var canvas = document.getElementById('card-canvas');
   var ctx = canvas.getContext('2d');
 
@@ -2281,10 +2406,18 @@ function deseneazaCardCaptura(c) {
     canvas.height = H;
     var vScale = Math.max(0.55, H / 1080);
 
-    var scale = Math.max(W / fotoImg.width, H / fotoImg.height);
-    var sw = W / scale, sh = H / scale;
-    var sx = (fotoImg.width - sw) / 2;
-    var sy = (fotoImg.height - sh) / 2;
+    // Regiunea sursă vine din pasul de poziționare manuală (deschideCardPozitionare/
+    // confirmCardPozitionare); fallback la vechiul decupaj automat centrat dacă
+    // funcția e apelată fără crop explicit (compatibilitate).
+    var sx, sy, sw, sh;
+    if (crop && crop.sw && crop.sh) {
+      sx = crop.sx; sy = crop.sy; sw = crop.sw; sh = crop.sh;
+    } else {
+      var scale = Math.max(W / fotoImg.width, H / fotoImg.height);
+      sw = W / scale; sh = H / scale;
+      sx = (fotoImg.width - sw) / 2;
+      sy = (fotoImg.height - sh) / 2;
+    }
     ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
 
     var marginX = 40 * vScale;
