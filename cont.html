@@ -2612,7 +2612,7 @@ function deschideCardDistribuireStand(index) {
 // adaptată la un chenar 3:4 (raportul cardului final, 1080×1440) în loc de cerc —
 // pescarul alege manual ce parte a pozei rămâne vizibilă, în loc de decupajul
 // automat centrat de dinainte.
-let _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
+let _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0, touched:false };
 const CARD_CROP_W = 270, CARD_CROP_H = 360; // px, trebuie sa corespunda cu #card-crop-stage din HTML
 
 function deschideCardPozitionare(c) {
@@ -2635,6 +2635,7 @@ function deschideCardPozitionare(c) {
     _cardCrop.zoom = 1;
     _cardCrop.offX = 0;
     _cardCrop.offY = 0;
+    _cardCrop.touched = false;
     zoomSlider.value = 100;
     applyCardCropTransform();
   };
@@ -2655,6 +2656,7 @@ function deschideCardPozitionare(c) {
     if (!_cardCrop.dragging) return;
     _cardCrop.offX = _cardCrop.startOffX + (e.clientX - _cardCrop.startX);
     _cardCrop.offY = _cardCrop.startOffY + (e.clientY - _cardCrop.startY);
+    _cardCrop.touched = true;
     clampCardCropOffset();
     applyCardCropTransform();
   };
@@ -2672,6 +2674,7 @@ function deschideCardPozitionare(c) {
 
 function onCardCropZoom(val) {
   _cardCrop.zoom = val / 100;
+  _cardCrop.touched = true;
   clampCardCropOffset();
   applyCardCropTransform();
 }
@@ -2706,19 +2709,22 @@ function confirmCardPozitionare() {
   if (!c) return;
   // Traducem starea de drag/zoom din chenarul de poziționare (270×360) în
   // dreptunghiul sursă corespunzător pe poza originală (coordonate naturale) —
-  // exact regiunea vizibilă în chenar devine sursa desenată pe cardul final.
-  // Plasă de siguranță: pescarul poate porni de la poza întreagă (necropată,
-  // eventual cu benzi goale în chenar dacă nu a dat deloc zoom) — dar cardul
-  // final NU are voie să aibă benzi goale, așa că nu lăsăm niciodată scara
-  // efectivă să scadă sub pragul de "acoperă tot cardul" (coverScale). Dacă
-  // pescarul confirmă fără să fi apropiat deloc, rezultatul e identic cu
-  // vechiul decupaj automat centrat.
+  // exact regiunea vizibilă în chenar devine sursa desenată pe cardul final,
+  // WYSIWYG (ce vede pescarul în chenar e exact ce iese pe card, inclusiv
+  // eventualele benzi negre dacă nu a apropiat destul cât să acopere tot
+  // chenarul — deseneazaCardCaptura() știe să le deseneze, nu mai forțăm
+  // scara în sus pe ascuns, asta era problema semnalată).
+  // Excepție: dacă pescarul n-a atins deloc drag-ul/zoom-ul (_cardCrop.touched
+  // === false), păstrăm vechiul decupaj automat centrat ca implicit — cardurile
+  // generate fără nicio interacțiune arată la fel ca înainte de acest feature.
   const coverScale = Math.max(CARD_CROP_W / _cardCrop.naturalW, CARD_CROP_H / _cardCrop.naturalH);
-  const scale = Math.max(_cardCrop.baseScale * _cardCrop.zoom, coverScale);
+  const scale = _cardCrop.touched ? (_cardCrop.baseScale * _cardCrop.zoom) : coverScale;
+  const offX = _cardCrop.touched ? _cardCrop.offX : 0;
+  const offY = _cardCrop.touched ? _cardCrop.offY : 0;
   const sw = CARD_CROP_W / scale;
   const sh = CARD_CROP_H / scale;
-  const sx = (_cardCrop.naturalW - sw) / 2 - (_cardCrop.offX / scale);
-  const sy = (_cardCrop.naturalH - sh) / 2 - (_cardCrop.offY / scale);
+  const sx = (_cardCrop.naturalW - sw) / 2 - (offX / scale);
+  const sy = (_cardCrop.naturalH - sh) / 2 - (offY / scale);
 
   document.getElementById('modal-card-pozitionare').style.display = 'none';
   document.getElementById('modal-card-distribuire').style.display = 'flex';
@@ -2759,8 +2765,7 @@ function deseneazaCardCaptura(c, crop) {
     // cardului, cu un prag minim ca textul să rămână lizibil.
     const vScale = Math.max(0.55, H / 1080);
 
-    // Poza e vedeta — decupată ca să acopere tot cardul (cover), fără
-    // deformare. Regiunea sursă (sx/sy/sw/sh) vine din pasul de poziționare
+    // Poza e vedeta. Regiunea sursă (sx/sy/sw/sh) vine din pasul de poziționare
     // manuală (deschideCardPozitionare/confirmCardPozitionare) — pescarul
     // alege ce parte a pozei rămâne vizibilă înainte de a genera cardul.
     // Fallback la vechiul decupaj automat centrat dacă funcția e apelată
@@ -2774,7 +2779,17 @@ function deseneazaCardCaptura(c, crop) {
       sx = (fotoImg.width - sw) / 2;
       sy = (fotoImg.height - sh) / 2;
     }
-    ctx.drawImage(fotoImg, sx, sy, sw, sh, 0, 0, W, H);
+    // Desenăm poza ÎNTREAGĂ, scalată și poziționată astfel încât regiunea
+    // sx/sy/sw/sh aleasă să umple exact canvas-ul — nu doar o "felie" a ei
+    // (drawImage cu 9 argumente cere ca felia să fie complet în interiorul
+    // pozei; regiunea aleasă de pescar poate depăși marginile pozei dacă a
+    // ales să nu apropie deloc, adică vrea toată poza vizibilă). Fundal negru
+    // dedesubt pentru eventualele benzi goale — consistent cu fundalul
+    // chenarului de poziționare, deci pescarul nu e surprins de rezultat.
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    const kx = W / sw, ky = H / sh;
+    ctx.drawImage(fotoImg, -sx * kx, -sy * ky, fotoImg.width * kx, fotoImg.height * ky);
 
     const marginX = 40 * vScale;
 
