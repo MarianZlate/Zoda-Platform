@@ -4948,7 +4948,7 @@ function buildStandEditCard(s) {
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="se-wifi-${s.id}" ${s.wifi ? 'checked' : ''}/> Wifi</label>
         </div>
       </div>
-      <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" id="se-di-${s.id}" value="${s.di||''}" /></div>
+      <div class="fg"><label>DISTANȚĂ (m)</label><input type="text" id="se-di-${s.id}" value="${escHtml(s.di||'')}" placeholder="ex: 40 sau 35-70" /></div>
       <div class="fg"><label>LĂȚIME (m)</label><input type="number" id="se-la-${s.id}" value="${s.la||''}" /></div>
       <div class="fg"><label>LINK YOUTUBE STAND</label><input type="url" id="se-yt-${s.id}" value="${escHtml(s.yt||'')}" placeholder="https://youtube.com/watch?v=..." /></div>
 
@@ -5607,7 +5607,7 @@ async function saveEditBalta() {
     const wifi       = document.getElementById('se-wifi-' + sid)?.checked || false;
     const _diVal = document.getElementById('se-di-' + sid)?.value;
     const _laVal = document.getElementById('se-la-' + sid)?.value;
-    const di = (_diVal !== '' && _diVal != null) ? (parseInt(_diVal)   || null) : null;
+    const di = (_diVal !== '' && _diVal != null) ? _diVal.trim() : null;
     const la = (_laVal !== '' && _laVal != null) ? (parseInt(_laVal)   || null) : null;
     const yt    = document.getElementById('se-yt-'  + sid)?.value.trim()     || '';
     const recFoto   = document.getElementById('se-rec-url-'    + sid)?.value.trim() || '';
@@ -6342,7 +6342,7 @@ function addStand(){
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="s${nr}-wifi"/> Wifi</label>
       </div>
     </div>
-    <div class="fg"><label>DISTANȚĂ (m)</label><input type="number" min="0" id="s${nr}-di" placeholder="ex: 50"/></div>
+    <div class="fg"><label>DISTANȚĂ (m)</label><input type="text" id="s${nr}-di" placeholder="ex: 40 sau 35-70"/></div>
     <div class="fg"><label>LĂȚIME (m)</label><input type="number" min="0" id="s${nr}-la" placeholder="ex: 8"/></div>
   </div>
   <div class="fg"><label><svg width="13" height="13" viewBox="0 0 576 512" style="flex-shrink:0;vertical-align:-1px;margin-right:5px;"><path fill="#FF0000" d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>LINK YOUTUBE STAND</label><input type="url" id="s${nr}-yt" placeholder="https://youtu.be/..." style="background:#0a0f1a;border:1.5px solid #1e293b;border-radius:7px;padding:8px 10px;color:#f1f5f9;font-size:13px;outline:none;width:100%;" onfocus="this.style.borderColor='#0c3a4d'" onblur="this.style.borderColor='#1e293b'"/></div>
@@ -6350,7 +6350,7 @@ function addStand(){
   container.appendChild(div);
 }
 function delStand(nr){const el=document.getElementById('stand-'+nr);if(el)el.remove();}
-function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,wc:document.getElementById(pfx+'-wc')?.checked||false,iluminat:document.getElementById(pfx+'-iluminat')?.checked||false,priza:document.getElementById(pfx+'-priza')?.checked||false,wifi:document.getElementById(pfx+'-wifi')?.checked||false,distanta:parseInt(document.getElementById(pfx+'-di')?.value)||0,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
+function getStanduriData(){return Array.from(document.querySelectorAll('.stand-item')).map((item,i)=>{const nr=i+1;const pfx=item.id.replace('stand-','s');const pv=document.getElementById(pfx+'-foto-preview');return{nr,nume:document.getElementById(pfx+'-nume')?.value||('Stand '+nr),cabana:document.getElementById(pfx+'-cabana')?.checked||false,foisor:document.getElementById(pfx+'-foisor')?.checked||false,ponton:document.getElementById(pfx+'-ponton')?.checked||false,stand_pamant:document.getElementById(pfx+'-standpamant')?.checked||false,stand_pietruit:document.getElementById(pfx+'-standpietruit')?.checked||false,wc:document.getElementById(pfx+'-wc')?.checked||false,iluminat:document.getElementById(pfx+'-iluminat')?.checked||false,priza:document.getElementById(pfx+'-priza')?.checked||false,wifi:document.getElementById(pfx+'-wifi')?.checked||false,distanta:(document.getElementById(pfx+'-di')?.value||'').trim()||null,latime:parseInt(document.getElementById(pfx+'-la')?.value)||0,yt:document.getElementById(pfx+'-yt')?.value||'',foto:pv?.dataset.url||''};});}
 
 // ── HARTĂ CANVAS ADD-BALTA ────────────────────────────────────────────────────
 (function(){
