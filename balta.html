@@ -1651,7 +1651,7 @@ function forteazaLandscapeFS(){var e=document.getElementById("fs-modal")||docume
 // adaptată la un chenar 3:4 (raportul cardului final, 1080×1440) — pescarul
 // alege manual ce parte a pozei rămâne vizibilă, în loc de decupajul automat
 // centrat de dinainte. Design identic cu cont.html, replicat aici.
-var _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0, touched:false };
+var _cardCrop = { captura:null, imgEl:null, naturalW:0, naturalH:0, baseScale:1, zoom:1, offX:0, offY:0, dragging:false, startX:0, startY:0, startOffX:0, startOffY:0 };
 var CARD_CROP_W = 270, CARD_CROP_H = 360; // px, trebuie sa corespunda cu #card-crop-stage din HTML
 
 function deschideCardPozitionare(c) {
@@ -1671,7 +1671,6 @@ function deschideCardPozitionare(c) {
     _cardCrop.zoom = 1;
     _cardCrop.offX = 0;
     _cardCrop.offY = 0;
-    _cardCrop.touched = false;
     zoomSlider.value = 100;
     applyCardCropTransform();
   };
@@ -1692,7 +1691,6 @@ function deschideCardPozitionare(c) {
     if (!_cardCrop.dragging) return;
     _cardCrop.offX = _cardCrop.startOffX + (e.clientX - _cardCrop.startX);
     _cardCrop.offY = _cardCrop.startOffY + (e.clientY - _cardCrop.startY);
-    _cardCrop.touched = true;
     clampCardCropOffset();
     applyCardCropTransform();
   };
@@ -1710,7 +1708,6 @@ function deschideCardPozitionare(c) {
 
 function onCardCropZoom(val) {
   _cardCrop.zoom = val / 100;
-  _cardCrop.touched = true;
   clampCardCropOffset();
   applyCardCropTransform();
 }
@@ -1743,15 +1740,15 @@ function cancelCardPozitionare() {
 function confirmCardPozitionare() {
   var c = _cardCrop.captura;
   if (!c) return;
-  // WYSIWYG: ce vede pescarul în chenar e exact ce iese pe card, inclusiv
-  // eventualele benzi negre dacă n-a apropiat destul cât să acopere tot
-  // chenarul (deseneazaCardCaptura() știe să le deseneze) — nu mai forțăm
-  // scara în sus pe ascuns. Excepție: dacă n-a atins deloc drag-ul/zoom-ul
-  // (_cardCrop.touched === false), păstrăm vechiul decupaj automat centrat.
-  var coverScale = Math.max(CARD_CROP_W / _cardCrop.naturalW, CARD_CROP_H / _cardCrop.naturalH);
-  var scale = _cardCrop.touched ? (_cardCrop.baseScale * _cardCrop.zoom) : coverScale;
-  var offX = _cardCrop.touched ? _cardCrop.offX : 0;
-  var offY = _cardCrop.touched ? _cardCrop.offY : 0;
+  // WYSIWYG strict: ce vede pescarul în chenar (inclusiv eventualele benzi
+  // negre, dacă nu a apropiat destul cât să acopere tot chenarul) e exact
+  // ce iese pe card — fără nicio plasă de siguranță care să forțeze scara
+  // în sus pe ascuns (asta a fost bug-ul raportat de două ori: o poză 16:9
+  // lăsată necropată vertical, cu benzi, revenea la un crop forțat "cover"
+  // la confirmare).
+  var scale = _cardCrop.baseScale * _cardCrop.zoom;
+  var offX = _cardCrop.offX;
+  var offY = _cardCrop.offY;
   var sw = CARD_CROP_W / scale;
   var sh = CARD_CROP_H / scale;
   var sx = (_cardCrop.naturalW - sw) / 2 - (offX / scale);
